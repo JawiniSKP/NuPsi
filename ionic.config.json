@@ -1,0 +1,7 @@
+{
+  "name": "NuPsi",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
