@@ -1,0 +1,90 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title>NutPsi - Iniciar Sesión</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <div class="login-container">
+    <div class="logo-section">
+      <div class="logo-placeholder">
+        <ion-icon name="heart" size="large"></ion-icon>
+      </div>
+      <h2>Bienvenido a NutPsi</h2>
+      <p class="subtitle">Tu aliado en salud nutricional y emocional</p>
+    </div>
+
+    <div class="form-card">
+      <form [formGroup]="loginForm" (ngSubmit)="login()">
+        <ion-list lines="none">
+          <ion-item>
+            <ion-label position="stacked">Email</ion-label>
+            <ion-input 
+              type="email" 
+              formControlName="email"
+              placeholder="tu@email.com"
+              required>
+            </ion-input>
+          </ion-item>
+          <ion-note *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.errors" color="danger">
+            <span *ngIf="loginForm.get('email')?.errors?.['required']">Email es requerido</span>
+            <span *ngIf="loginForm.get('email')?.errors?.['email']">Formato de email inválido</span>
+          </ion-note>
+
+          <ion-item>
+            <ion-label position="stacked">Contraseña</ion-label>
+            <ion-input 
+              [type]="showPassword ? 'text' : 'password'" 
+              formControlName="password"
+              placeholder="Mínimo 6 caracteres"
+              required>
+            </ion-input>
+            <ion-button 
+              fill="clear" 
+              slot="end" 
+              (click)="togglePasswordVisibility()"
+              aria-label="Mostrar/ocultar contraseña">
+              <ion-icon 
+                slot="icon-only"
+                [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"
+                color="medium">
+              </ion-icon>
+            </ion-button>
+          </ion-item>
+          <ion-note *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.errors" color="danger">
+            <span *ngIf="loginForm.get('password')?.errors?.['required']">Contraseña es requerida</span>
+            <span *ngIf="loginForm.get('password')?.errors?.['minlength']">Mínimo 6 caracteres</span>
+          </ion-note>
+        </ion-list>
+
+        <ion-button 
+          expand="block" 
+          type="submit" 
+          [disabled]="!loginForm.valid"
+          class="ion-margin-vertical">
+          Iniciar Sesión
+        </ion-button>
+      </form>
+
+      <div class="separator">
+        <span class="separator-text">o continuar con</span>
+      </div>
+
+      <ion-button 
+        expand="block" 
+        fill="outline" 
+        (click)="loginWithGoogle()"
+        class="ion-margin-vertical">
+        <ion-icon slot="start" name="logo-google"></ion-icon>
+        Google
+      </ion-button>
+    </div>
+
+    <div class="register-link">
+      <p>
+        ¿No tienes cuenta? 
+        <a (click)="goToRegister()" class="link">Regístrate aquí</a>
+      </p>
+    </div>
+  </div>
+</ion-content>

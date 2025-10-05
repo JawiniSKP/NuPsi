@@ -1,0 +1,40 @@
+<ion-menu contentId="main-content">
+  <ion-header>
+    <ion-toolbar color="primary">
+      <ion-title>NutPsi</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  
+  <ion-content class="ion-padding">
+    <ion-list>
+      <!-- Items del menú -->
+      <ion-menu-toggle *ngFor="let page of pages">
+        <ion-item 
+          [routerLink]="page.url" 
+          routerDirection="root" 
+          lines="none" 
+          detail="false"
+          class="menu-item">
+          <ion-icon slot="start" [name]="page.icon"></ion-icon>
+          <ion-label>{{ page.title }}</ion-label>
+        </ion-item>
+      </ion-menu-toggle>
+      
+      <!-- Separador -->
+      <div class="menu-divider"></div>
+      
+      <!-- Botón de cerrar sesión -->
+      <ion-menu-toggle>
+        <ion-item 
+          button 
+          (click)="logout()" 
+          lines="none" 
+          detail="false"
+          class="logout-item">
+          <ion-icon slot="start" name="log-out"></ion-icon>
+          <ion-label>Cerrar Sesión</ion-label>
+        </ion-item>
+      </ion-menu-toggle>
+    </ion-list>
+  </ion-content>
+</ion-menu>

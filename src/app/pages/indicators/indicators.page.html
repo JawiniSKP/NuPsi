@@ -1,0 +1,193 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Registrar Indicadores</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="container">
+    <!-- Paso 1: Peso -->
+    <div *ngIf="currentStep === 1" class="step-container">
+      <div class="step-header">
+        <h2>Peso</h2>
+        <p>Ingresa tu peso actual en kilogramos</p>
+      </div>
+      
+      <ion-item class="form-item">
+        <ion-label position="stacked">Peso (kg)</ion-label>
+        <ion-input 
+          type="number" 
+          [(ngModel)]="indicatorForm.weight"
+          placeholder="Ej: 70"
+          required>
+        </ion-input>
+      </ion-item>
+
+      <div class="navigation-buttons">
+        <ion-button 
+          expand="block" 
+          (click)="nextStep()"
+          [disabled]="!indicatorForm.weight || indicatorForm.weight <= 0">
+          Siguiente
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Paso 2: Estatura -->
+    <div *ngIf="currentStep === 2" class="step-container">
+      <div class="step-header">
+        <h2>Estatura</h2>
+        <p>Ingresa tu estatura en centímetros</p>
+      </div>
+      
+      <ion-item class="form-item">
+        <ion-label position="stacked">Estatura (cm)</ion-label>
+        <ion-input 
+          type="number" 
+          [(ngModel)]="indicatorForm.height"
+          placeholder="Ej: 170"
+          required>
+        </ion-input>
+      </ion-item>
+
+      <div class="navigation-buttons">
+        <ion-button 
+          expand="block" 
+          fill="outline"
+          (click)="prevStep()">
+          Anterior
+        </ion-button>
+        <ion-button 
+          expand="block" 
+          (click)="nextStep()"
+          [disabled]="!indicatorForm.height || indicatorForm.height <= 0">
+          Siguiente
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Paso 3: Estado emocional -->
+    <div *ngIf="currentStep === 3" class="step-container">
+      <div class="step-header">
+        <h2>¿Cómo te sientes hoy?</h2>
+        <p>Selecciona tu estado emocional actual</p>
+      </div>
+      
+      <ion-radio-group [(ngModel)]="indicatorForm.mood" class="mood-options">
+        <ion-radio value="excelente" justify="start" class="mood-option">
+          <ion-label>😊 Excelente</ion-label>
+        </ion-radio>
+        <ion-radio value="bueno" justify="start" class="mood-option">
+          <ion-label>🙂 Bien</ion-label>
+        </ion-radio>
+        <ion-radio value="regular" justify="start" class="mood-option">
+          <ion-label>😐 Regular</ion-label>
+        </ion-radio>
+        <ion-radio value="malo" justify="start" class="mood-option">
+          <ion-label>😔 Mal</ion-label>
+        </ion-radio>
+      </ion-radio-group>
+
+      <div class="navigation-buttons">
+        <ion-button 
+          expand="block" 
+          fill="outline"
+          (click)="prevStep()">
+          Anterior
+        </ion-button>
+        <ion-button 
+          expand="block" 
+          (click)="nextStep()"
+          [disabled]="!indicatorForm.mood">
+          Siguiente
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Paso 4: Notas adicionales -->
+    <div *ngIf="currentStep === 4" class="step-container">
+      <div class="step-header">
+        <h2>Notas adicionales</h2>
+        <p>Comentarios opcionales sobre tu día</p>
+      </div>
+      
+      <ion-item class="form-item">
+        <ion-label position="stacked">Notas (opcional)</ion-label>
+        <ion-textarea 
+          [(ngModel)]="indicatorForm.notes"
+          placeholder="Escribe aquí cualquier comentario adicional..."
+          rows="4">
+        </ion-textarea>
+      </ion-item>
+
+      <div class="navigation-buttons">
+        <ion-button 
+          expand="block" 
+          fill="outline"
+          (click)="prevStep()">
+          Anterior
+        </ion-button>
+        <ion-button 
+          expand="block" 
+          (click)="saveIndicators()">
+          Guardar
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Paso 5: Resumen y resultados -->
+    <div *ngIf="currentStep === 5" class="step-container">
+      <div class="step-header">
+        <h2>¡Registro completado!</h2>
+        <p>Resumen de tu registro</p>
+      </div>
+      
+      <ion-card class="summary-card">
+        <ion-card-header>
+          <ion-card-title>Resumen</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="summary-item">
+            <strong>Peso:</strong> {{indicatorForm.weight}} kg
+          </div>
+          <div class="summary-item">
+            <strong>Estatura:</strong> {{indicatorForm.height}} cm
+          </div>
+          <div class="summary-item">
+            <strong>IMC:</strong> {{getSafeBMI() | number:'1.1-1'}} 
+            ({{getSafeBMICategory()}})
+          </div>
+          <div class="summary-item">
+            <strong>Estado:</strong> {{getMoodEmoji(indicatorForm.mood)}} {{indicatorForm.mood | titlecase}}
+          </div>
+          <div *ngIf="indicatorForm.notes" class="summary-item">
+            <strong>Notas:</strong> {{indicatorForm.notes}}
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <div class="navigation-buttons">
+        <ion-button 
+          expand="block" 
+          (click)="goToHome()">
+          Aceptar
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Indicador de progreso -->
+    <div class="progress-indicator">
+      <div class="step-dots">
+        <span *ngFor="let step of [1,2,3,4,5]" 
+              [class.active]="step === currentStep"
+              [class.completed]="step < currentStep"
+              class="step-dot">
+        </span>
+      </div>
+      <p class="step-text">Paso {{currentStep}} de 5</p>
+    </div>
+  </div>
+</ion-content>

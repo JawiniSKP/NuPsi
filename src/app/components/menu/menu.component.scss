@@ -1,0 +1,58 @@
+.menu-item {
+  --padding-start: 16px;
+  --inner-padding-end: 16px;
+  margin: 4px 0;
+  border-radius: 8px;
+  
+  ion-icon {
+    color: var(--ion-color-primary);
+    font-size: 20px;
+  }
+  
+  ion-label {
+    font-weight: 500;
+  }
+}
+
+.logout-item {
+  --padding-start: 16px;
+  --inner-padding-end: 16px;
+  margin: 4px 0;
+  border-radius: 8px;
+  
+  ion-icon {
+    color: var(--ion-color-danger);
+    font-size: 20px;
+  }
+  
+  ion-label {
+    font-weight: 500;
+    color: var(--ion-color-danger);
+  }
+}
+
+.menu-divider {
+  height: 1px;
+  background: var(--ion-color-light-shade);
+  margin: 16px 0;
+}
+
+// Efectos hover - Solo para dispositivos con hover
+@media (hover: hover) {
+  ion-item {
+    transition: background-color 0.3s ease;
+    
+    &:hover {
+      --background: var(--ion-color-light-tint);
+    }
+  }
+}
+
+// Estilo para el ítem activo
+ion-item[routerLink].item-active {
+  --background: var(--ion-color-primary-tint);
+  
+  ion-icon, ion-label {
+    color: var(--ion-color-primary);
+  }
+}

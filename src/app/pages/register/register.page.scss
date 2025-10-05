@@ -1,0 +1,138 @@
+.register-container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.logo-section {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.logo-placeholder {
+  margin-bottom: 1rem;
+  
+  ion-icon {
+    font-size: 4rem;
+    color: var(--ion-color-primary);
+  }
+}
+
+h2 {
+  color: var(--ion-color-primary);
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  font-size: 1.8rem;
+}
+
+.subtitle {
+  color: var(--ion-color-medium);
+  margin: 0;
+  font-size: 1rem;
+}
+
+.separator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.5rem 0;
+}
+
+.separator::before,
+.separator::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+}
+
+.separator-text {
+  padding: 0 1rem;
+  color: var(--ion-color-medium);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.login-link {
+  margin-top: auto;
+  
+  p {
+    color: var(--ion-color-medium);
+    margin: 0;
+    font-size: 0.95rem;
+  }
+}
+
+.link {
+  color: var(--ion-color-primary);
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+ion-note {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.8rem;
+}
+
+ion-item {
+  --border-radius: 12px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --inner-padding-end: 0;
+  margin-bottom: 1rem;
+  border: 1px solid var(--ion-color-light-shade);
+  
+  &.item-has-focus {
+    --border-color: var(--ion-color-primary);
+    border-color: var(--ion-color-primary);
+    box-shadow: 0 0 0 2px rgba(var(--ion-color-primary-rgb), 0.1);
+  }
+}
+
+ion-button {
+  --border-radius: 12px;
+  height: 50px;
+  font-weight: 600;
+  font-size: 1rem;
+  
+  &[type="submit"] {
+    --box-shadow: 0 4px 15px rgba(var(--ion-color-primary-rgb), 0.3);
+  }
+  
+  &[fill="outline"] {
+    --border-color: var(--ion-color-medium);
+    --color: var(--ion-color-dark);
+  }
+}
+
+// Botón de retroceso
+ion-back-button {
+  --color: var(--ion-color-primary-contrast);
+}
+
+// Responsive
+@media (max-height: 700px) {
+  .register-container {
+    justify-content: flex-start;
+    padding-top: 1rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .register-container {
+    padding: 10px 0;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+}

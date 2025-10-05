@@ -1,0 +1,218 @@
+.login-container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--ion-color-primary) 0%, #667eea 100%);
+  
+  // Fondo con gradiente suave
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, 
+      rgba(255,255,255,0.1) 0%, 
+      rgba(255,255,255,0.05) 100%);
+    z-index: -1;
+  }
+}
+
+.logo-section {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  padding: 1rem;
+}
+
+.logo-placeholder {
+  margin-bottom: 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.logo-placeholder ion-icon {
+  font-size: 2.5rem;
+  color: white;
+}
+
+h2 {
+  color: white;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  font-size: 1.8rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+// Card para el formulario
+.form-card {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  backdrop-filter: blur(10px);
+  margin-bottom: 1rem;
+}
+
+ion-list {
+  background: transparent !important;
+}
+
+ion-item {
+  --background: transparent;
+  --border-color: var(--ion-color-light-shade);
+  --border-radius: 12px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --inner-padding-end: 0;
+  margin-bottom: 1rem;
+  border: 1px solid var(--ion-color-light-shade);
+  
+  &.item-has-focus {
+    --border-color: var(--ion-color-primary);
+    border-color: var(--ion-color-primary);
+    box-shadow: 0 0 0 2px rgba(var(--ion-color-primary-rgb), 0.1);
+  }
+}
+
+ion-label {
+  color: var(--ion-color-medium);
+  font-weight: 500;
+}
+
+ion-input {
+  --padding-start: 0;
+  font-size: 1rem;
+}
+
+// Botón principal mejorado
+ion-button {
+  --border-radius: 12px;
+  --box-shadow: 0 4px 15px rgba(var(--ion-color-primary-rgb), 0.3);
+  height: 50px;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+  
+  &:hover {
+    --box-shadow: 0 6px 20px rgba(var(--ion-color-primary-rgb), 0.4);
+  }
+}
+
+// Botón de Google mejorado
+ion-button[fill="outline"] {
+  --border-color: var(--ion-color-medium);
+  --color: var(--ion-color-dark);
+  --background: white;
+  
+  &:hover {
+    --background: var(--ion-color-light);
+  }
+}
+
+.separator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 2rem 0;
+  color: white;
+}
+
+.separator::before,
+.separator::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.separator-text {
+  padding: 0 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.register-link {
+  text-align: center;
+  margin-top: 2rem;
+  
+  p {
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0;
+    font-size: 0.95rem;
+  }
+}
+
+.link {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  
+  &:hover {
+    text-decoration: underline;
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+ion-note {
+  display: block;
+  margin: 0.5rem 0 0 1rem;
+  font-size: 0.8rem;
+}
+
+// Efectos de animación
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-container > * {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.form-card {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+// Responsive
+@media (max-height: 700px) {
+  .login-container {
+    justify-content: flex-start;
+    padding-top: 2rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .login-container {
+    padding: 15px;
+  }
+  
+  .form-card {
+    padding: 1.5rem;
+  }
+}
