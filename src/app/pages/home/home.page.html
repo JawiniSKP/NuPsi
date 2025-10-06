@@ -1,54 +1,158 @@
 <ion-header [translucent]="true">
   <ion-toolbar color="primary">
-    <ion-buttons slot="start">
-      <ion-menu-button></ion-menu-button>
+    <ion-title>NutPsi</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="openProfile()">
+        <ion-icon slot="icon-only" name="person-circle"></ion-icon>
+      </ion-button>
     </ion-buttons>
-    <ion-title>Inicio</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="ion-padding">
-  <div class="welcome-section">
-    <h2>Bienvenido a NutPsi</h2>
-    <p>Tu aplicación de salud integral</p>
+<ion-content class="ion-padding">
+  <!-- DEBUG SECTION - Temporal -->
+  <div class="debug-info" *ngIf="user">
+    <p><strong>Usuario:</strong> {{user.email}}</p>
+    <p><strong>Nombre:</strong> {{userName}}</p>
+    <p><strong>UID:</strong> {{user.uid}}</p>
   </div>
 
-  <!-- Último registro (si existe) -->
-  <ion-card *ngIf="lastIndicator" class="last-record">
+  <div *ngIf="!user" class="not-authenticated">
+    <ion-card color="warning">
+      <ion-card-content>
+        <h3>⚠️ No hay usuario autenticado</h3>
+        <ion-button expand="block" routerLink="/login">
+          Ir al Login
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Header con saludo y fecha -->
+  <div class="welcome-section">
+    <h1 class="greeting">¡Hola, {{userName}}!</h1>
+    <p class="date">{{currentDate | date:'EEEE, d \'de\' MMMM \'de\' y'}}</p>
+  </div>
+
+  <!-- Pregunta del día -->
+  <ion-card class="question-card">
     <ion-card-header>
-      <ion-card-title>Tu último registro</ion-card-title>
+      <ion-card-title class="card-title-small">Tu pregunta del día</ion-card-title>
     </ion-card-header>
     <ion-card-content>
-      <p><strong>Peso:</strong> {{lastIndicator.peso}} kg</p>
-      <p><strong>Estatura:</strong> {{lastIndicator.estatura}} cm</p>
-      <p><strong>IMC:</strong> {{lastIndicator.imc | number:'1.1-1'}}</p>
-      <p><strong>Estado:</strong> {{lastIndicator.estado}}</p>
+      <p class="question-text">¿Cómo te sientes hoy?</p>
+      
+      <!-- Estado de ánimo como checkboxes circulares -->
+      <div class="mood-checkboxes">
+        <ion-item lines="none" class="mood-item">
+          <ion-checkbox slot="start" class="mood-checkbox" value="excelente"></ion-checkbox>
+          <ion-label class="mood-label">😊 Excelente</ion-label>
+        </ion-item>
+        
+        <ion-item lines="none" class="mood-item">
+          <ion-checkbox slot="start" class="mood-checkbox" value="bueno" checked></ion-checkbox>
+          <ion-label class="mood-label">🙂 Bueno</ion-label>
+        </ion-item>
+        
+        <ion-item lines="none" class="mood-item">
+          <ion-checkbox slot="start" class="mood-checkbox" value="regular"></ion-checkbox>
+          <ion-label class="mood-label">😐 Regular</ion-label>
+        </ion-item>
+        
+        <ion-item lines="none" class="mood-item">
+          <ion-checkbox slot="start" class="mood-checkbox" value="malo" checked></ion-checkbox>
+          <ion-label class="mood-label">😔 Malo</ion-label>
+        </ion-item>
+        
+        <ion-item lines="none" class="mood-item">
+          <ion-checkbox slot="start" class="mood-checkbox" value="ansioso" checked></ion-checkbox>
+          <ion-label class="mood-label">😰 Ansioso</ion-label>
+        </ion-item>
+      </div>
     </ion-card-content>
   </ion-card>
 
-  <!-- Botones de acción -->
-  <ion-grid>
-    <ion-row>
-      <ion-col size="6">
-        <ion-button expand="block" routerLink="/indicators" class="action-button">
-          <ion-icon slot="start" name="add"></ion-icon>
-          Registrar Indicadores
-        </ion-button>
-      </ion-col>
-      <ion-col size="6">
-        <ion-button expand="block" routerLink="/progress" fill="outline" class="action-button">
-          <ion-icon slot="start" name="stats-chart"></ion-icon>
-          Ver Progreso
-        </ion-button>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+  <!-- Separador -->
+  <div class="divider"></div>
 
-  <!-- Mensaje si no hay usuario -->
-  <div *ngIf="!user" class="login-prompt">
-    <p>Inicia sesión para guardar tu progreso</p>
-    <ion-button routerLink="/login" fill="clear">
-      Iniciar Sesión
+  <!-- Progreso diario -->
+  <div class="progress-section">
+    <h3 class="section-title">Pasos</h3>
+    <ion-card class="progress-card">
+      <ion-card-header>
+        <ion-card-title class="card-title-small">Progreso diario</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="progress-item">
+          <div class="progress-info">
+            <ion-icon name="water-outline" color="primary" class="progress-icon"></ion-icon>
+            <span class="progress-label">Meta de agua</span>
+          </div>
+          <div class="progress-value">6/8 vasos</div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Botones de acción -->
+  <div class="action-buttons">
+    <ion-button expand="block" class="primary-button" (click)="openDailyRegister()">
+      Registrar mi día
+    </ion-button>
+    
+    <ion-button expand="block" fill="outline" class="secondary-button" routerLink="/indicators">
+      Ver mis planes
     </ion-button>
   </div>
+
+  <!-- Separador -->
+  <div class="divider"></div>
+
+  <!-- Consejo del día -->
+  <ion-card class="tip-card">
+    <ion-card-header>
+      <ion-card-title class="card-title-small">
+        <ion-icon name="bulb-outline" color="warning"></ion-icon>
+        Consejo del día
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p class="tip-text">
+        Recuerda que pequeños cambios generan grandes resultados. ¡Tú puedes!
+      </p>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Espacio para la bottom navigation -->
+  <div class="bottom-spacer"></div>
 </ion-content>
+
+<!-- Bottom Navigation -->
+<ion-tabs>
+  <ion-tab-bar slot="bottom" class="bottom-nav">
+    <ion-tab-button tab="home" selected>
+      <ion-icon name="home"></ion-icon>
+      <ion-label>Inicio</ion-label>
+    </ion-tab-button>
+    
+    <ion-tab-button tab="planes">
+      <ion-icon name="calendar"></ion-icon>
+      <ion-label>Planes</ion-label>
+    </ion-tab-button>
+    
+    <ion-tab-button tab="chatbot">
+      <ion-icon name="chatbubble"></ion-icon>
+      <ion-label>Chatbot</ion-label>
+    </ion-tab-button>
+    
+    <ion-tab-button tab="comunidad">
+      <ion-icon name="people"></ion-icon>
+      <ion-label>Comunidad</ion-label>
+    </ion-tab-button>
+    
+    <ion-tab-button tab="perfil">
+      <ion-icon name="person"></ion-icon>
+      <ion-label>Perfil</ion-label>
+    </ion-tab-button>
+  </ion-tab-bar>
+</ion-tabs>

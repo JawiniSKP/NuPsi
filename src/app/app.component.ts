@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
-import { MenuComponent } from './components/menu/menu.component';
 
 @Component({
   selector: 'app-root',
@@ -10,8 +9,8 @@ import { MenuComponent } from './components/menu/menu.component';
   standalone: true,
   imports: [
     IonicModule,
-    RouterModule,
-    MenuComponent // ✅ Agregar MenuComponent aquí
+    RouterModule
+    // Eliminamos MenuComponent de los imports
   ]
 })
 export class AppComponent {
