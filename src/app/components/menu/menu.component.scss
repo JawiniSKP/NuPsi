@@ -1,58 +1,64 @@
-.menu-item {
-  --padding-start: 16px;
-  --inner-padding-end: 16px;
-  margin: 4px 0;
-  border-radius: 8px;
-  
-  ion-icon {
-    color: var(--ion-color-primary);
-    font-size: 20px;
-  }
-  
-  ion-label {
-    font-weight: 500;
-  }
+/* components/menu/menu.component.scss */
+:host {
+  display: block;
 }
 
-.logout-item {
-  --padding-start: 16px;
-  --inner-padding-end: 16px;
-  margin: 4px 0;
-  border-radius: 8px;
-  
-  ion-icon {
-    color: var(--ion-color-danger);
-    font-size: 20px;
-  }
-  
-  ion-label {
-    font-weight: 500;
-    color: var(--ion-color-danger);
-  }
-}
+.bottom-nav {
+  border-top: 1px solid #e0e0e0;
+  padding: 8px 0;
+  background: white;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  z-index: 1000;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
 
-.menu-divider {
-  height: 1px;
-  background: var(--ion-color-light-shade);
-  margin: 16px 0;
-}
-
-// Efectos hover - Solo para dispositivos con hover
-@media (hover: hover) {
-  ion-item {
-    transition: background-color 0.3s ease;
+  ion-tab-button {
+    --color: #7f8c8d;
+    --color-selected: #3498db;
+    --background: transparent;
+    --background-focused: transparent;
     
-    &:hover {
-      --background: var(--ion-color-light-tint);
+    ion-icon {
+      font-size: 20px;
+      transition: transform 0.2s ease;
+    }
+    
+    ion-label {
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: 4px;
+    }
+
+    // Efecto al estar seleccionado
+    &[tab-selected] {
+      ion-icon {
+        transform: scale(1.1);
+      }
+    }
+
+    // Efecto al tocar
+    &:active {
+      ion-icon {
+        transform: scale(0.95);
+      }
     }
   }
 }
 
-// Estilo para el ítem activo
-ion-item[routerLink].item-active {
-  --background: var(--ion-color-primary-tint);
-  
-  ion-icon, ion-label {
-    color: var(--ion-color-primary);
+/* Responsive */
+@media (max-width: 480px) {
+  .bottom-nav {
+    padding: 6px 0;
+    
+    ion-tab-button {
+      ion-icon {
+        font-size: 18px;
+      }
+      
+      ion-label {
+        font-size: 11px;
+      }
+    }
   }
 }

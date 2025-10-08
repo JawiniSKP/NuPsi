@@ -34,12 +34,31 @@ export class AuthService {
     return this.auth.currentUser?.uid || '';
   }
 
-  // Obtener nombre del usuario
+  // Obtener nombre del usuario - MODIFICADO
   async getCurrentUserName(): Promise<string> {
     const user = this.auth.currentUser;
     if (!user) return 'Usuario';
     
     try {
+      // PRIMERO: Intentar obtener el nombre de Google Auth
+      if (user.providerData && user.providerData.length > 0) {
+        const googleProvider = user.providerData.find(
+          (provider: any) => provider.providerId === 'google.com'
+        );
+        
+        if (googleProvider?.displayName) {
+          console.log('Nombre obtenido de Google:', googleProvider.displayName);
+          return googleProvider.displayName;
+        }
+      }
+      
+      // SEGUNDO: Usar displayName directo de Firebase Auth
+      if (user.displayName) {
+        console.log('Nombre obtenido de displayName:', user.displayName);
+        return user.displayName;
+      }
+      
+      // TERCERO: Buscar en Firestore
       const userDoc = doc(this.firestore, `users/${user.uid}`);
       const userData = await new Promise<any>((resolve) => {
         const subscription = docData(userDoc).pipe(
@@ -54,14 +73,15 @@ export class AuthService {
         });
       });
       
-      return userData?.name || user.displayName || user.email?.split('@')[0] || 'Usuario';
+      // CUARTO: Fallbacks sucesivos
+      return userData?.name || user.email?.split('@')[0] || 'Usuario';
     } catch (error) {
       console.error('Error in getCurrentUserName:', error);
       return user.displayName || user.email?.split('@')[0] || 'Usuario';
     }
   }
 
-  // Obtener perfil del usuario
+  // Obtener perfil del usuario - MODIFICADO
   async getUserProfile(userId: string): Promise<any> {
     try {
       const userDoc = doc(this.firestore, `users/${userId}`);
@@ -95,10 +115,14 @@ export class AuthService {
     }
   }
 
-  // Login con Google
+  // Login con Google - MEJORADO
   async googleLogin(): Promise<any> {
     try {
       const provider = new GoogleAuthProvider();
+      // Solicitar permisos específicos para obtener el perfil
+      provider.addScope('profile');
+      provider.addScope('email');
+      
       const result = await signInWithPopup(this.auth, provider);
       
       // Guardar información del usuario en Firestore
@@ -108,8 +132,15 @@ export class AuthService {
           name: result.user.displayName,
           email: result.user.email,
           photoURL: result.user.photoURL,
+          provider: 'google',
+          lastLogin: new Date(),
           createdAt: new Date()
         }, { merge: true });
+        
+        console.log('Usuario de Google guardado:', {
+          name: result.user.displayName,
+          email: result.user.email
+        });
       }
       
       return result;
@@ -135,6 +166,7 @@ export class AuthService {
         await setDoc(userDoc, {
           name: name,
           email: email,
+          provider: 'email',
           createdAt: new Date()
         });
       }
@@ -154,5 +186,11 @@ export class AuthService {
       console.error('Logout error:', error);
       throw error;
     }
+  }
+
+  // NUEVO MÉTODO: Obtener información del proveedor
+  getProviderData(): any[] {
+    const user = this.auth.currentUser;
+    return user?.providerData || [];
   }
 }

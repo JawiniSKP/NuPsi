@@ -1,20 +1,13 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router'; // ✅ Agregar RouterModule
 import { 
-  IonMenu, 
-  IonHeader, 
-  IonToolbar, 
-  IonTitle, 
-  IonContent, 
-  IonList, 
-  IonItem, 
-  IonLabel,
-  IonIcon,
-  IonMenuToggle
+  IonTabs, 
+  IonTabBar, 
+  IonTabButton, 
+  IonIcon, 
+  IonLabel 
 } from '@ionic/angular/standalone';
-import { addIcons } from 'ionicons';
-import { home, analytics, chatbubble, statsChart, logOut } from 'ionicons/icons';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-menu',
@@ -23,34 +16,14 @@ import { home, analytics, chatbubble, statsChart, logOut } from 'ionicons/icons'
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule, // ✅ Agregar esto para routerLink
-    IonMenu,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonContent,
-    IonList,
-    IonItem,
-    IonLabel,
+    RouterModule,
+    IonTabs,
+    IonTabBar,
+    IonTabButton,
     IonIcon,
-    IonMenuToggle
+    IonLabel
   ]
 })
 export class MenuComponent {
-
-  pages = [
-    { title: 'Inicio', url: '/home', icon: 'home' },
-    { title: 'Registrar Indicadores', url: '/indicators', icon: 'analytics' },
-    { title: 'Mi Progreso', url: '/progress', icon: 'stats-chart' },
-    { title: 'Chatbot', url: '/chat', icon: 'chatbubble' }
-  ];
-
-  constructor(private router: Router) {
-    addIcons({ home, analytics, chatbubble, statsChart, logOut });
-  }
-
-  logout() {
-    console.log('Cerrando sesión...');
-    this.router.navigate(['/login']);
-  }
+  // Puedes agregar lógica de navegación aquí si es necesario
 }

@@ -1,27 +1,29 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { 
   IonContent, 
   IonHeader, 
   IonTitle, 
   IonToolbar,
-  IonButtons,
-  IonMenuButton,
-  IonItem,
-  IonLabel,
-  IonInput,
-  IonButton,
-  IonTextarea,
-  IonRadioGroup,
-  IonRadio,
   IonCard,
   IonCardHeader,
   IonCardTitle,
-  IonCardContent
+  IonCardContent,
+  IonItem,
+  IonLabel,
+  IonInput,
+  IonSelect,
+  IonSelectOption,
+  IonButton,
+  IonTextarea,
+  IonList,
+  IonNote,
+  IonLoading
 } from '@ionic/angular/standalone';
-import { IndicatorsService } from '../../services/indicators.service';
+
+// ✅ IMPORTAR CORRECTAMENTE
+import { IndicatorsService, Indicator } from '../../services/indicators.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -30,100 +32,129 @@ import { AuthService } from '../../services/auth.service';
   styleUrls: ['./indicators.page.scss'],
   standalone: true,
   imports: [
-    CommonModule,
+    CommonModule, 
     FormsModule,
-    IonContent,
-    IonHeader,
-    IonTitle,
+    ReactiveFormsModule,
+    IonContent, 
+    IonHeader, 
+    IonTitle, 
     IonToolbar,
-    IonButtons,
-    IonMenuButton,
-    IonItem,
-    IonLabel,
-    IonInput,
-    IonButton,
-    IonTextarea,
-    IonRadioGroup,
-    IonRadio,
     IonCard,
     IonCardHeader,
     IonCardTitle,
-    IonCardContent
+    IonCardContent,
+    IonItem,
+    IonLabel,
+    IonInput,
+    IonSelect,
+    IonSelectOption,
+    IonButton,
+    IonTextarea,
+    IonList,
+    IonNote,
+    IonLoading
   ]
 })
 export class IndicatorsPage implements OnInit {
-  currentStep: number = 1;
-  
-  // 🔄 CAMBIADO: Inicializar con valores por defecto
-  indicatorForm = {
-    weight: 0, // ✅ Cambiado de null a 0
-    height: 0, // ✅ Cambiado de null a 0
-    mood: '',
-    notes: '',
-    date: new Date().toISOString()
-  };
+  indicatorForm: FormGroup;
+  userIndicators: Indicator[] = []; // ✅ Ahora Indicator está definido
+  loading = false;
 
-  constructor(
-    private indicatorsService: IndicatorsService,
-    private authService: AuthService,
-    private router: Router
-  ) {}
+  private indicatorsService = inject(IndicatorsService);
+  private authService = inject(AuthService);
+  private fb = inject(FormBuilder);
 
-  ngOnInit() {
-    console.log('IndicatorsPage initialized');
+  constructor() {
+    this.indicatorForm = this.fb.group({
+      weight: ['', [Validators.required, Validators.min(30), Validators.max(300)]],
+      height: ['', [Validators.required, Validators.min(100), Validators.max(250)]],
+      mood: ['', Validators.required],
+      notes: [''],
+      date: [new Date().toISOString().substring(0, 10)]
+    });
   }
 
-  nextStep() {
-    if (this.currentStep < 5) {
-      this.currentStep++;
-    }
+  async ngOnInit() {
+    await this.loadUserIndicators();
   }
 
-  prevStep() {
-    if (this.currentStep > 1) {
-      this.currentStep--;
-    }
-  }
-
-  async saveIndicators() {
-    console.log('Saving indicators:', this.indicatorForm);
+  async loadUserIndicators() {
+    this.loading = true;
+    const userId = this.authService.getCurrentUserId();
     
-    // 🔄 CAMBIADO: Verificar que los valores sean mayores que 0
-    if (this.indicatorForm.weight > 0 && this.indicatorForm.height > 0 && this.indicatorForm.mood) {
+    if (userId) {
+      this.indicatorsService.getIndicators(userId).subscribe({
+        next: (data: Indicator[]) => {
+          // Ordenar localmente temporalmente
+          this.userIndicators = data.sort((a, b) => 
+            new Date(b.date).getTime() - new Date(a.date).getTime()
+          );
+          this.loading = false;
+          console.log('Indicadores cargados:', this.userIndicators);
+        },
+        error: (error: any) => {
+          console.error('Error loading indicators:', error);
+          this.loading = false;
+        }
+      });
+    } else {
+      console.warn('No user ID available');
+      this.loading = false;
+    }
+  }
+
+  async submitIndicator() {
+    if (this.indicatorForm.valid) {
+      this.loading = true;
       const userId = this.authService.getCurrentUserId();
       
       if (userId) {
         try {
           const formData = {
-            ...this.indicatorForm,
-            bmi: this.calculateBMI(this.indicatorForm.weight, this.indicatorForm.height),
-            date: new Date().toISOString()
+            ...this.indicatorForm.value,
+            bmi: this.calculateBMI(
+              Number(this.indicatorForm.value.weight), 
+              Number(this.indicatorForm.value.height)
+            )
           };
-          
-          console.log('Saving data:', formData);
           
           await this.indicatorsService.addIndicator(userId, formData);
           
-          // Ir al paso de resumen
-          this.currentStep = 5;
+          // Reset form
+          this.indicatorForm.reset({
+            date: new Date().toISOString().substring(0, 10),
+            mood: '',
+            notes: ''
+          });
           
-        } catch (error) {
+          // Recargar indicadores
+          await this.loadUserIndicators();
+          
+          // Mostrar mensaje de éxito
+          this.showSuccessMessage();
+          
+        } catch (error: any) {
           console.error('Error saving indicator:', error);
+          this.showErrorMessage();
+        } finally {
+          this.loading = false;
         }
+      } else {
+        console.warn('No user ID available for saving indicator');
+        this.loading = false;
       }
     } else {
-      console.log('Form validation failed');
+      // Marcar todos los campos como touched para mostrar errores
+      Object.keys(this.indicatorForm.controls).forEach(key => {
+        this.indicatorForm.get(key)?.markAsTouched();
+      });
     }
-  }
-
-  goToHome() {
-    console.log('Navigating to home');
-    this.router.navigate(['/home']);
   }
 
   calculateBMI(weight: number, height: number): number {
     const heightInMeters = height / 100;
-    return weight / (heightInMeters * heightInMeters);
+    const bmi = weight / (heightInMeters * heightInMeters);
+    return Number(bmi.toFixed(1));
   }
 
   getBMICategory(bmi: number): string {
@@ -133,22 +164,56 @@ export class IndicatorsPage implements OnInit {
     return 'Obesidad';
   }
 
+  getBMIColor(bmi: number): string {
+    if (bmi < 18.5) return 'warning';
+    if (bmi < 25) return 'success';
+    if (bmi < 30) return 'warning';
+    return 'danger';
+  }
+
   getMoodEmoji(mood: string): string {
     const moodEmojis: { [key: string]: string } = {
       'excelente': '😊',
       'bueno': '🙂',
       'regular': '😐',
-      'malo': '😔'
+      'malo': '😔',
+      'terrible': '😢'
     };
     return moodEmojis[mood] || '❓';
   }
 
-  // 🔄 NUEVO: Métodos seguros para el template
-  getSafeBMI(): number {
-    return this.calculateBMI(this.indicatorForm.weight, this.indicatorForm.height);
+  formatDate(dateString: string): string {
+    return new Date(dateString).toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   }
 
-  getSafeBMICategory(): string {
-    return this.getBMICategory(this.getSafeBMI());
+  private async showSuccessMessage() {
+    const toast = document.createElement('ion-toast');
+    toast.message = 'Indicador guardado correctamente';
+    toast.duration = 2000;
+    toast.position = 'top';
+    toast.color = 'success';
+
+    document.body.appendChild(toast);
+    await toast.present();
+  }
+
+  private async showErrorMessage() {
+    const toast = document.createElement('ion-toast');
+    toast.message = 'Error al guardar el indicador';
+    toast.duration = 3000;
+    toast.position = 'top';
+    toast.color = 'danger';
+
+    document.body.appendChild(toast);
+    await toast.present();
+  }
+
+  // Método para debug
+  get formControls() {
+    return this.indicatorForm.controls;
   }
 }

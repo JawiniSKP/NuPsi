@@ -35,3 +35,29 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
+
+/* global.scss - SCROLL FIX */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+ion-app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+ion-content {
+  --overflow: auto;
+  flex: 1;
+  overflow-y: auto !important;
+  
+  .inner-scroll {
+    overflow-y: auto !important;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+}

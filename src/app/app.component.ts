@@ -1,6 +1,16 @@
 import { Component } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
+import { addIcons } from 'ionicons';
+import {
+  // ✅ SOLO LOS ICONOS DE EMOCIONES QUE VAS A USAR
+  happy,
+  happyOutline,
+  sad,
+  sadOutline,
+  warning,
+  removeOutline
+} from 'ionicons/icons';
 
 @Component({
   selector: 'app-root',
@@ -10,9 +20,18 @@ import { RouterModule } from '@angular/router';
   imports: [
     IonicModule,
     RouterModule
-    // Eliminamos MenuComponent de los imports
   ]
 })
 export class AppComponent {
-  constructor() {}
+  constructor() {
+    // ✅ REGISTRAR SOLO LOS ICONOS DE EMOCIONES A NIVEL GLOBAL
+    addIcons({
+      'happy': happy,
+      'happy-outline': happyOutline,
+      'sad': sad,
+      'sad-outline': sadOutline,
+      'warning': warning,
+      'remove-outline': removeOutline
+    });
+  }
 }

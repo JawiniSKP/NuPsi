@@ -1,30 +1,64 @@
-/* home.page.scss */
+/* home.page.scss - FIXED INTERACTIVITY */
+:host {
+  display: block;
+  height: 100%;
+}
+
+/* ===============================
+   📌 ION CONTENT CONFIG
+   =============================== */
 ion-content {
   --background: #f8f9fa;
   --overflow: auto;
-  height: 100vh;
-  
-  &.md {
-    --overflow: auto;
-  }
-  
-  &.ios {
-    --overflow: auto;
+  --padding-bottom: 90px; // 👈 espacio para que el contenido no quede bajo el menú
+
+  pointer-events: auto !important;
+  touch-action: pan-y !important;
+  z-index: 1;
+  position: relative;
+
+  .inner-scroll {
+    overflow-y: auto !important;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    pointer-events: auto !important;
   }
 }
 
-.debug-info {
-  background: #fff3cd;
-  border: 1px solid #ffeaa7;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 16px;
-  
-  p {
-    margin: 4px 0;
-    font-size: 12px;
-    color: #856404;
+/* ===============================
+   📌 MENÚ FIJO - NO BLOQUEA CLICKS
+   =============================== */
+app-menu {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000; // visible sobre el contenido
+  pointer-events: auto;
+
+  * {
+    pointer-events: auto;
   }
+
+  &::after {
+    content: "";
+    display: block;
+    height: 0;
+    width: 0;
+  }
+}
+
+/* ===============================
+   🧭 SECCIONES
+   =============================== */
+
+/* Contenedor principal - interactivo */
+.content-wrapper {
+  min-height: calc(100vh - 60px);
+  padding-bottom: 20px;
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 1;
 }
 
 .not-authenticated {
@@ -51,11 +85,15 @@ ion-content {
   }
 }
 
-/* Tarjeta de pregunta */
+/* ===============================
+   🧠 INTERACTIVIDAD DE ELEMENTOS
+   =============================== */
 .question-card {
   margin-bottom: 16px;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
 
   ion-card-header {
     padding-bottom: 8px;
@@ -78,47 +116,62 @@ ion-content {
       color: #34495e;
       margin: 0 0 16px 0;
     }
-
-    .mood-checkboxes {
-      .mood-item {
-        --padding-start: 0;
-        --inner-padding-end: 0;
-        --min-height: 44px;
-        margin-bottom: 8px;
-
-        .mood-checkbox {
-          --size: 20px;
-          --border-radius: 50%;
-          --border-width: 2px;
-          --border-color: #bdc3c7;
-          --checkmark-color: #ffffff;
-          margin-right: 12px;
-        }
-
-        .mood-label {
-          font-size: 16px;
-          color: #2c3e50;
-          margin: 0;
-        }
-
-        /* Estilo para checkboxes checked */
-        ion-checkbox[checked] {
-          --background: #3498db;
-          --border-color: #3498db;
-        }
-      }
-    }
   }
 }
 
-/* Separador */
+.emotions-container {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+  align-items: center;
+  pointer-events: auto !important;
+}
+
+.emotion-button {
+  --border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  margin: 0;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  
+  .button-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 12px;
+
+    .button-text {
+      margin-top: 2px;
+      font-size: 10px;
+    }
+  }
+
+  &:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+  }
+}
+
+.selection-info {
+  text-align: center;
+  font-size: 14px;
+  color: var(--ion-color-medium);
+  margin: 16px 0 0 0;
+  font-style: italic;
+}
+
 .divider {
   height: 1px;
   background: #ecf0f1;
   margin: 20px 0;
 }
 
-/* Sección de progreso */
+/* ===============================
+   📊 PROGRESO
+   =============================== */
 .progress-section {
   margin-bottom: 20px;
 
@@ -132,10 +185,11 @@ ion-content {
   .progress-card {
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    pointer-events: auto !important;
 
     ion-card-header {
       padding-bottom: 8px;
-      
+
       .card-title-small {
         font-size: 14px;
         font-weight: 600;
@@ -179,7 +233,9 @@ ion-content {
   }
 }
 
-/* Botones de acción */
+/* ===============================
+   🧭 BOTONES
+   =============================== */
 .action-buttons {
   margin-bottom: 20px;
 
@@ -190,6 +246,8 @@ ion-content {
     font-weight: 600;
     font-size: 16px;
     margin-bottom: 12px;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
   }
 
   .secondary-button {
@@ -200,20 +258,25 @@ ion-content {
     height: 44px;
     font-weight: 500;
     font-size: 14px;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
   }
 }
 
-/* Tarjeta de consejo */
+/* ===============================
+   💡 TIP CARD
+   =============================== */
 .tip-card {
   margin-bottom: 16px;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
   border: 1px solid #ffeaa7;
+  pointer-events: auto !important;
 
   ion-card-header {
     padding-bottom: 8px;
-    
+
     .card-title-small {
       font-size: 14px;
       font-weight: 600;
@@ -243,101 +306,40 @@ ion-content {
   }
 }
 
+.test-scroll-content {
+  margin-bottom: 20px;
+
+  ion-card {
+    pointer-events: auto !important;
+    margin-bottom: 12px;
+  }
+}
+
+/* Espaciador para evitar que el contenido quede bajo el menú */
 .bottom-spacer {
-  height: 80px;
+  height: 80px; // 👈 antes era 20px — más espacio para separación limpia
 }
 
-/* Bottom Navigation */
-.bottom-nav {
-  border-top: 1px solid #e0e0e0;
-  padding: 8px 0;
-  background: white;
-
-  ion-tab-button {
-    --color: #7f8c8d;
-    --color-selected: #3498db;
-    
-    ion-icon {
-      font-size: 20px;
-    }
-    
-    ion-label {
-      font-size: 12px;
-      font-weight: 500;
-      margin-top: 4px;
-    }
-  }
+/* Asegura que TODOS los elementos sean interactivos */
+ion-card, ion-button, .emotions-container, .feature-card {
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
 }
 
-/* Responsive adjustments */
-@media (max-width: 360px) {
-  .welcome-section {
-    .greeting {
-      font-size: 22px;
-    }
-    
-    .date {
-      font-size: 14px;
-    }
+/* ===============================
+   📱 RESPONSIVE
+   =============================== */
+@media (max-width: 480px) {
+  .emotions-container {
+    gap: 6px;
   }
-  
-  .question-card {
-    ion-card-content {
-      .question-text {
-        font-size: 16px;
-      }
-      
-      .mood-checkboxes .mood-item .mood-label {
-        font-size: 14px;
-      }
-    }
-  }
-}
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  ion-content {
-    --background: #1a1a1a;
+  .emotion-button {
+    width: 50px;
+    height: 50px;
   }
-  
-  .welcome-section {
-    .greeting {
-      color: #ffffff;
-    }
-    
-    .date {
-      color: #b0b0b0;
-    }
-  }
-  
-  .question-card,
-  .progress-card {
-    --background: #2d2d2d;
-    
-    .card-title-small {
-      color: #ffffff;
-    }
-  }
-  
-  .mood-checkboxes .mood-item .mood-label {
-    color: #ffffff;
-  }
-  
-  .progress-item .progress-info .progress-label {
-    color: #ffffff;
-  }
-  
-  .tip-card {
-    background: linear-gradient(135deg, #3a3a2a 0%, #4a4a3a 100%);
-    border-color: #5a5a4a;
-  }
-  
-  .divider {
-    background: #444444;
-  }
-  
-  .bottom-nav {
-    background: #2d2d2d;
-    border-top-color: #444444;
+
+  .content-wrapper {
+    min-height: calc(100vh - 50px);
   }
 }

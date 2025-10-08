@@ -1,40 +1,39 @@
-<ion-menu contentId="main-content">
-  <ion-header>
-    <ion-toolbar color="primary">
-      <ion-title>NutPsi</ion-title>
-    </ion-toolbar>
-  </ion-header>
-  
-  <ion-content class="ion-padding">
-    <ion-list>
-      <!-- Items del menú -->
-      <ion-menu-toggle *ngFor="let page of pages">
-        <ion-item 
-          [routerLink]="page.url" 
-          routerDirection="root" 
-          lines="none" 
-          detail="false"
-          class="menu-item">
-          <ion-icon slot="start" [name]="page.icon"></ion-icon>
-          <ion-label>{{ page.title }}</ion-label>
-        </ion-item>
-      </ion-menu-toggle>
-      
-      <!-- Separador -->
-      <div class="menu-divider"></div>
-      
-      <!-- Botón de cerrar sesión -->
-      <ion-menu-toggle>
-        <ion-item 
-          button 
-          (click)="logout()" 
-          lines="none" 
-          detail="false"
-          class="logout-item">
-          <ion-icon slot="start" name="log-out"></ion-icon>
-          <ion-label>Cerrar Sesión</ion-label>
-        </ion-item>
-      </ion-menu-toggle>
-    </ion-list>
-  </ion-content>
-</ion-menu>
+<!-- 
+  🧭 COMPONENTE DE MENÚ/TABS
+  Navegación principal de la aplicación
+-->
+<ion-tabs>
+  <ion-tab-bar slot="bottom" class="bottom-nav">
+    
+    <!-- Tab 1: INICIO -->
+    <ion-tab-button tab="home" [routerLink]="['/home']">
+      <ion-icon name="home"></ion-icon>
+      <ion-label>Inicio</ion-label>
+    </ion-tab-button>
+    
+    <!-- Tab 2: PLANES -->
+    <ion-tab-button tab="planes" [routerLink]="['/planes']">
+      <ion-icon name="calendar"></ion-icon>
+      <ion-label>Planes</ion-label>
+    </ion-tab-button>
+    
+    <!-- Tab 3: CHATBOT -->
+    <ion-tab-button tab="chatbot" [routerLink]="['/chatbot']">
+      <ion-icon name="chatbubble"></ion-icon>
+      <ion-label>Chatbot</ion-label>
+    </ion-tab-button>
+    
+    <!-- Tab 4: COMUNIDAD -->
+    <ion-tab-button tab="comunidad" [routerLink]="['/comunidad']">
+      <ion-icon name="people"></ion-icon>
+      <ion-label>Comunidad</ion-label>
+    </ion-tab-button>
+    
+    <!-- Tab 5: PERFIL -->
+    <ion-tab-button tab="perfil" [routerLink]="['/perfil']">
+      <ion-icon name="person"></ion-icon>
+      <ion-label>Perfil</ion-label>
+    </ion-tab-button>
+    
+  </ion-tab-bar>
+</ion-tabs>

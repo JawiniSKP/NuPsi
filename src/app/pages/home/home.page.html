@@ -1,3 +1,12 @@
+<!-- 
+  🏠 PÁGINA PRINCIPAL - HOME PAGE
+  Página principal de la aplicación NuPsi con seguimiento emocional
+-->
+
+<!-- 
+  HEADER - Cabecera principal de la aplicación
+  Contiene el título y botones de navegación superior
+-->
 <ion-header [translucent]="true">
   <ion-toolbar color="primary">
     <ion-title>NutPsi</ion-title>
@@ -9,150 +18,185 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <!-- DEBUG SECTION - Temporal -->
-  <div class="debug-info" *ngIf="user">
-    <p><strong>Usuario:</strong> {{user.email}}</p>
-    <p><strong>Nombre:</strong> {{userName}}</p>
-    <p><strong>UID:</strong> {{user.uid}}</p>
-  </div>
+<!-- 
+  CONTENIDO PRINCIPAL - Área scrollable de la página
+  ion-padding: añade padding interno
+  padding-bottom: evita que el contenido quede debajo del menú
+-->
+<ion-content [fullscreen]="true" class="ion-padding" style="--padding-bottom: 80px;">
 
-  <div *ngIf="!user" class="not-authenticated">
-    <ion-card color="warning">
-      <ion-card-content>
-        <h3>⚠️ No hay usuario autenticado</h3>
-        <ion-button expand="block" routerLink="/login">
-          Ir al Login
-        </ion-button>
-      </ion-card-content>
-    </ion-card>
-  </div>
+  <div class="content-wrapper">
+    <!-- 
+      ⚠️ SECCIÓN PARA USUARIOS NO AUTENTICADOS
+      *ngIf="!user": Solo se muestra cuando NO hay usuario logueado
+    -->
+    <div *ngIf="!user" class="not-authenticated">
+      <ion-card color="warning">
+        <ion-card-content>
+          <h3>⚠️ No hay usuario autenticado</h3>
+          <ion-button expand="block" routerLink="/login">Ir al Login</ion-button>
+        </ion-card-content>
+      </ion-card>
+    </div>
 
-  <!-- Header con saludo y fecha -->
-  <div class="welcome-section">
-    <h1 class="greeting">¡Hola, {{userName}}!</h1>
-    <p class="date">{{currentDate | date:'EEEE, d \'de\' MMMM \'de\' y'}}</p>
-  </div>
+    <!-- 
+      👋 SECCIÓN DE BIENVENIDA
+      Muestra saludo personalizado y fecha actual
+    -->
+    <div class="welcome-section">
+      <h1 class="greeting">¡Hola, {{userName}}!</h1>
+      <p class="date">{{currentDate | date:'EEEE, d \'de\' MMMM \'de\' y'}}</p>
+    </div>
 
-  <!-- Pregunta del día -->
-  <ion-card class="question-card">
-    <ion-card-header>
-      <ion-card-title class="card-title-small">Tu pregunta del día</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <p class="question-text">¿Cómo te sientes hoy?</p>
-      
-      <!-- Estado de ánimo como checkboxes circulares -->
-      <div class="mood-checkboxes">
-        <ion-item lines="none" class="mood-item">
-          <ion-checkbox slot="start" class="mood-checkbox" value="excelente"></ion-checkbox>
-          <ion-label class="mood-label">😊 Excelente</ion-label>
-        </ion-item>
-        
-        <ion-item lines="none" class="mood-item">
-          <ion-checkbox slot="start" class="mood-checkbox" value="bueno" checked></ion-checkbox>
-          <ion-label class="mood-label">🙂 Bueno</ion-label>
-        </ion-item>
-        
-        <ion-item lines="none" class="mood-item">
-          <ion-checkbox slot="start" class="mood-checkbox" value="regular"></ion-checkbox>
-          <ion-label class="mood-label">😐 Regular</ion-label>
-        </ion-item>
-        
-        <ion-item lines="none" class="mood-item">
-          <ion-checkbox slot="start" class="mood-checkbox" value="malo" checked></ion-checkbox>
-          <ion-label class="mood-label">😔 Malo</ion-label>
-        </ion-item>
-        
-        <ion-item lines="none" class="mood-item">
-          <ion-checkbox slot="start" class="mood-checkbox" value="ansioso" checked></ion-checkbox>
-          <ion-label class="mood-label">😰 Ansioso</ion-label>
-        </ion-item>
-      </div>
-    </ion-card-content>
-  </ion-card>
-
-  <!-- Separador -->
-  <div class="divider"></div>
-
-  <!-- Progreso diario -->
-  <div class="progress-section">
-    <h3 class="section-title">Pasos</h3>
-    <ion-card class="progress-card">
+    <!-- 
+      🎭 SECCIÓN DE SEGUIMIENTO EMOCIONAL
+      Permite al usuario registrar cómo se siente hoy usando emojis
+    -->
+    <ion-card class="question-card">
       <ion-card-header>
-        <ion-card-title class="card-title-small">Progreso diario</ion-card-title>
+        <ion-card-title class="card-title-small">Tu pregunta del día</ion-card-title>
       </ion-card-header>
       <ion-card-content>
-        <div class="progress-item">
-          <div class="progress-info">
-            <ion-icon name="water-outline" color="primary" class="progress-icon"></ion-icon>
-            <span class="progress-label">Meta de agua</span>
-          </div>
-          <div class="progress-value">6/8 vasos</div>
+        <p class="question-text">¿Cómo te sientes hoy?</p>
+
+        <div class="emotions-container">
+          <ion-button
+            [color]="emotionButtons[0].selected ? emotionButtons[0].color : 'medium'"
+            [fill]="emotionButtons[0].selected ? 'solid' : 'outline'"
+            (click)="toggleEmotion(emotionButtons[0])"
+            class="emotion-button"
+            size="large">
+            <span class="button-content">
+              {{emotionButtons[0].emoji}}
+              <span class="button-text">{{emotionButtons[0].label}}</span>
+            </span>
+          </ion-button>
+
+          <ion-button
+            [color]="emotionButtons[1].selected ? emotionButtons[1].color : 'medium'"
+            [fill]="emotionButtons[1].selected ? 'solid' : 'outline'"
+            (click)="toggleEmotion(emotionButtons[1])"
+            class="emotion-button"
+            size="large">
+            <span class="button-content">
+              {{emotionButtons[1].emoji}}
+              <span class="button-text">{{emotionButtons[1].label}}</span>
+            </span>
+          </ion-button>
+
+          <ion-button
+            [color]="emotionButtons[2].selected ? emotionButtons[2].color : 'medium'"
+            [fill]="emotionButtons[2].selected ? 'solid' : 'outline'"
+            (click)="toggleEmotion(emotionButtons[2])"
+            class="emotion-button"
+            size="large">
+            <span class="button-content">
+              {{emotionButtons[2].emoji}}
+              <span class="button-text">{{emotionButtons[2].label}}</span>
+            </span>
+          </ion-button>
+
+          <ion-button
+            [color]="emotionButtons[3].selected ? emotionButtons[3].color : 'medium'"
+            [fill]="emotionButtons[3].selected ? 'solid' : 'outline'"
+            (click)="toggleEmotion(emotionButtons[3])"
+            class="emotion-button"
+            size="large">
+            <span class="button-content">
+              {{emotionButtons[3].emoji}}
+              <span class="button-text">{{emotionButtons[3].label}}</span>
+            </span>
+          </ion-button>
+
+          <ion-button
+            [color]="emotionButtons[4].selected ? emotionButtons[4].color : 'medium'"
+            [fill]="emotionButtons[4].selected ? 'solid' : 'outline'"
+            (click)="toggleEmotion(emotionButtons[4])"
+            class="emotion-button"
+            size="large">
+            <span class="button-content">
+              {{emotionButtons[4].emoji}}
+              <span class="button-text">{{emotionButtons[4].label}}</span>
+            </span>
+          </ion-button>
         </div>
+
+        <p class="selection-info" *ngIf="selectedEmotions.length > 0">
+          Seleccionadas: {{selectedEmotions.length}} emoción(es)
+        </p>
       </ion-card-content>
     </ion-card>
+
+    <!-- 📊 SEPARADOR VISUAL -->
+    <div class="divider"></div>
+
+    <!-- 
+      📈 SECCIÓN DE PROGRESO - Seguimiento de hábitos
+    -->
+    <div class="progress-section">
+      <h3 class="section-title">Pasos</h3>
+      <ion-card class="progress-card">
+        <ion-card-header>
+          <ion-card-title class="card-title-small">Progreso diario</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="progress-item">
+            <div class="progress-info">
+              <ion-icon name="water-outline" color="primary" class="progress-icon"></ion-icon>
+              <span class="progress-label">Meta de agua</span>
+            </div>
+            <div class="progress-value">6/8 vasos</div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- 
+      🎯 BOTONES DE ACCIÓN PRINCIPALES
+    -->
+    <div class="action-buttons">
+      <ion-button expand="block" class="primary-button" (click)="openDailyRegister()">
+        Registrar mi día
+      </ion-button>
+
+      <ion-button expand="block" fill="outline" class="secondary-button" routerLink="/indicators">
+        Ver mis planes
+      </ion-button>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 
+      💡 TARJETA DE CONSEJO DEL DÍA
+    -->
+    <ion-card class="tip-card">
+      <ion-card-header>
+        <ion-card-title class="card-title-small">
+          <ion-icon name="bulb-outline" color="warning"></ion-icon>
+          Consejo del día
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p class="tip-text">Recuerda que pequeños cambios generan grandes resultados. ¡Tú puedes!</p>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- 
+      📜 CONTENIDO EXTRA PARA SCROLL (de prueba)
+    -->
+    <div class="test-scroll-content">
+      <ion-card><ion-card-content><p>Contenido extra 1</p></ion-card-content></ion-card>
+      <ion-card><ion-card-content><p>Contenido extra 2</p></ion-card-content></ion-card>
+      <ion-card><ion-card-content><p>Contenido extra 3</p></ion-card-content></ion-card>
+      <ion-card><ion-card-content><p>Contenido extra 4</p></ion-card-content></ion-card>
+      <ion-card><ion-card-content><p>Contenido extra 5</p></ion-card-content></ion-card>
+    </div>
+
+    <!-- 📏 ESPACIADOR INFERIOR -->
+    <div class="bottom-spacer"></div>
   </div>
 
-  <!-- Botones de acción -->
-  <div class="action-buttons">
-    <ion-button expand="block" class="primary-button" (click)="openDailyRegister()">
-      Registrar mi día
-    </ion-button>
-    
-    <ion-button expand="block" fill="outline" class="secondary-button" routerLink="/indicators">
-      Ver mis planes
-    </ion-button>
-  </div>
-
-  <!-- Separador -->
-  <div class="divider"></div>
-
-  <!-- Consejo del día -->
-  <ion-card class="tip-card">
-    <ion-card-header>
-      <ion-card-title class="card-title-small">
-        <ion-icon name="bulb-outline" color="warning"></ion-icon>
-        Consejo del día
-      </ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <p class="tip-text">
-        Recuerda que pequeños cambios generan grandes resultados. ¡Tú puedes!
-      </p>
-    </ion-card-content>
-  </ion-card>
-
-  <!-- Espacio para la bottom navigation -->
-  <div class="bottom-spacer"></div>
 </ion-content>
 
-<!-- Bottom Navigation -->
-<ion-tabs>
-  <ion-tab-bar slot="bottom" class="bottom-nav">
-    <ion-tab-button tab="home" selected>
-      <ion-icon name="home"></ion-icon>
-      <ion-label>Inicio</ion-label>
-    </ion-tab-button>
-    
-    <ion-tab-button tab="planes">
-      <ion-icon name="calendar"></ion-icon>
-      <ion-label>Planes</ion-label>
-    </ion-tab-button>
-    
-    <ion-tab-button tab="chatbot">
-      <ion-icon name="chatbubble"></ion-icon>
-      <ion-label>Chatbot</ion-label>
-    </ion-tab-button>
-    
-    <ion-tab-button tab="comunidad">
-      <ion-icon name="people"></ion-icon>
-      <ion-label>Comunidad</ion-label>
-    </ion-tab-button>
-    
-    <ion-tab-button tab="perfil">
-      <ion-icon name="person"></ion-icon>
-      <ion-label>Perfil</ion-label>
-    </ion-tab-button>
-  </ion-tab-bar>
-</ion-tabs>
+<!-- 🧭 COMPONENTE DE MENÚ/TABS FIJO -->
+<app-menu></app-menu>
