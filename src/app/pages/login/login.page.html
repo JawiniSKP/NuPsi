@@ -6,43 +6,65 @@
 
 <ion-content [fullscreen]="true" class="ion-padding">
   <div class="login-container">
+    
+    <!-- Sección del Logo -->
     <div class="logo-section">
-      <div class="logo-placeholder">
-        <ion-icon name="heart" size="large"></ion-icon>
+      <div class="logo-container">
+        <!-- Logo NuPsi -->
+        <div class="logo-image">
+          <img src="assets/Nupsi/nupsiLogo.png" alt="NuPsi Logo" class="logo-img" (load)="onLogoLoad()" (error)="onLogoError()">
+          <div class="logo-fallback" *ngIf="!logoLoaded">
+            <ion-icon name="heart" color="primary"></ion-icon>
+            <span>NuPsi</span>
+          </div>
+        </div>
       </div>
-      <h2>Bienvenido a NutPsi</h2>
+      <h2 class="welcome-title">Bienvenido a NutPsi</h2>
       <p class="subtitle">Tu aliado en salud nutricional y emocional</p>
     </div>
 
+    <!-- Card del Formulario -->
     <div class="form-card">
       <form [formGroup]="loginForm" (ngSubmit)="login()">
         <ion-list lines="none">
-          <ion-item>
-            <ion-label position="stacked">Email</ion-label>
+          
+          <!-- Campo Email -->
+          <ion-item class="form-item">
+            <ion-label position="stacked" class="input-label">Email</ion-label>
             <ion-input 
               type="email" 
               formControlName="email"
               placeholder="tu@email.com"
+              class="custom-input"
               required>
             </ion-input>
+            <ion-icon name="mail-outline" slot="start" class="input-icon"></ion-icon>
           </ion-item>
-          <ion-note *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.errors" color="danger">
-            <span *ngIf="loginForm.get('email')?.errors?.['required']">Email es requerido</span>
-            <span *ngIf="loginForm.get('email')?.errors?.['email']">Formato de email inválido</span>
-          </ion-note>
+          
+          <!-- Mensajes de error Email -->
+          <div class="error-messages">
+            <ion-note *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.errors" color="danger">
+              <span *ngIf="loginForm.get('email')?.errors?.['required']">Email es requerido</span>
+              <span *ngIf="loginForm.get('email')?.errors?.['email']">Formato de email inválido</span>
+            </ion-note>
+          </div>
 
-          <ion-item>
-            <ion-label position="stacked">Contraseña</ion-label>
+          <!-- Campo Contraseña -->
+          <ion-item class="form-item">
+            <ion-label position="stacked" class="input-label">Contraseña</ion-label>
             <ion-input 
               [type]="showPassword ? 'text' : 'password'" 
               formControlName="password"
               placeholder="Mínimo 6 caracteres"
+              class="custom-input"
               required>
             </ion-input>
+            <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
             <ion-button 
               fill="clear" 
               slot="end" 
               (click)="togglePasswordVisibility()"
+              class="password-toggle"
               aria-label="Mostrar/ocultar contraseña">
               <ion-icon 
                 slot="icon-only"
@@ -51,39 +73,50 @@
               </ion-icon>
             </ion-button>
           </ion-item>
-          <ion-note *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.errors" color="danger">
-            <span *ngIf="loginForm.get('password')?.errors?.['required']">Contraseña es requerida</span>
-            <span *ngIf="loginForm.get('password')?.errors?.['minlength']">Mínimo 6 caracteres</span>
-          </ion-note>
+          
+          <!-- Mensajes de error Contraseña -->
+          <div class="error-messages">
+            <ion-note *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.errors" color="danger">
+              <span *ngIf="loginForm.get('password')?.errors?.['required']">Contraseña es requerida</span>
+              <span *ngIf="loginForm.get('password')?.errors?.['minlength']">Mínimo 6 caracteres</span>
+            </ion-note>
+          </div>
         </ion-list>
 
+        <!-- Botón de Login -->
         <ion-button 
           expand="block" 
           type="submit" 
           [disabled]="!loginForm.valid"
-          class="ion-margin-vertical">
+          class="login-button ion-margin-vertical">
+          <ion-icon name="log-in-outline" slot="start"></ion-icon>
           Iniciar Sesión
         </ion-button>
       </form>
 
+      <!-- Separador -->
       <div class="separator">
+        <span class="separator-line"></span>
         <span class="separator-text">o continuar con</span>
+        <span class="separator-line"></span>
       </div>
 
+      <!-- Botón Google -->
       <ion-button 
         expand="block" 
         fill="outline" 
         (click)="loginWithGoogle()"
-        class="ion-margin-vertical">
-        <ion-icon slot="start" name="logo-google"></ion-icon>
-        Google
+        class="google-button ion-margin-vertical">
+        <ion-icon slot="start" name="logo-google" color="danger"></ion-icon>
+        Continuar con Google
       </ion-button>
     </div>
 
+    <!-- Enlace a Registro -->
     <div class="register-link">
-      <p>
+      <p class="register-text">
         ¿No tienes cuenta? 
-        <a (click)="goToRegister()" class="link">Regístrate aquí</a>
+        <a (click)="goToRegister()" class="register-link-text">Regístrate aquí</a>
       </p>
     </div>
   </div>

@@ -1,5 +1,4 @@
-import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, AbstractControl, ReactiveFormsModule } from '@angular/forms';
+import { Component, OnInit, inject } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -17,13 +16,25 @@ import {
   IonInput,
   IonButton,
   IonIcon,
-  IonList,
-  IonNote,
-  AlertController,
-  LoadingController
+  IonNote
 } from '@ionic/angular/standalone';
+import { 
+  AlertController, 
+  LoadingController 
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { eye, eyeOff, logoGoogle, heart } from 'ionicons/icons';
+import { 
+  eye, 
+  eyeOff, 
+  logoGoogle, 
+  mailOutline, 
+  lockClosedOutline, 
+  personOutline
+} from 'ionicons/icons';
+
+// ✅ Importaciones corregidas
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import type { AbstractControl } from '@angular/forms';
 
 @Component({
   selector: 'app-register',
@@ -44,22 +55,22 @@ import { eye, eyeOff, logoGoogle, heart } from 'ionicons/icons';
     IonInput,
     IonButton,
     IonIcon,
-    IonList,
     IonNote
   ]
 })
-export class RegisterPage {
+export class RegisterPage implements OnInit {
   registerForm: FormGroup;
   showPassword = false;
   showConfirmPassword = false;
+  logoLoaded = false;
 
-  constructor(
-    private fb: FormBuilder,
-    private authService: AuthService,
-    private alertController: AlertController,
-    private loadingController: LoadingController,
-    private router: Router
-  ) {
+  private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private alertController = inject(AlertController);
+  private loadingController = inject(LoadingController);
+  private router = inject(Router);
+
+  constructor() {
     this.registerForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
@@ -68,16 +79,37 @@ export class RegisterPage {
     }, { validators: this.passwordMatchValidator });
 
     // Registrar íconos
-    addIcons({ eye, eyeOff, logoGoogle, heart });
+    addIcons({ 
+      eye, 
+      eyeOff, 
+      logoGoogle, 
+      mailOutline, 
+      lockClosedOutline, 
+      personOutline
+    });
   }
 
-  // Validador personalizado para verificar que las contraseñas coincidan
+  ngOnInit() {
+    this.checkLogo();
+  }
+
+  // ✅ MÉTODOS FALTANTES AGREGADOS
+  onLogoLoad() {
+    console.log('✅ Logo de NuPsi cargado correctamente');
+    this.logoLoaded = true;
+  }
+
+  onLogoError() {
+    console.log('⚠️ No se pudo cargar el logo, usando fallback');
+    this.logoLoaded = false;
+  }
+
   passwordMatchValidator(control: AbstractControl) {
     const password = control.get('password');
     const confirmPassword = control.get('confirmPassword');
     
     if (password && confirmPassword && password.value !== confirmPassword.value) {
-      confirmPassword.setErrors({ passwordMismatch: true });
+      confirmPassword?.setErrors({ passwordMismatch: true });
       return { passwordMismatch: true };
     } else {
       confirmPassword?.setErrors(null);
@@ -88,16 +120,15 @@ export class RegisterPage {
   async register() {
     if (this.registerForm.valid) {
       const loading = await this.loadingController.create({
-        message: 'Creando tu cuenta...'
+        message: 'Creando tu cuenta...',
+        spinner: 'crescent'
       });
       await loading.present();
 
       try {
         const { name, email, password } = this.registerForm.value;
-        // 🔄 MODIFICADO: Pasar el nombre al servicio de registro
         await this.authService.register(email, password, name);
         await loading.dismiss();
-        // La navegación se maneja dentro del auth.service
       } catch (error: any) {
         await loading.dismiss();
         this.showAlert('Error', this.getErrorMessage(error.code));
@@ -107,14 +138,14 @@ export class RegisterPage {
 
   async registerWithGoogle() {
     const loading = await this.loadingController.create({
-      message: 'Conectando con Google...'
+      message: 'Conectando con Google...',
+      spinner: 'crescent'
     });
     await loading.present();
 
     try {
       await this.authService.googleLogin();
       await loading.dismiss();
-      // La navegación se maneja dentro del auth.service
     } catch (error: any) {
       await loading.dismiss();
       this.showAlert('Error', this.getErrorMessage(error.code));
@@ -128,17 +159,18 @@ export class RegisterPage {
       'auth/operation-not-allowed': 'Esta operación no está permitida',
       'auth/weak-password': 'La contraseña es muy débil',
       'auth/popup-closed-by-user': 'Cancelaste el registro con Google',
-      'auth/popup-blocked': 'El popup fue bloqueado. Permite popups para este sitio'
+      'auth/popup-blocked': 'El popup fue bloqueado. Permite popups para este sitio',
+      'auth/network-request-failed': 'Error de conexión. Verifica tu internet'
     };
 
-    return errorMessages[errorCode] || 'Ocurrió un error durante el registro';
+    return errorMessages[errorCode] || 'Ocurrió un error durante el registro. Intenta nuevamente.';
   }
 
   private async showAlert(header: string, message: string) {
     const alert = await this.alertController.create({
       header,
       message,
-      buttons: ['OK']
+      buttons: ['Entendido']
     });
     await alert.present();
   }
@@ -151,8 +183,26 @@ export class RegisterPage {
     this.showConfirmPassword = !this.showConfirmPassword;
   }
 
-  // Navegar al login
   goToLogin() {
     this.router.navigate(['/login']);
+  }
+
+  private async checkLogo() {
+    try {
+      const logoPath = 'assets/Nupsi/nupsiLogo.png';
+      const img = new Image();
+      img.onload = () => {
+        this.logoLoaded = true;
+        console.log('🎯 Logo encontrado en:', logoPath);
+      };
+      img.onerror = () => {
+        this.logoLoaded = false;
+        console.warn('📁 Logo no encontrado en:', logoPath);
+      };
+      img.src = logoPath;
+    } catch (error) {
+      console.error('Error verificando logo:', error);
+      this.logoLoaded = false;
+    }
   }
 }

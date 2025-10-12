@@ -1,138 +1,398 @@
-.register-container {
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 20px 0;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+// Variables de colores consistentes con el login
+:host {
+  --nupsi-primary: #3880ff;
+  --nupsi-secondary: #3dc2ff;
+  --nupsi-background: #f8f9fa;
+  --nupsi-card-bg: #ffffff;
+  --nupsi-text: #2c3e50;
+  --nupsi-text-light: #7f8c8d;
 }
 
+.register-container {
+  min-height: 100%;
+  background: var(--nupsi-background);
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  
+  // Fondo con gradiente sutil como el login
+  background: linear-gradient(135deg, 
+    var(--ion-color-primary-tint) 0%, 
+    var(--nupsi-background) 50%,
+    var(--nupsi-background) 100%);
+}
+
+// Sección del Logo
 .logo-section {
   text-align: center;
   margin-bottom: 2rem;
+  padding: 1rem 0;
 }
 
-.logo-placeholder {
+.logo-container {
+  margin-bottom: 1.5rem;
+}
+
+.logo-image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   margin-bottom: 1rem;
   
-  ion-icon {
-    font-size: 4rem;
-    color: var(--ion-color-primary);
+  .logo-img {
+    width: 140px;
+    height: 140px;
+    object-fit: contain;
+    border-radius: 25px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    padding: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border: 3px solid rgba(56, 128, 255, 0.1);
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: scale(1.05);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+    }
+  }
+  
+  .logo-fallback {
+    width: 140px;
+    height: 140px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 25px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border: 3px solid rgba(56, 128, 255, 0.1);
+    
+    ion-icon {
+      font-size: 3.5rem;
+      margin-bottom: 0.5rem;
+      color: var(--nupsi-primary);
+    }
+    
+    span {
+      font-weight: 700;
+      color: var(--nupsi-primary);
+      font-size: 1.3rem;
+      letter-spacing: 0.5px;
+    }
   }
 }
 
-h2 {
-  color: var(--ion-color-primary);
+.welcome-title {
+  color: var(--nupsi-text);
   margin-bottom: 0.5rem;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 1.8rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .subtitle {
-  color: var(--ion-color-medium);
+  color: var(--nupsi-text-light);
   margin: 0;
   font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
 }
 
-.separator {
-  display: flex;
-  align-items: center;
-  text-align: center;
-  margin: 1.5rem 0;
+// Card del Formulario (estilo consistente con login)
+.form-card {
+  background: var(--nupsi-card-bg);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  border: 1px solid rgba(0,0,0,0.08);
+  margin-bottom: 1rem;
+  backdrop-filter: blur(10px);
 }
 
-.separator::before,
-.separator::after {
-  content: '';
-  flex: 1;
-  border-bottom: 1px solid var(--ion-color-light-shade);
-}
-
-.separator-text {
-  padding: 0 1rem;
-  color: var(--ion-color-medium);
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.login-link {
-  margin-top: auto;
-  
-  p {
-    color: var(--ion-color-medium);
-    margin: 0;
-    font-size: 0.95rem;
-  }
-}
-
-.link {
-  color: var(--ion-color-primary);
-  text-decoration: none;
-  font-weight: 600;
-  cursor: pointer;
-  
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
-ion-note {
-  display: block;
-  margin-top: 4px;
-  font-size: 0.8rem;
-}
-
-ion-item {
-  --border-radius: 12px;
+// Items del formulario
+.form-item {
+  --background: transparent;
+  --border-color: #e8ecef;
+  --border-radius: 14px;
   --padding-start: 16px;
   --padding-end: 16px;
   --inner-padding-end: 0;
-  margin-bottom: 1rem;
-  border: 1px solid var(--ion-color-light-shade);
+  margin-bottom: 1.5rem;
+  border: 2px solid #e8ecef;
+  transition: all 0.3s ease;
+  background: #fafbfc;
   
   &.item-has-focus {
     --border-color: var(--ion-color-primary);
     border-color: var(--ion-color-primary);
-    box-shadow: 0 0 0 2px rgba(var(--ion-color-primary-rgb), 0.1);
+    box-shadow: 0 0 0 3px rgba(var(--ion-color-primary-rgb), 0.15);
+    background: #ffffff;
   }
 }
 
-ion-button {
-  --border-radius: 12px;
-  height: 50px;
+.input-label {
+  color: var(--nupsi-text);
   font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+  letter-spacing: 0.3px;
+}
+
+.custom-input {
+  --padding-start: 8px;
   font-size: 1rem;
+  color: var(--nupsi-text);
+  font-weight: 500;
+}
+
+.input-icon {
+  color: var(--nupsi-text-light);
+  font-size: 1.3rem;
+  margin-right: 12px;
+}
+
+.password-toggle {
+  --padding-start: 8px;
+  --padding-end: 8px;
+  margin: 0;
   
-  &[type="submit"] {
-    --box-shadow: 0 4px 15px rgba(var(--ion-color-primary-rgb), 0.3);
-  }
-  
-  &[fill="outline"] {
-    --border-color: var(--ion-color-medium);
-    --color: var(--ion-color-dark);
+  ion-icon {
+    font-size: 1.2rem;
   }
 }
 
-// Botón de retroceso
+// Mensajes de error
+.error-messages {
+  margin-top: -1rem;
+  margin-bottom: 1rem;
+  
+  ion-note {
+    font-size: 0.85rem;
+    padding-left: 16px;
+    font-weight: 500;
+  }
+}
+
+// Botones (estilo consistente con login)
+.register-button {
+  --border-radius: 14px;
+  --box-shadow: 0 6px 20px rgba(var(--ion-color-primary-rgb), 0.3);
+  height: 52px;
+  font-weight: 600;
+  font-size: 1.05rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    --box-shadow: 0 8px 25px rgba(var(--ion-color-primary-rgb), 0.4);
+  }
+  
+  &:active {
+    transform: translateY(2px);
+  }
+  
+  ion-icon {
+    font-size: 1.2rem;
+  }
+}
+
+.google-button {
+  --border-radius: 14px;
+  --border-width: 2px;
+  --border-color: #e1e5e9;
+  --color: var(--nupsi-text);
+  height: 52px;
+  font-weight: 600;
+  font-size: 1.05rem;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    --background: #f8f9fa;
+    --border-color: var(--ion-color-medium);
+  }
+  
+  ion-icon {
+    font-size: 1.3rem;
+  }
+}
+
+// Separador
+.separator {
+  display: flex;
+  align-items: center;
+  margin: 2rem 0;
+  
+  .separator-line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, #e1e5e9 50%, transparent 100%);
+  }
+  
+  .separator-text {
+    padding: 0 1.5rem;
+    color: var(--nupsi-text-light);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+}
+
+// Enlace de login
+.login-link {
+  text-align: center;
+  margin-top: 2rem;
+  
+  .login-text {
+    color: var(--nupsi-text-light);
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+}
+
+.login-link-text {
+  color: var(--ion-color-primary);
+  text-decoration: none;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    text-decoration: underline;
+    color: var(--ion-color-primary-shade);
+  }
+}
+
+// Botón de retroceso personalizado
 ion-back-button {
   --color: var(--ion-color-primary-contrast);
+  --icon-font-size: 1.4rem;
+}
+
+// Animaciones suaves
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes floatLogo {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.logo-section {
+  animation: fadeInUp 0.8s ease-out;
+  
+  .logo-image .logo-img {
+    animation: floatLogo 3s ease-in-out infinite;
+  }
+}
+
+.form-card {
+  animation: fadeInUp 1s ease-out;
+}
+
+.login-link {
+  animation: fadeInUp 1.2s ease-out;
 }
 
 // Responsive
 @media (max-height: 700px) {
   .register-container {
-    justify-content: flex-start;
     padding-top: 1rem;
+  }
+  
+  .logo-section {
+    margin-bottom: 1.5rem;
+    
+    .logo-image .logo-img {
+      width: 120px;
+      height: 120px;
+    }
   }
 }
 
 @media (max-width: 380px) {
   .register-container {
-    padding: 10px 0;
+    padding: 15px;
   }
   
-  h2 {
-    font-size: 1.5rem;
+  .form-card {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+  
+  .logo-image {
+    .logo-img, .logo-fallback {
+      width: 120px;
+      height: 120px;
+      border-radius: 20px;
+    }
+  }
+  
+  .welcome-title {
+    font-size: 1.6rem;
+  }
+}
+
+// Estados de loading y disabled
+ion-button[disabled] {
+  --opacity: 0.6;
+  cursor: not-allowed;
+}
+
+// Mejora visual para inputs
+ion-input {
+  --padding-top: 14px;
+  --padding-bottom: 14px;
+}
+
+// Efecto de profundidad
+.register-container {
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(56,128,255,0.03)"/></svg>');
+    background-size: cover;
+    pointer-events: none;
+  }
+}
+
+// Indicador de fortaleza de contraseña (opcional)
+.password-strength {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  
+  &.weak {
+    color: var(--ion-color-danger);
+  }
+  
+  &.medium {
+    color: var(--ion-color-warning);
+  }
+  
+  &.strong {
+    color: var(--ion-color-success);
   }
 }

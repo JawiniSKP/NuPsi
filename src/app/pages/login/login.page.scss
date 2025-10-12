@@ -1,185 +1,274 @@
+// Variables de colores consistentes con el home
+:host {
+  --nupsi-primary: #3880ff;
+  --nupsi-secondary: #3dc2ff;
+  --nupsi-background: #f8f9fa;
+  --nupsi-card-bg: #ffffff;
+  --nupsi-text: #2c3e50;
+  --nupsi-text-light: #7f8c8d;
+}
+
 .login-container {
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 20px;
-  height: 100%;
+  min-height: 100%;
+  background: var(--nupsi-background);
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  background: linear-gradient(135deg, var(--ion-color-primary) 0%, #667eea 100%);
+  padding: 20px;
   
-  // Fondo con gradiente suave
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, 
-      rgba(255,255,255,0.1) 0%, 
-      rgba(255,255,255,0.05) 100%);
-    z-index: -1;
+  // Fondo con gradiente sutil como el home
+  background: linear-gradient(135deg, 
+    var(--ion-color-primary-tint) 0%, 
+    var(--nupsi-background) 50%,
+    var(--nupsi-background) 100%);
+}
+
+// Sección del Logo
+.logo-section {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1rem 0;
+}
+
+.logo-container {
+  margin-bottom: 1.5rem;
+}
+
+.logo-image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+  
+  .logo-img {
+    width: 140px;
+    height: 140px;
+    object-fit: contain;
+    border-radius: 25px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    padding: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border: 3px solid rgba(56, 128, 255, 0.1);
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: scale(1.05);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+    }
+  }
+  
+  .logo-fallback {
+    width: 140px;
+    height: 140px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 25px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border: 3px solid rgba(56, 128, 255, 0.1);
+    
+    ion-icon {
+      font-size: 3.5rem;
+      margin-bottom: 0.5rem;
+      color: var(--nupsi-primary);
+    }
+    
+    span {
+      font-weight: 700;
+      color: var(--nupsi-primary);
+      font-size: 1.3rem;
+      letter-spacing: 0.5px;
+    }
   }
 }
 
-.logo-section {
-  text-align: center;
-  margin-bottom: 2.5rem;
-  padding: 1rem;
-}
-
-.logo-placeholder {
-  margin-bottom: 1.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-  width: 80px;
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 1.5rem;
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-}
-
-.logo-placeholder ion-icon {
-  font-size: 2.5rem;
-  color: white;
-}
-
-h2 {
-  color: white;
+.welcome-title {
+  color: var(--nupsi-text);
   margin-bottom: 0.5rem;
   font-weight: 700;
   font-size: 1.8rem;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .subtitle {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--nupsi-text-light);
   margin: 0;
   font-size: 1rem;
   font-weight: 400;
+  line-height: 1.5;
 }
 
-// Card para el formulario
+// Card del Formulario (estilo consistente con home)
 .form-card {
-  background: white;
+  background: var(--nupsi-card-bg);
   border-radius: 20px;
   padding: 2rem;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  border: 1px solid rgba(0,0,0,0.08);
   margin-bottom: 1rem;
+  backdrop-filter: blur(10px);
 }
 
-ion-list {
-  background: transparent !important;
-}
-
-ion-item {
+// Items del formulario
+.form-item {
   --background: transparent;
-  --border-color: var(--ion-color-light-shade);
-  --border-radius: 12px;
+  --border-color: #e8ecef;
+  --border-radius: 14px;
   --padding-start: 16px;
   --padding-end: 16px;
   --inner-padding-end: 0;
-  margin-bottom: 1rem;
-  border: 1px solid var(--ion-color-light-shade);
+  margin-bottom: 1.5rem;
+  border: 2px solid #e8ecef;
+  transition: all 0.3s ease;
+  background: #fafbfc;
   
   &.item-has-focus {
     --border-color: var(--ion-color-primary);
     border-color: var(--ion-color-primary);
-    box-shadow: 0 0 0 2px rgba(var(--ion-color-primary-rgb), 0.1);
+    box-shadow: 0 0 0 3px rgba(var(--ion-color-primary-rgb), 0.15);
+    background: #ffffff;
   }
 }
 
-ion-label {
-  color: var(--ion-color-medium);
+.input-label {
+  color: var(--nupsi-text);
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+  letter-spacing: 0.3px;
+}
+
+.custom-input {
+  --padding-start: 8px;
+  font-size: 1rem;
+  color: var(--nupsi-text);
   font-weight: 500;
 }
 
-ion-input {
-  --padding-start: 0;
-  font-size: 1rem;
+.input-icon {
+  color: var(--nupsi-text-light);
+  font-size: 1.3rem;
+  margin-right: 12px;
 }
 
-// Botón principal mejorado
-ion-button {
-  --border-radius: 12px;
-  --box-shadow: 0 4px 15px rgba(var(--ion-color-primary-rgb), 0.3);
-  height: 50px;
+.password-toggle {
+  --padding-start: 8px;
+  --padding-end: 8px;
+  margin: 0;
+  
+  ion-icon {
+    font-size: 1.2rem;
+  }
+}
+
+// Mensajes de error
+.error-messages {
+  margin-top: -1rem;
+  margin-bottom: 1rem;
+  
+  ion-note {
+    font-size: 0.85rem;
+    padding-left: 16px;
+    font-weight: 500;
+  }
+}
+
+// Botones (estilo consistente con home)
+.login-button {
+  --border-radius: 14px;
+  --box-shadow: 0 6px 20px rgba(var(--ion-color-primary-rgb), 0.3);
+  height: 52px;
   font-weight: 600;
-  font-size: 1rem;
-  margin-top: 0.5rem;
+  font-size: 1.05rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
   
   &:hover {
-    --box-shadow: 0 6px 20px rgba(var(--ion-color-primary-rgb), 0.4);
+    --box-shadow: 0 8px 25px rgba(var(--ion-color-primary-rgb), 0.4);
+  }
+  
+  &:active {
+    transform: translateY(2px);
+  }
+  
+  ion-icon {
+    font-size: 1.2rem;
   }
 }
 
-// Botón de Google mejorado
-ion-button[fill="outline"] {
-  --border-color: var(--ion-color-medium);
-  --color: var(--ion-color-dark);
-  --background: white;
+.google-button {
+  --border-radius: 14px;
+  --border-width: 2px;
+  --border-color: #e1e5e9;
+  --color: var(--nupsi-text);
+  height: 52px;
+  font-weight: 600;
+  font-size: 1.05rem;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
   
   &:hover {
-    --background: var(--ion-color-light);
+    --background: #f8f9fa;
+    --border-color: var(--ion-color-medium);
+  }
+  
+  ion-icon {
+    font-size: 1.3rem;
   }
 }
 
+// Separador
 .separator {
   display: flex;
   align-items: center;
-  text-align: center;
   margin: 2rem 0;
-  color: white;
+  
+  .separator-line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, #e1e5e9 50%, transparent 100%);
+  }
+  
+  .separator-text {
+    padding: 0 1.5rem;
+    color: var(--nupsi-text-light);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
 }
 
-.separator::before,
-.separator::after {
-  content: '';
-  flex: 1;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.separator-text {
-  padding: 0 1rem;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
+// Enlace de registro
 .register-link {
   text-align: center;
   margin-top: 2rem;
   
-  p {
-    color: rgba(255, 255, 255, 0.8);
+  .register-text {
+    color: var(--nupsi-text-light);
     margin: 0;
     font-size: 0.95rem;
+    font-weight: 500;
   }
 }
 
-.link {
-  color: white;
+.register-link-text {
+  color: var(--ion-color-primary);
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
   
   &:hover {
     text-decoration: underline;
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--ion-color-primary-shade);
   }
 }
 
-ion-note {
-  display: block;
-  margin: 0.5rem 0 0 1rem;
-  font-size: 0.8rem;
-}
-
-// Efectos de animación
+// Animaciones suaves
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -191,19 +280,44 @@ ion-note {
   }
 }
 
-.login-container > * {
-  animation: fadeInUp 0.6s ease-out;
+@keyframes floatLogo {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.logo-section {
+  animation: fadeInUp 0.8s ease-out;
+  
+  .logo-image .logo-img {
+    animation: floatLogo 3s ease-in-out infinite;
+  }
 }
 
 .form-card {
-  animation: fadeInUp 0.8s ease-out;
+  animation: fadeInUp 1s ease-out;
+}
+
+.register-link {
+  animation: fadeInUp 1.2s ease-out;
 }
 
 // Responsive
 @media (max-height: 700px) {
   .login-container {
-    justify-content: flex-start;
-    padding-top: 2rem;
+    padding-top: 1rem;
+  }
+  
+  .logo-section {
+    margin-bottom: 1.5rem;
+    
+    .logo-image .logo-img {
+      width: 120px;
+      height: 120px;
+    }
   }
 }
 
@@ -214,5 +328,47 @@ ion-note {
   
   .form-card {
     padding: 1.5rem;
+    border-radius: 16px;
+  }
+  
+  .logo-image {
+    .logo-img, .logo-fallback {
+      width: 120px;
+      height: 120px;
+      border-radius: 20px;
+    }
+  }
+  
+  .welcome-title {
+    font-size: 1.6rem;
+  }
+}
+
+// Estados de loading y disabled
+ion-button[disabled] {
+  --opacity: 0.6;
+  cursor: not-allowed;
+}
+
+// Mejora visual para inputs
+ion-input {
+  --padding-top: 14px;
+  --padding-bottom: 14px;
+}
+
+// Efecto de profundidad
+.login-container {
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(56,128,255,0.03)"/></svg>');
+    background-size: cover;
+    pointer-events: none;
   }
 }

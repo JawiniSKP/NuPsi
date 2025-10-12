@@ -5,7 +5,6 @@ import { User } from 'firebase/auth';
 import { AuthService } from '../../services/auth.service';
 import { EmotionService } from '../../services/emotion.service';
 import { MenuComponent } from '../../components/menu/menu.component';
-// ✅ ELIMINA los imports de tabs
 import {
   IonContent,
   IonHeader,
@@ -18,7 +17,6 @@ import {
   IonCardHeader,
   IonCardTitle,
   IonCardContent
-  // ❌ ELIMINA: IonTabs, IonTabBar, IonTabButton
 } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -45,7 +43,6 @@ import { FormsModule } from '@angular/forms';
     IonCardTitle,
     IonCardContent,
     MenuComponent
-    // ❌ ELIMINA: IonTabs, IonTabBar, IonTabButton
   ]
 })
 export class HomePage implements OnInit {
@@ -98,6 +95,102 @@ export class HomePage implements OnInit {
     } catch (error) {
       console.error('Error in ngOnInit:', error);
     }
+  }
+
+  // ✅ NUEVO MÉTODO: Menú de perfil con opción de cerrar sesión
+  async openProfileMenu(event: any) {
+    // Crear el action sheet (menú de acciones)
+    const actionSheet = document.createElement('ion-action-sheet');
+    
+    // Configurar el action sheet
+    actionSheet.header = this.userName || 'Usuario';
+    actionSheet.subHeader = this.user?.email || '';
+    actionSheet.buttons = [
+      {
+        text: 'Ver Perfil',
+        icon: 'person-outline',
+        handler: () => {
+          this.openProfile();
+        }
+      },
+      {
+        text: 'Cerrar Sesión',
+        icon: 'log-out-outline',
+        role: 'destructive',
+        handler: () => {
+          this.logout();
+        }
+      },
+      {
+        text: 'Cancelar',
+        icon: 'close',
+        role: 'cancel'
+      }
+    ];
+
+    // Agregar al DOM y mostrar
+    document.body.appendChild(actionSheet);
+    await actionSheet.present();
+  }
+
+  // ✅ NUEVO MÉTODO: Cerrar sesión
+  async logout() {
+    try {
+      console.log('Cerrando sesión...');
+      
+      // Mostrar loading mientras se procesa
+      const loading = document.createElement('ion-loading');
+      loading.message = 'Cerrando sesión...';
+      document.body.appendChild(loading);
+      await loading.present();
+
+      // Cerrar sesión con el servicio de autenticación
+      await this.authService.logout();
+      
+      // Ocultar loading
+      await loading.dismiss();
+      
+      // Mostrar confirmación de cierre de sesión
+      await this.showLogoutConfirmation();
+      
+      // Redirigir al login
+      this.router.navigate(['/login']);
+      
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+      
+      // Ocultar loading si existe
+      const loading = document.querySelector('ion-loading');
+      if (loading) {
+        await loading.dismiss();
+      }
+      
+      // Mostrar error
+      await this.showLogoutError();
+    }
+  }
+
+  // ✅ NUEVO MÉTODO: Confirmación de cierre de sesión
+  async showLogoutConfirmation() {
+    const toast = document.createElement('ion-toast');
+    toast.message = 'Sesión cerrada correctamente';
+    toast.duration = 2000;
+    toast.position = 'top';
+    toast.color = 'success';
+
+    document.body.appendChild(toast);
+    await toast.present();
+  }
+
+  // ✅ NUEVO MÉTODO: Error en cierre de sesión
+  async showLogoutError() {
+    const alert = document.createElement('ion-alert');
+    alert.header = 'Error';
+    alert.message = 'No se pudo cerrar la sesión. Intenta nuevamente.';
+    alert.buttons = ['OK'];
+
+    document.body.appendChild(alert);
+    await alert.present();
   }
 
   // ✅ Método para debug de interactividad
@@ -207,18 +300,15 @@ export class HomePage implements OnInit {
   }
 
   async showSaveConfirmation() {
-  const toast = document.createElement('ion-toast');
-  toast.message = 'Tus emociones se han guardado correctamente';
-  toast.duration = 2000;
-  toast.position = 'top';
-  toast.color = 'success';
+    const toast = document.createElement('ion-toast');
+    toast.message = 'Tus emociones se han guardado correctamente';
+    toast.duration = 2000;
+    toast.position = 'top';
+    toast.color = 'success';
 
-  document.body.appendChild(toast);
-  await toast.present();
-  
-  // Ionic se encarga de remover el toast automáticamente
-  // No necesitas removerlo manualmente
- }
+    document.body.appendChild(toast);
+    await toast.present();
+  }
 
   openProfile() {
     this.showComingSoon('Perfil');
@@ -227,15 +317,6 @@ export class HomePage implements OnInit {
   openDailyRegister() {
     this.router.navigate(['/indicators']);
   }
-
-  // ❌ ELIMINA estos métodos de navegación de tabs
-  /*
-  goToHome() { }
-  goToPlanes() { }
-  goToChatbot() { }
-  goToComunidad() { }
-  goToPerfil() { }
-  */
 
   private async showComingSoon(feature: string) {
     const alert = document.createElement('ion-alert');
