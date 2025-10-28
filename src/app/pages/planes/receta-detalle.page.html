@@ -1,0 +1,174 @@
+<!-- receta-detalle.page.html - VERSIÓN CORREGIDA -->
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="logo-title">
+      <div class="title-content">
+        <span>Detalle de Receta</span>
+      </div>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="receta-detalle-content">
+  <div class="content-wrapper" *ngIf="receta">
+    
+    <!-- HERO IMAGE -->
+    <div class="receta-hero">
+      <div class="hero-background" [style.background]="getGradient()"></div>
+      <div class="hero-content">
+        <div class="meal-time-badge">
+          {{ receta.categoria | titlecase }}
+        </div>
+        <div class="food-icon-large">
+          {{ getFoodIcon() }}
+        </div>
+        <h1 class="receta-title">{{ receta.titulo }}</h1>
+        <p class="receta-subtitle">{{ receta.descripcion }}</p>
+      </div>
+    </div>
+
+    <!-- RECETA INFO -->
+    <div class="receta-info-section">
+      <div class="info-grid">
+        <div class="info-item">
+          <ion-icon name="time-outline"></ion-icon>
+          <div class="info-content">
+            <span class="info-value">{{ receta.tiempoTotal }} min</span>
+            <span class="info-label">Tiempo Total</span>
+          </div>
+        </div>
+        
+        <div class="info-item">
+          <ion-icon name="flame-outline"></ion-icon>
+          <div class="info-content">
+            <!-- ✅ CORREGIDO: calorias está en el nivel principal -->
+            <span class="info-value">{{ receta.calorias || 0 }} cal</span>
+            <span class="info-label">Calorías</span>
+          </div>
+        </div>
+        
+        <div class="info-item">
+          <ion-icon name="restaurant-outline"></ion-icon>
+          <div class="info-content">
+            <span class="info-value">{{ receta.porciones }}</span>
+            <span class="info-label">Porciones</span>
+          </div>
+        </div>
+        
+        <div class="info-item">
+          <ion-icon name="speedometer-outline"></ion-icon>
+          <div class="info-content">
+            <span class="info-value">{{ receta.dificultad | titlecase }}</span>
+            <span class="info-label">Dificultad</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INFORMACIÓN NUTRICIONAL -->
+    <ion-card class="nutricion-card">
+      <ion-card-header>
+        <ion-card-title>💪 Información Nutricional</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="nutricion-grid">
+          <div class="nutriente">
+            <div class="nutriente-icon">🥩</div>
+            <div class="nutriente-info">
+              <span class="nutriente-value">{{ receta.nutricion?.proteinas || 0 }}g</span>
+              <span class="nutriente-label">Proteínas</span>
+            </div>
+          </div>
+          
+          <div class="nutriente">
+            <div class="nutriente-icon">🍚</div>
+            <div class="nutriente-info">
+              <span class="nutriente-value">{{ receta.nutricion?.carbohidratos || 0 }}g</span>
+              <span class="nutriente-label">Carbohidratos</span>
+            </div>
+          </div>
+          
+          <div class="nutriente">
+            <div class="nutriente-icon">🥑</div>
+            <div class="nutriente-info">
+              <span class="nutriente-value">{{ receta.nutricion?.grasas || 0 }}g</span>
+              <span class="nutriente-label">Grasas</span>
+            </div>
+          </div>
+          
+          <div class="nutriente">
+            <div class="nutriente-icon">🌾</div>
+            <div class="nutriente-info">
+              <span class="nutriente-value">{{ receta.nutricion?.fibra || 0 }}g</span>
+              <span class="nutriente-label">Fibra</span>
+            </div>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- INGREDIENTES -->
+    <ion-card class="ingredientes-card">
+      <ion-card-header>
+        <ion-card-title>🛒 Ingredientes</ion-card-title>
+        <ion-card-subtitle>Para {{ receta.porciones }} porciones</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list lines="none">
+          <ion-item *ngFor="let ingrediente of receta.ingredientes" class="ingrediente-item">
+            <ion-label>
+              <h3>{{ ingrediente.nombre }}</h3>
+              <p>{{ ingrediente.cantidad }} {{ ingrediente.unidad }}</p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- INSTRUCCIONES -->
+    <ion-card class="instrucciones-card">
+      <ion-card-header>
+        <ion-card-title>👨‍🍳 Instrucciones</ion-card-title>
+        <ion-card-subtitle>Sigue estos pasos</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="instrucciones-list">
+          <div *ngFor="let instruccion of receta.instrucciones; let i = index" 
+               class="instruccion-item">
+            <div class="instruccion-number">{{ i + 1 }}</div>
+            <div class="instruccion-text">{{ instruccion }}</div>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- ETIQUETAS -->
+    <ion-card class="etiquetas-card" *ngIf="receta.etiquetas && receta.etiquetas.length > 0">
+      <ion-card-header>
+        <ion-card-title>🏷️ Etiquetas</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="etiquetas-container">
+          <ion-chip *ngFor="let etiqueta of receta.etiquetas" color="primary">
+            <ion-label>{{ etiqueta | titlecase }}</ion-label>
+          </ion-chip>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <div class="bottom-spacer"></div>
+  </div>
+
+  <!-- LOADING STATE -->
+  <div *ngIf="!receta" class="loading-state">
+    <div class="spinner-container">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando receta...</p>
+    </div>
+  </div>
+</ion-content>

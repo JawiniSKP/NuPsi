@@ -1,14 +1,10 @@
 // src/app/app.routes.ts
 import { Routes } from '@angular/router';
-import { AuthGuard, redirectUnauthorizedTo } from '@angular/fire/auth-guard';
-
-// Función helper para redireccionar usuarios no autenticados
-const redirectUnauthorizedToLogin = () => redirectUnauthorizedTo(['login']);
 
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'login',
+    redirectTo: 'home',
     pathMatch: 'full'
   },
   {
@@ -23,12 +19,27 @@ export const routes: Routes = [
     path: 'register',
     loadComponent: () => import('./pages/register/register.page').then(m => m.RegisterPage),
   },
+  { 
+    path: 'planes', 
+    loadComponent: () => import('./pages/planes/planes.page').then((m) => m.PlanesPage) 
+  },
   {
     path: 'indicators',
     loadComponent: () => import('./pages/indicators/indicators.page').then(m => m.IndicatorsPage),
   },
+  // Agrega estas rutas que faltan:
+  // En app.routes.ts - AÑADIR ESTA RUTA
+  {
+    path: 'receta-detalle/:id',
+    loadComponent: () => import('./pages/planes/receta-detalle.page').then(m => m.RecetaDetallePage)
+  },
+  { 
+    path: 'chat', 
+    loadComponent: () => import('./pages/chat/chat.page').then((m) => m.ChatPage) 
+  },
+
   {
     path: '**',
-    redirectTo: 'login'
+    redirectTo: 'home'
   }
 ];

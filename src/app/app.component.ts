@@ -25,7 +25,10 @@ import {
   personOutline,
   close,
   createOutline,
-  analytics
+  analytics,
+  swapHorizontal, // ✅ AÑADIDO
+  fitness, // ✅ AÑADIDO
+  arrowBack // ✅ AÑADIDO
 } from 'ionicons/icons';
 import { MenuComponent } from './components/menu/menu.component';
 
@@ -70,7 +73,10 @@ export class AppComponent implements OnInit {
       'person-outline': personOutline,
       'close': close,
       'create-outline': createOutline,
-      'analytics': analytics
+      'analytics': analytics,
+      'swap-horizontal': swapHorizontal, // ✅ AÑADIDO
+      'fitness': fitness, // ✅ AÑADIDO
+      'arrow-back': arrowBack // ✅ AÑADIDO
     });
   }
 
@@ -114,7 +120,7 @@ export class AppComponent implements OnInit {
       const isPublicRoute = publicRoutes.includes(currentUrl);
 
       // Rutas protegidas (requieren autenticación)
-      const protectedRoutes = ['/home', '/indicators', '/profile', '/settings', '/chat'];
+      const protectedRoutes = ['/home', '/indicators', '/profile', '/settings', '/chat', '/planes']; // ✅ AÑADIDO /planes
       const isProtectedRoute = protectedRoutes.some(route => currentUrl.startsWith(route));
 
       if (!user) {
@@ -130,6 +136,12 @@ export class AppComponent implements OnInit {
         // ✅ Usuario autenticado
         if (isPublicRoute && currentUrl !== '/') {
           console.log('✅ Usuario autenticado en ruta pública');
+        }
+        
+        // Redirigir a home si está en login/register
+        if (['/login', '/register', '/'].includes(currentUrl)) {
+          console.log('🏠 Redirigiendo a home desde ruta pública');
+          this.router.navigate(['/home']);
         }
       }
     });

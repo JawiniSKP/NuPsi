@@ -1,4 +1,4 @@
-// src/app/services/home.service.ts
+// src/app/services/home.service.ts - VERSIÓN CORREGIDA
 import { Injectable, inject } from '@angular/core';
 import {
   Firestore,
@@ -14,10 +14,11 @@ import {
   getDocs,
   Timestamp,
   onSnapshot,
-  addDoc
+  addDoc,
+  collectionData // ✅ AÑADIDO
 } from '@angular/fire/firestore';
+import { Auth } from '@angular/fire/auth'; // ✅ AÑADIDO
 import { Observable, from, of } from 'rxjs';
-
 import { map, catchError } from 'rxjs/operators';
 
 // ============================================
@@ -71,6 +72,28 @@ export interface UltimosValoresFisicos {
 })
 export class HomeService {
   private firestore = inject(Firestore);
+  private auth = inject(Auth); // ✅ INYECTADO CORRECTAMENTE
+
+  // ✅ MÉTODO CORREGIDO - Usar inject() correctamente
+  obtenerIndicadoresHoy(): Observable<Indicador[]> {
+    const user = this.auth.currentUser;
+    if (!user) throw new Error('Usuario no autenticado');
+
+    try {
+      const indicadoresRef = collection(this.firestore, `usuarios/${user.uid}/indicadores`);
+      const hoy = new Date().toISOString().split('T')[0];
+      const q = query(
+        indicadoresRef,
+        where('fecha', '==', hoy)
+      );
+      
+      // ✅ CORREGIDO: Usar collectionData en lugar de onSnapshot directamente
+      return collectionData(q, { idField: 'id' }) as Observable<Indicador[]>;
+    } catch (error) {
+      console.error('Error obteniendo indicadores:', error);
+      throw error;
+    }
+  }
 
   // ============================================
   // OBTENER USUARIO
@@ -98,7 +121,7 @@ export class HomeService {
     });
   }
 
-    // ============================================
+  // ============================================
   // 🎯 OBTENER ÚLTIMOS VALORES FÍSICOS (QUERY SIMPLIFICADA)
   // ============================================
   async obtenerUltimosValoresFisicos(uid: string): Promise<UltimosValoresFisicos> {
@@ -399,9 +422,6 @@ export class HomeService {
   // ============================================
   // MARCAR CONFIGURACIÓN INICIAL COMPLETADA
   // ============================================
-  // ============================================
-// MARCAR CONFIGURACIÓN INICIAL COMPLETADA
-// ============================================
   marcarConfiguracionInicialCompleta(uid: string): Observable<boolean> {
     const userDocRef = doc(this.firestore, `usuarios/${uid}`);
     

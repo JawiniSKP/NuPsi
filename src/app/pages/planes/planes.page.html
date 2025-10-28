@@ -1,0 +1,688 @@
+<!-- planes.page.html - VERSIÓN COMPLETA CON DISEÑO HOME -->
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="logo-title">
+      <div class="title-content">
+        <span>Mis Planes</span>
+      </div>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="planes-content">
+  <div class="content-wrapper">
+    
+    <!-- SELECTOR DE SECCIÓN -->
+    <div class="segment-container">
+      <ion-segment [value]="seccionActiva" (ionChange)="cambiarSeccion($event)" class="custom-segment">
+        <ion-segment-button value="nutricion" class="segment-button">
+          <div class="segment-content">
+            <ion-icon name="restaurant"></ion-icon>
+            <ion-label>Nutrición</ion-label>
+          </div>
+        </ion-segment-button>
+        <ion-segment-button value="ejercicio" class="segment-button">
+          <div class="segment-content">
+            <ion-icon name="fitness"></ion-icon>
+            <ion-label>Ejercicio</ion-label>
+          </div>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    <!-- ESTADO DE CARGA -->
+    <div *ngIf="cargando" class="cargando-state">
+      <div class="spinner-container">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Cargando tu plan...</p>
+      </div>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="main-content">
+      
+      <!-- SECCIÓN NUTRICIÓN -->
+      <div *ngIf="!cargando && seccionActiva === 'nutricion'" class="seccion-content">
+        
+        <!-- PLAN ACTIVO -->
+        <div *ngIf="planActual?.activo" class="current-plan-section">
+          <ion-card class="plan-card">
+            <div class="plan-header">
+              <div class="plan-icon">{{getDietaIcon(planActual?.dietaSeleccionada)}}</div>
+              <div class="plan-info">
+                <h2>Tu Plan Actual</h2>
+                <p class="plan-nombre">{{getDietaNombre(planActual?.dietaSeleccionada)}}</p>
+              </div>
+              <div class="plan-badge" [class]="getProgresoClase()">
+                {{planActual?.progreso?.diasCompletados || 0}} días
+              </div>
+            </div>
+
+            <div class="plan-stats">
+              <div class="stat-item">
+                <div class="stat-value">{{planActual?.objetivoCaloricoPersonalizado || 0}}</div>
+                <div class="stat-label">Calorías/día</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value">{{planActual?.duracionPlan || '30'}}</div>
+                <div class="stat-label">Duración</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value">{{getProgresoPorcentaje()}}%</div>
+                <div class="stat-label">Progreso</div>
+              </div>
+            </div>
+
+            <div class="progreso-section">
+              <div class="progreso-info">
+                <div class="progreso-text">Progreso del Plan</div>
+                <div class="progreso-porcentaje">{{getProgresoPorcentaje()}}%</div>
+              </div>
+              <div class="progreso-bar-container">
+                <div class="progreso-fill" [style.width.%]="getProgresoPorcentaje()"></div>
+              </div>
+            </div>
+
+            <div class="plan-actions">
+              <ion-button expand="block" color="primary" (click)="verPlanCompleto()">
+                <ion-icon slot="start" name="calendar"></ion-icon>
+                Ver Planificación
+              </ion-button>
+              <ion-button expand="block" fill="outline" color="medium" (click)="cambiarPlan()">
+                <ion-icon slot="start" name="swap-horizontal"></ion-icon>
+                Cambiar Plan
+              </ion-button>
+            </div>
+          </ion-card>
+
+          <!-- RECOMENDACIONES DEL DÍA -->
+          <div class="recetas-section" *ngIf="recetasDelDia.length > 0">
+            <div class="section-header">
+              <div class="section-title">
+                <div class="title-icon">🍽️</div>
+                <span>Recomendaciones de Hoy</span>
+              </div>
+            </div>
+
+            <div class="recetas-grid">
+              <ion-card class="receta-card" *ngFor="let receta of recetasDelDia; let i = index" 
+                        (click)="seleccionarComida(receta, i)">
+                <div class="receta-image">
+                  <div class="meal-time">
+                    {{ getTiempoComida(i) }}
+                  </div>
+                  <div class="food-icon">
+                    {{ getComidaIcon(i) }}
+                  </div>
+                </div>
+                
+                <div class="receta-content">
+                  <h3 class="receta-title">{{ receta.titulo }}</h3>
+                  <p class="receta-description">{{ receta.descripcion }}</p>
+                  
+                  <div class="receta-meta">
+                    <div class="meta-item">
+                      <ion-icon name="time-outline"></ion-icon>
+                      <span>{{ receta.tiempoTotal }} min</span>
+                    </div>
+                    <div class="meta-item">
+                      <ion-icon name="flame-outline"></ion-icon>
+                      <span>{{ receta.calorias }} cal</span>
+                    </div>
+                    <div class="meta-item">
+                      <ion-icon name="restaurant-outline"></ion-icon>
+                      <span>{{ receta.porciones }} porc.</span>
+                    </div>
+                  </div>
+                </div>
+              </ion-card>
+            </div>
+          </div>
+
+          <!-- SIN RECETAS -->
+          <ion-card *ngIf="recetasDelDia.length === 0 && planActual?.activo" class="empty-state-card">
+            <ion-card-content class="empty-content">
+              <div class="empty-icon">🍽️</div>
+              <h3>No hay recetas disponibles</h3>
+              <p>No se encontraron recetas para tu dieta actual</p>
+              <ion-button fill="outline" (click)="verRecetasDietaSiExiste()" *ngIf="getDietaActual()">
+                Ver todas las recetas
+              </ion-button>
+            </ion-card-content>
+          </ion-card>
+        </div>
+
+        <!-- SIN PLAN ACTIVO -->
+        <div *ngIf="!planActual?.activo" class="sin-plan-section">
+          <ion-card class="bienvenida-card">
+            <ion-card-header>
+              <ion-card-title>¡Comienza tu Transformación!</ion-card-title>
+              <ion-card-subtitle>Selecciona una dieta personalizada para tus objetivos</ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <p class="descripcion-intro">Elige entre nuestras dietas especializadas diseñadas por nutricionistas y crea un plan a tu medida.</p>
+              
+              <!-- GRID DE DIETAS -->
+              <div class="dietas-grid">
+                <ion-card 
+                  *ngFor="let dieta of dietas" 
+                  class="dieta-card"
+                  [style.--dieta-color]="dieta.color">
+                  <div class="dieta-card-header">
+                    <div class="dieta-icon">{{dieta.icon}}</div>
+                    <div class="dieta-badge" [class]="dieta.tipo">{{dieta.tipo | titlecase}}</div>
+                  </div>
+                  
+                  <ion-card-header class="dieta-card-content">
+                    <ion-card-title>{{dieta.nombre}}</ion-card-title>
+                    <ion-card-subtitle>{{dieta.descripcion}}</ion-card-subtitle>
+                  </ion-card-header>
+
+                  <ion-card-content class="dieta-beneficios">
+                    <div class="beneficios-list">
+                      <div class="beneficio-item" *ngFor="let beneficio of dieta.beneficios.slice(0, 2)">
+                        <ion-icon name="checkmark-circle" class="beneficio-icon"></ion-icon>
+                        <span>{{beneficio}}</span>
+                      </div>
+                    </div>
+                    
+                    <div class="dieta-meta">
+                      <div class="dieta-calorias">
+                        <ion-icon name="flame"></ion-icon>
+                        <span>{{dieta.caloriasRecomendadas.min}} - {{dieta.caloriasRecomendadas.max}} cal</span>
+                      </div>
+                      <div class="dieta-duracion">
+                        <ion-icon name="calendar"></ion-icon>
+                        <span>{{dieta.duracionRecomendada || '4-12 semanas'}}</span>
+                      </div>
+                    </div>
+                  </ion-card-content>
+
+                  <div class="dieta-actions">
+                    <ion-button fill="solid" color="primary" (click)="seleccionarDieta(dieta)" class="seleccionar-btn">
+                      Seleccionar
+                    </ion-button>
+                    <ion-button fill="clear" color="medium" (click)="verDetallesDieta(dieta)" class="detalles-btn">
+                      <ion-icon name="information-circle"></ion-icon>
+                    </ion-button>
+                    <ion-button fill="clear" color="success" (click)="verRecetasDieta(dieta)" class="recetas-btn">
+                      <ion-icon name="fast-food"></ion-icon>
+                    </ion-button>
+                  </div>
+                </ion-card>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </div>
+      </div>
+
+      <!-- SECCIÓN EJERCICIO -->
+      <div *ngIf="!cargando && seccionActiva === 'ejercicio'" class="seccion-content">
+        
+        <!-- PLANTILLAS DE EJERCICIO -->
+        <ion-card class="plantillas-card" *ngIf="plantillasEjercicio.length > 0">
+          <ion-card-header>
+            <ion-card-title>Plantillas Predefinidas</ion-card-title>
+            <ion-card-subtitle>Usa estas plantillas como base para tus rutinas</ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="plantillas-grid">
+              <ion-card 
+                *ngFor="let plantilla of plantillasEjercicio" 
+                class="plantilla-card"
+                (click)="usarPlantillaEjercicio(plantilla)">
+                <div class="plantilla-header">
+                  <div class="plantilla-icon">
+                    <ion-icon [name]="getIconoTipoEjercicio(plantilla.tipo)"></ion-icon>
+                  </div>
+                  <div class="plantilla-badge" [class]="plantilla.dificultad">
+                    {{plantilla.dificultad}}
+                  </div>
+                </div>
+                
+                <ion-card-header>
+                  <ion-card-title>{{plantilla.nombre}}</ion-card-title>
+                  <ion-card-subtitle>{{plantilla.descripcion}}</ion-card-subtitle>
+                </ion-card-header>
+
+                <ion-card-content>
+                  <div class="plantilla-stats">
+                    <div class="stat">
+                      <ion-icon name="time"></ion-icon>
+                      <span>{{plantilla.duracion / 60}} min</span>
+                    </div>
+                    <div class="stat">
+                      <ion-icon name="flame"></ion-icon>
+                      <span>{{plantilla.caloriasEstimadas}} cal</span>
+                    </div>
+                    <div class="stat">
+                      <ion-icon name="play"></ion-icon>
+                      <span>{{plantilla.ejercicios.length}} ejercicios</span>
+                    </div>
+                  </div>
+                </ion-card-content>
+              </ion-card>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- CREAR/EDITAR EJERCICIO -->
+        <ion-card class="crear-ejercicio-card">
+          <ion-card-header>
+            <ion-card-title>
+              {{modoEdicion ? 'Editar Ejercicio' : 'Crear Rutina Personalizada'}}
+            </ion-card-title>
+            <ion-card-subtitle>Diseña tu propio ejercicio con temporizador</ion-card-subtitle>
+          </ion-card-header>
+          
+          <ion-card-content>
+            <ion-item class="custom-input">
+              <ion-label position="stacked">Nombre del Ejercicio</ion-label>
+              <ion-input 
+                [(ngModel)]="nuevoEjercicio.nombre" 
+                placeholder="Ej: Sentadillas, Flexiones..."
+                class="input-elegante">
+              </ion-input>
+            </ion-item>
+
+            <ion-item class="custom-input">
+              <ion-label position="stacked">Descripción</ion-label>
+              <ion-textarea 
+                [(ngModel)]="nuevoEjercicio.descripcion"
+                placeholder="Describe tu ejercicio..."
+                rows="3"
+                class="input-elegante">
+              </ion-textarea>
+            </ion-item>
+
+            <div class="temporizador-config">
+              <h3>Configurar Temporizador</h3>
+              <div class="temporizador-grid">
+                <div class="temporizador-item">
+                  <label>Trabajo (seg)</label>
+                  <ion-input 
+                    type="number" 
+                    [(ngModel)]="nuevoEjercicio.temporizador.trabajo"
+                    min="5" 
+                    max="300"
+                    class="input-number">
+                  </ion-input>
+                </div>
+                <div class="temporizador-item">
+                  <label>Descanso (seg)</label>
+                  <ion-input 
+                    type="number" 
+                    [(ngModel)]="nuevoEjercicio.temporizador.descanso"
+                    min="5" 
+                    max="120"
+                    class="input-number">
+                  </ion-input>
+                </div>
+                <div class="temporizador-item">
+                  <label>Series</label>
+                  <ion-input 
+                    type="number" 
+                    [(ngModel)]="nuevoEjercicio.temporizador.series"
+                    min="1" 
+                    max="10"
+                    class="input-number">
+                  </ion-input>
+                </div>
+              </div>
+              
+              <div class="temporizador-total">
+                <strong>Duración total: {{ (nuevoEjercicio.temporizador.trabajo + nuevoEjercicio.temporizador.descanso) * nuevoEjercicio.temporizador.series }} segundos</strong>
+              </div>
+            </div>
+
+            <div class="form-actions" *ngIf="modoEdicion">
+              <ion-button 
+                expand="block" 
+                color="primary" 
+                (click)="actualizarEjercicio()"
+                [disabled]="!nuevoEjercicio.nombre"
+                class="action-btn">
+                <ion-icon slot="start" name="save"></ion-icon>
+                Actualizar Ejercicio
+              </ion-button>
+              <ion-button 
+                expand="block" 
+                fill="outline" 
+                color="medium"
+                (click)="cancelarEdicion()"
+                class="action-btn">
+                <ion-icon slot="start" name="close"></ion-icon>
+                Cancelar
+              </ion-button>
+            </div>
+
+            <ion-button 
+              *ngIf="!modoEdicion"
+              expand="block" 
+              color="primary" 
+              (click)="crearEjercicio()"
+              [disabled]="!nuevoEjercicio.nombre"
+              class="crear-btn">
+              <ion-icon slot="start" name="add-circle"></ion-icon>
+              Crear Ejercicio
+            </ion-button>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- LISTA DE EJERCICIOS -->
+        <div class="ejercicios-lista" *ngIf="ejercicios.length > 0">
+          <h2 class="section-title">Tus Ejercicios Personalizados</h2>
+          
+          <ion-card 
+            *ngFor="let ejercicio of ejercicios" 
+            class="ejercicio-card"
+            [class.completado]="ejercicio.completado">
+            
+            <div class="ejercicio-header">
+              <div class="ejercicio-info">
+                <h3>{{ejercicio.nombre}}</h3>
+                <p>{{ejercicio.descripcion}}</p>
+              </div>
+              <div class="ejercicio-estado" [class]="ejercicio.completado ? 'completado' : 'pendiente'">
+                {{ejercicio.completado ? '✅ Completado' : '⏱ Pendiente'}}
+              </div>
+            </div>
+
+            <ion-card-content class="ejercicio-content">
+              <div class="ejercicio-stats">
+                <div class="stat">
+                  <ion-icon name="time"></ion-icon>
+                  <span>{{ejercicio.temporizador.trabajo || 0}}s trabajo</span>
+                </div>
+                <div class="stat">
+                  <ion-icon name="bed"></ion-icon>
+                  <span>{{ejercicio.temporizador.descanso || 0}}s descanso</span>
+                </div>
+                <div class="stat">
+                  <ion-icon name="repeat"></ion-icon>
+                  <span>{{ejercicio.temporizador.series || 0}} series</span>
+                </div>
+                <div class="stat">
+                  <ion-icon name="hourglass"></ion-icon>
+                  <span>{{ejercicio.duracion || 0}}s total</span>
+                </div>
+              </div>
+
+              <div class="ejercicio-actions">
+                <ion-button 
+                  *ngIf="!ejercicio.completado"
+                  fill="solid" 
+                  color="primary" 
+                  (click)="iniciarEjercicio(ejercicio)"
+                  class="action-btn">
+                  <ion-icon slot="start" name="play"></ion-icon>
+                  Iniciar
+                </ion-button>
+                
+                <ion-button 
+                  fill="outline" 
+                  color="medium"
+                  (click)="editarEjercicio(ejercicio)"
+                  class="action-btn">
+                  <ion-icon slot="start" name="create"></ion-icon>
+                  Editar
+                </ion-button>
+
+                <ion-button 
+                  fill="clear" 
+                  color="danger"
+                  (click)="eliminarEjercicio(ejercicio)"
+                  class="action-btn">
+                  <ion-icon slot="icon-only" name="trash"></ion-icon>
+                </ion-button>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </div>
+
+        <!-- SIN EJERCICIOS -->
+        <div *ngIf="ejercicios.length === 0" class="sin-ejercicios">
+          <ion-card class="empty-state-card">
+            <ion-card-content class="empty-content">
+              <div class="empty-icon">💪</div>
+              <h3>Comienza tu Rutina</h3>
+              <p>Crea tu primer ejercicio personalizado con temporizador</p>
+              <p class="empty-hint">Puedes usar una plantilla predefinida como base</p>
+            </ion-card-content>
+          </ion-card>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL DE CONFIRMACIÓN DE DIETA -->
+    <div *ngIf="mostrarModalDieta" class="modal-overlay">
+      <div class="modal-content">
+        <ion-card class="modal-card">
+          <ion-card-header>
+            <ion-card-title>Confirmar Selección</ion-card-title>
+            <ion-card-subtitle>¿Estás seguro de seleccionar esta dieta?</ion-card-subtitle>
+          </ion-card-header>
+          
+          <ion-card-content *ngIf="dietaSeleccionadaModal">
+            <div class="dieta-modal-info">
+              <div class="dieta-modal-icon">{{dietaSeleccionadaModal.icon}}</div>
+              <div class="dieta-modal-details">
+                <h3>{{dietaSeleccionadaModal.nombre}}</h3>
+                <p>{{dietaSeleccionadaModal.descripcion}}</p>
+              </div>
+            </div>
+            
+            <div class="beneficios-modal">
+              <h4>Beneficios principales:</h4>
+              <ul>
+                <li *ngFor="let beneficio of dietaSeleccionadaModal.beneficios.slice(0, 3)">
+                  {{beneficio}}
+                </li>
+              </ul>
+            </div>
+
+            <div class="dieta-calorias-modal">
+              <h4>Rango calórico recomendado:</h4>
+              <p>{{dietaSeleccionadaModal.caloriasRecomendadas.min}} - {{dietaSeleccionadaModal.caloriasRecomendadas.max}} calorías/día</p>
+            </div>
+          </ion-card-content>
+
+          <div class="modal-actions">
+            <ion-button 
+              expand="block" 
+              color="primary" 
+              (click)="confirmarSeleccionDieta()">
+              Confirmar Selección
+            </ion-button>
+            <ion-button 
+              expand="block" 
+              fill="outline" 
+              color="medium"
+              (click)="cancelarSeleccionDieta()">
+              Cancelar
+            </ion-button>
+          </div>
+        </ion-card>
+      </div>
+    </div>
+
+    <!-- MODAL DETALLES DIETA -->
+    <div *ngIf="mostrarDetallesDieta" class="modal-overlay">
+      <div class="modal-content large-modal">
+        <ion-card class="modal-card">
+          <ion-card-header>
+            <ion-card-title>Detalles de la Dieta</ion-card-title>
+            <ion-button fill="clear" slot="end" (click)="cerrarModales()">
+              <ion-icon name="close"></ion-icon>
+            </ion-button>
+          </ion-card-header>
+          
+          <ion-card-content *ngIf="dietaDetallada">
+            <div class="dieta-detalle-header">
+              <div class="dieta-icon-large">{{dietaDetallada.icon}}</div>
+              <div class="dieta-detalle-info">
+                <h2>{{dietaDetallada.nombre}}</h2>
+                <p class="dieta-descripcion">{{dietaDetallada.descripcion}}</p>
+                <div class="dieta-meta-detalle">
+                  <span class="dieta-tipo" [style.background-color]="dietaDetallada.color">{{dietaDetallada.tipo | titlecase}}</span>
+                  <span class="dieta-duracion">{{dietaDetallada.duracionRecomendada}}</span>
+                  <span class="dieta-dificultad">{{dietaDetallada.dificultad}}</span>
+                </div>
+              </div>
+            </div>
+
+            <ion-grid class="dieta-detalle-grid">
+              <ion-row>
+                <ion-col size="12" size-md="6">
+                  <div class="detalle-section">
+                    <h3>🍽️ Alimentos Permitidos</h3>
+                    <div class="alimentos-lista">
+                      <ion-chip *ngFor="let alimento of dietaDetallada.alimentosPermitidos" color="success">
+                        <ion-label>{{alimento}}</ion-label>
+                      </ion-chip>
+                    </div>
+                  </div>
+                </ion-col>
+                <ion-col size="12" size-md="6">
+                  <div class="detalle-section">
+                    <h3>🚫 Alimentos a Evitar</h3>
+                    <div class="alimentos-lista">
+                      <ion-chip *ngFor="let alimento of dietaDetallada.alimentosEvitar" color="danger">
+                        <ion-label>{{alimento}}</ion-label>
+                      </ion-chip>
+                    </div>
+                  </div>
+                </ion-col>
+              </ion-row>
+
+              <ion-row>
+                <ion-col size="12" size-md="6">
+                  <div class="detalle-section">
+                    <h3>⭐ Beneficios</h3>
+                    <ul class="lista-beneficios">
+                      <li *ngFor="let beneficio of dietaDetallada.beneficios">
+                        <ion-icon name="checkmark-circle" color="success"></ion-icon>
+                        {{beneficio}}
+                      </li>
+                    </ul>
+                  </div>
+                </ion-col>
+                <ion-col size="12" size-md="6">
+                  <div class="detalle-section">
+                    <h3>📋 Consideraciones</h3>
+                    <ul class="lista-consideraciones">
+                      <li *ngFor="let consideracion of dietaDetallada.consideraciones">
+                        <ion-icon name="information-circle" color="primary"></ion-icon>
+                        {{consideracion}}
+                      </li>
+                    </ul>
+                  </div>
+                </ion-col>
+              </ion-row>
+
+              <ion-row>
+                <ion-col size="12">
+                  <div class="detalle-section">
+                    <h3>📊 Macronutrientes</h3>
+                    <div class="macronutrientes-grid">
+                      <div class="macronutriente-item">
+                        <div class="macronutriente-label">Proteínas</div>
+                        <div class="macronutriente-value">{{dietaDetallada.macronutrientes?.proteinas}}</div>
+                      </div>
+                      <div class="macronutriente-item">
+                        <div class="macronutriente-label">Carbohidratos</div>
+                        <div class="macronutriente-value">{{dietaDetallada.macronutrientes?.carbohidratos}}</div>
+                      </div>
+                      <div class="macronutriente-item">
+                        <div class="macronutriente-label">Grasas</div>
+                        <div class="macronutriente-value">{{dietaDetallada.macronutrientes?.grasas}}</div>
+                      </div>
+                    </div>
+                  </div>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+
+            <div class="modal-actions">
+              <ion-button expand="block" color="primary" (click)="seleccionarDieta(dietaDetallada)">
+                Seleccionar esta Dieta
+              </ion-button>
+              <ion-button expand="block" fill="outline" color="success" (click)="verRecetasDieta(dietaDetallada)">
+                <ion-icon slot="start" name="fast-food"></ion-icon>
+                Ver Recetas
+              </ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
+
+    <!-- MODAL RECETAS DIETA -->
+    <div *ngIf="mostrarRecetasDieta" class="modal-overlay">
+      <div class="modal-content large-modal">
+        <ion-card class="modal-card">
+          <ion-card-header>
+            <ion-card-title>Recetas para {{dietaDetallada?.nombre}}</ion-card-title>
+            <ion-button fill="clear" slot="end" (click)="cerrarModales()">
+              <ion-icon name="close"></ion-icon>
+            </ion-button>
+          </ion-card-header>
+          
+          <ion-card-content>
+            <div *ngIf="recetasDietaSeleccionada.length === 0" class="empty-recetas">
+              <div class="empty-icon">🍽️</div>
+              <h3>No hay recetas disponibles</h3>
+              <p>No se encontraron recetas para esta dieta</p>
+            </div>
+
+            <div class="recetas-grid" *ngIf="recetasDietaSeleccionada.length > 0">
+              <ion-card *ngFor="let receta of recetasDietaSeleccionada" class="receta-card">
+                <ion-card-header>
+                  <ion-card-title>{{receta.titulo}}</ion-card-title>
+                  <ion-card-subtitle>{{receta.descripcion}}</ion-card-subtitle>
+                </ion-card-header>
+
+                <ion-card-content>
+                  <div class="receta-meta">
+                    <div class="receta-info">
+                      <span class="tiempo">{{receta.tiempoTotal}} min</span>
+                      <span class="calorias">{{receta.calorias}} cal</span>
+                      <span class="porciones">{{receta.porciones}} porciones</span>
+                      <span class="dificultad" [class]="receta.dificultad">{{receta.dificultad}}</span>
+                    </div>
+                    
+                    <div class="receta-nutricion">
+                      <div class="nutriente">
+                        <strong>P:</strong> {{receta.nutricion?.proteinas || 0}}g
+                      </div>
+                      <div class="nutriente">
+                        <strong>C:</strong> {{receta.nutricion?.carbohidratos || 0}}g
+                      </div>
+                      <div class="nutriente">
+                        <strong>G:</strong> {{receta.nutricion?.grasas || 0}}g
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="receta-actions">
+                    <ion-button fill="solid" color="primary" (click)="verReceta(receta.id)">
+                      Ver Receta
+                    </ion-button>
+                  </div>
+                </ion-card-content>
+              </ion-card>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
+
+    <!-- Espaciador para el menú inferior -->
+    <div class="bottom-spacer"></div>
+  </div>
+</ion-content>

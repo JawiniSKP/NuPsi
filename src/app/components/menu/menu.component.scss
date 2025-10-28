@@ -62,3 +62,36 @@
     }
   }
 }
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+.nav-buttons-container {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+}
+
+.nav-button {
+  --color: var(--ion-color-medium);
+  --color-activated: var(--ion-color-primary);
+  --color-focused: var(--ion-color-primary);
+  flex-direction: column;
+  min-width: 60px;
+  
+  ion-icon {
+    font-size: 20px;
+  }
+  
+  ion-label {
+    font-size: 12px;
+    margin-top: 4px;
+  }
+}
+
+.nav-button.active {
+  --color: var(--ion-color-primary);
+}

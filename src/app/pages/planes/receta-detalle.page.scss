@@ -1,0 +1,512 @@
+/* ========================================
+   🎨 RECETA DETALLE PAGE - SCSS COMPLETO
+   ======================================== */
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+/* ===============================
+   📱 ESTRUCTURA PRINCIPAL
+   =============================== */
+.receta-detalle-content {
+  --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --padding-top: 0;
+  --padding-bottom: 80px;
+  
+  .inner-scroll {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+.content-wrapper {
+  padding: 0;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* ===============================
+   🎯 HEADER (Estilo Home)
+   =============================== */
+ion-header {
+  ion-toolbar {
+    --background: rgba(255, 255, 255, 0.1);
+    --color: white;
+    --min-height: 70px;
+    --border-width: 0;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    
+    ion-title {
+      .title-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        
+        span {
+          font-weight: 700;
+          font-size: 22px;
+          color: white;
+          text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+      }
+    }
+    
+    ion-buttons {
+      ion-button {
+        --color: white;
+        --background-hover: rgba(255, 255, 255, 0.15);
+        --border-radius: 50%;
+        
+        ion-icon {
+          font-size: 24px;
+        }
+      }
+    }
+  }
+}
+
+/* ===============================
+   🏠 HERO SECTION
+   =============================== */
+.receta-hero {
+  position: relative;
+  height: 280px;
+  overflow: hidden;
+  
+  .hero-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    padding: 60px 20px 40px;
+    text-align: center;
+    color: white;
+    
+    .meal-time-badge {
+      display: inline-block;
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #667eea;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 20px;
+    }
+    
+    .food-icon-large {
+      font-size: 80px;
+      margin-bottom: 16px;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+    }
+    
+    .receta-title {
+      font-size: 28px;
+      font-weight: 800;
+      margin: 0 0 12px 0;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      line-height: 1.2;
+    }
+    
+    .receta-subtitle {
+      font-size: 16px;
+      font-weight: 500;
+      margin: 0;
+      opacity: 0.9;
+      line-height: 1.4;
+    }
+  }
+}
+
+/* ===============================
+   📊 RECETA INFO SECTION
+   =============================== */
+.receta-info-section {
+  padding: 0 20px;
+  margin: -40px 0 24px;
+  position: relative;
+  z-index: 3;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.info-item {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(20px);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  }
+
+  ion-icon {
+    font-size: 24px;
+    color: #667eea;
+    flex-shrink: 0;
+  }
+
+  .info-content {
+    flex: 1;
+    
+    .info-value {
+      display: block;
+      font-size: 20px;
+      font-weight: 800;
+      color: #2C3E50;
+      margin-bottom: 4px;
+    }
+    
+    .info-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #5A6C7D;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+/* ===============================
+   💪 CARDS GENERALES
+   =============================== */
+.nutricion-card,
+.ingredientes-card,
+.instrucciones-card,
+.etiquetas-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  margin: 0 20px 20px;
+  border: none;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(20px);
+
+  ion-card-header {
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+
+    ion-card-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #2C3E50;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    ion-card-subtitle {
+      font-size: 14px;
+      color: #667eea;
+      font-weight: 600;
+    }
+  }
+
+  ion-card-content {
+    padding: 24px;
+  }
+}
+
+/* ===============================
+   🥩 NUTRICIÓN CARD
+   =============================== */
+.nutricion-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.nutriente {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  .nutriente-icon {
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .nutriente-info {
+    flex: 1;
+    
+    .nutriente-value {
+      display: block;
+      font-size: 18px;
+      font-weight: 800;
+      color: #667eea;
+      margin-bottom: 2px;
+    }
+    
+    .nutriente-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #5A6C7D;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+/* ===============================
+   🛒 INGREDIENTES CARD
+   =============================== */
+.ingrediente-item {
+  --background: transparent;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  margin-bottom: 12px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  ion-label {
+    h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #2C3E50;
+      margin: 0 0 4px 0;
+    }
+    
+    p {
+      font-size: 14px;
+      color: #667eea;
+      font-weight: 600;
+      margin: 0;
+    }
+  }
+}
+
+/* ===============================
+   👨‍🍳 INSTRUCCIONES CARD
+   =============================== */
+.instrucciones-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.instruccion-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateX(4px);
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  .instruccion-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 800;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .instruccion-text {
+    flex: 1;
+    font-size: 14px;
+    color: #5A6C7D;
+    line-height: 1.5;
+    margin: 0;
+  }
+}
+
+/* ===============================
+   🏷️ ETIQUETAS CARD
+   =============================== */
+.etiquetas-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ===============================
+   ⏳ LOADING STATE
+   =============================== */
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+  
+  .spinner-container {
+    text-align: center;
+    
+    ion-spinner {
+      width: 48px;
+      height: 48px;
+      --color: white;
+      margin-bottom: 16px;
+    }
+    
+    p {
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+    }
+  }
+}
+
+/* ===============================
+   📱 RESPONSIVE DESIGN
+   =============================== */
+@media (max-width: 768px) {
+  .receta-hero {
+    height: 240px;
+    
+    .hero-content {
+      padding: 50px 20px 30px;
+      
+      .food-icon-large {
+        font-size: 64px;
+      }
+      
+      .receta-title {
+        font-size: 24px;
+      }
+      
+      .receta-subtitle {
+        font-size: 14px;
+      }
+    }
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .nutricion-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nutricion-card,
+  .ingredientes-card,
+  .instrucciones-card,
+  .etiquetas-card {
+    margin: 0 16px 16px;
+    
+    ion-card-header {
+      padding: 20px 20px 12px;
+    }
+    
+    ion-card-content {
+      padding: 20px;
+    }
+  }
+
+  .info-item {
+    padding: 16px;
+    
+    .info-content {
+      .info-value {
+        font-size: 18px;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .receta-hero {
+    height: 220px;
+    
+    .hero-content {
+      padding: 40px 16px 24px;
+      
+      .food-icon-large {
+        font-size: 56px;
+      }
+      
+      .receta-title {
+        font-size: 22px;
+      }
+    }
+  }
+
+  .nutricion-card,
+  .ingredientes-card,
+  .instrucciones-card,
+  .etiquetas-card {
+    margin: 0 12px 12px;
+    
+    ion-card-header {
+      padding: 16px 16px 8px;
+    }
+    
+    ion-card-content {
+      padding: 16px;
+    }
+  }
+
+  .instruccion-item {
+    padding: 12px;
+    gap: 12px;
+    
+    .instruccion-number {
+      width: 28px;
+      height: 28px;
+      font-size: 12px;
+    }
+    
+    .instruccion-text {
+      font-size: 13px;
+    }
+  }
+}
+
+/* Espaciador para el menú inferior */
+.bottom-spacer {
+  height: 100px;
+}

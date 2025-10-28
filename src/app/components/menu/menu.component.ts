@@ -1,13 +1,13 @@
 import { Component } from '@angular/core';
 import { 
-  IonTabs, 
-  IonTabBar, 
-  IonTabButton, 
+  IonToolbar, 
+  IonButtons, 
+  IonButton, 
   IonIcon, 
   IonLabel 
 } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-menu',
@@ -17,13 +17,29 @@ import { RouterModule } from '@angular/router';
   imports: [
     CommonModule,
     RouterModule,
-    IonTabs,
-    IonTabBar,
-    IonTabButton,
+    IonToolbar,
+    IonButtons,
+    IonButton,
     IonIcon,
     IonLabel
   ]
 })
 export class MenuComponent {
-  // Puedes agregar lógica de navegación aquí si es necesario
+  
+  constructor(private router: Router) {}
+
+  // Método para verificar ruta activa
+  isActive(route: string): boolean {
+    return this.router.url === route;
+  }
+
+  // Método para debug
+  navigateTo(route: string) {
+    console.log('🔗 Navegando a:', route);
+    this.router.navigate([route]).then(success => {
+      console.log('✅ Navegación exitosa a:', route);
+    }).catch(error => {
+      console.error('❌ Error navegando a', route, error);
+    });
+  }
 }

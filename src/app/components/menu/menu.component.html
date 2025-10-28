@@ -1,38 +1,42 @@
-<!-- 
-  🧭 COMPONENTE DE MENÚ/TABS
-  Navegación principal de la aplicación
--->
-<ion-tabs>
-  <ion-tab-bar slot="bottom" class="bottom-nav">
+<!-- menu.component.html -->
+<ion-toolbar color="primary" class="bottom-nav">
+  <ion-buttons slot="primary" class="nav-buttons-container">
     
-    <!-- Tab 1: INICIO -->
-    <ion-tab-button tab="home" [routerLink]="['/home']">
+    <ion-button 
+      [routerLink]="'/home'" 
+      fill="clear" 
+      class="nav-button"
+      [class.active]="isActive('/home')">
       <ion-icon name="home"></ion-icon>
       <ion-label>Inicio</ion-label>
-    </ion-tab-button>
+    </ion-button>
     
-    <!-- Tab 2: PLANES -->
-    <ion-tab-button tab="planes" [routerLink]="['/planes']">
+    <ion-button 
+      [routerLink]="'/planes'" 
+      fill="clear" 
+      class="nav-button"
+      [class.active]="isActive('/planes')">
       <ion-icon name="calendar"></ion-icon>
       <ion-label>Planes</ion-label>
-    </ion-tab-button>
+    </ion-button>
     
-    <!-- Tab 3: CHATBOT -->
-    <ion-tab-button tab="chatbot" [routerLink]="['/chatbot']">
+    <ion-button 
+      [routerLink]="'/chat'" 
+      fill="clear" 
+      class="nav-button"
+      [class.active]="isActive('/chat')">
       <ion-icon name="chatbubble"></ion-icon>
-      <ion-label>Chatbot</ion-label> 
-    </ion-tab-button>
-   <!-- Tab 4: COMUNIDAD -->
- <!--   <ion-tab-button tab="comunidad" [routerLink]="['/comunidad']">
-      <ion-icon name="people"></ion-icon>
-      <ion-label>Comunidad</ion-label>
-    </ion-tab-button> -->
+      <ion-label>Chatbot</ion-label>
+    </ion-button>
     
-    <!-- Tab 5: PERFIL -->
-    <ion-tab-button tab="perfil" [routerLink]="['/perfil']">
+    <ion-button 
+      [routerLink]="'/perfil'" 
+      fill="clear" 
+      class="nav-button"
+      [class.active]="isActive('/perfil')">
       <ion-icon name="person"></ion-icon>
       <ion-label>Perfil</ion-label>
-    </ion-tab-button>
+    </ion-button>
     
-  </ion-tab-bar>
-</ion-tabs>
+  </ion-buttons>
+</ion-toolbar>
