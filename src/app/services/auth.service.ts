@@ -10,9 +10,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup
 } from '@angular/fire/auth';
-import { doc, docData, Firestore, setDoc } from '@angular/fire/firestore';
-import { map, catchError } from 'rxjs/operators';
-import { of, from, Observable } from 'rxjs';
+import { doc, Firestore, setDoc, updateDoc, getDoc, Timestamp } from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root'
@@ -34,146 +32,127 @@ export class AuthService {
     return this.auth.currentUser?.uid || '';
   }
 
-  // Obtener nombre del usuario - MODIFICADO
+  // Obtener nombre del usuario
   async getCurrentUserName(): Promise<string> {
-    const user = this.auth.currentUser;
-    if (!user) return 'Usuario';
+    const currentUser = this.auth.currentUser;
+    if (!currentUser) return 'Usuario';
     
-    try {
-      // PRIMERO: Intentar obtener el nombre de Google Auth
-      if (user.providerData && user.providerData.length > 0) {
-        const googleProvider = user.providerData.find(
-          (provider: any) => provider.providerId === 'google.com'
-        );
-        
-        if (googleProvider?.displayName) {
-          console.log('Nombre obtenido de Google:', googleProvider.displayName);
-          return googleProvider.displayName;
-        }
-      }
-      
-      // SEGUNDO: Usar displayName directo de Firebase Auth
-      if (user.displayName) {
-        console.log('Nombre obtenido de displayName:', user.displayName);
-        return user.displayName;
-      }
-      
-      // TERCERO: Buscar en Firestore
-      const userDoc = doc(this.firestore, `users/${user.uid}`);
-      const userData = await new Promise<any>((resolve) => {
-        const subscription = docData(userDoc).pipe(
-          catchError(error => {
-            console.error('Error getting user data:', error);
-            resolve(null);
-            return of(null);
-          })
-        ).subscribe(data => {
-          resolve(data);
-          subscription.unsubscribe();
-        });
-      });
-      
-      // CUARTO: Fallbacks sucesivos
-      return userData?.name || user.email?.split('@')[0] || 'Usuario';
-    } catch (error) {
-      console.error('Error in getCurrentUserName:', error);
-      return user.displayName || user.email?.split('@')[0] || 'Usuario';
-    }
-  }
-
-  // Obtener perfil del usuario - MODIFICADO
-  async getUserProfile(userId: string): Promise<any> {
-    try {
-      const userDoc = doc(this.firestore, `users/${userId}`);
-      const userSnapshot = await new Promise<any>((resolve) => {
-        const subscription = docData(userDoc).pipe(
-          catchError(error => {
-            console.error('Error getting user profile:', error);
-            resolve(null);
-            return of(null);
-          })
-        ).subscribe(data => {
-          resolve(data);
-          subscription.unsubscribe();
-        });
-      });
-      return userSnapshot;
-    } catch (error) {
-      console.error('Error in getUserProfile:', error);
-      return null;
-    }
+    // Prioridad: displayName > email username
+    return currentUser.displayName || currentUser.email?.split('@')[0] || 'Usuario';
   }
 
   // Login con email y contraseña
   async login(email: string, password: string): Promise<any> {
     try {
+      console.log('🔐 Iniciando login...');
       const result = await signInWithEmailAndPassword(this.auth, email, password);
+      console.log('✅ Login exitoso:', result.user.uid);
       return result;
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('❌ Error en login:', error);
       throw error;
     }
   }
 
-  // Login con Google - MEJORADO
+  // Login con Google
+  // Login con Google
   async googleLogin(): Promise<any> {
     try {
       const provider = new GoogleAuthProvider();
-      // Solicitar permisos específicos para obtener el perfil
       provider.addScope('profile');
       provider.addScope('email');
       
+      console.log('🔐 Iniciando Google login...');
       const result = await signInWithPopup(this.auth, provider);
       
-      // Guardar información del usuario en Firestore
       if (result.user) {
-        const userDoc = doc(this.firestore, `users/${result.user.uid}`);
-        await setDoc(userDoc, {
-          name: result.user.displayName,
-          email: result.user.email,
-          photoURL: result.user.photoURL,
-          provider: 'google',
-          lastLogin: new Date(),
-          createdAt: new Date()
-        }, { merge: true });
+        console.log('✅ Google login exitoso:', result.user.uid);
         
-        console.log('Usuario de Google guardado:', {
-          name: result.user.displayName,
-          email: result.user.email
-        });
+        const userDocRef = doc(this.firestore, `usuarios/${result.user.uid}`);
+        
+        // 🎯 CRÍTICO: Verificar si el usuario YA EXISTE
+        const userDoc = await getDoc(userDocRef);
+        
+        if (!userDoc.exists()) {
+          // Solo crear si NO existe
+          console.log('📝 Usuario nuevo, creando documento...');
+          
+          await setDoc(userDocRef, {
+            nombreUsuario: result.user.displayName || 'Usuario',
+            correo: result.user.email || '',
+            fotoURL: result.user.photoURL || '',
+            proveedorAuth: 'google',
+            haCompletadoConfiguracionInicial: false,
+            creadoEn: Timestamp.now(),
+            ultimoAcceso: Timestamp.now(),
+            actualizadoEn: Timestamp.now()
+          });
+          
+          console.log('💾 Usuario de Google creado en usuarios/', result.user.uid);
+        } else {
+          // Solo actualizar último acceso
+          console.log('👤 Usuario existente, actualizando último acceso...');
+          
+          await updateDoc(userDocRef, {
+            ultimoAcceso: Timestamp.now()
+          });
+          
+          console.log('✅ Último acceso actualizado');
+        }
       }
       
       return result;
-    } catch (error) {
-      console.error('Google login error:', error);
+    } catch (error: any) {
+      console.error('❌ Error en Google login:', error);
+      console.error('Código de error:', error.code);
       throw error;
     }
   }
 
   // Registro con email y contraseña
+ // Registro con email y contraseña
   async register(email: string, password: string, name: string): Promise<any> {
     try {
+      console.log('📝 Registrando usuario...');
       const result = await createUserWithEmailAndPassword(this.auth, email, password);
       
-      // Actualizar perfil del usuario
       if (result.user) {
+        // Actualizar displayName en Firebase Auth
         await updateProfile(result.user, {
           displayName: name
         });
 
-        // Guardar información adicional en Firestore
-        const userDoc = doc(this.firestore, `users/${result.user.uid}`);
-        await setDoc(userDoc, {
-          name: name,
-          email: email,
-          provider: 'email',
-          createdAt: new Date()
-        });
+        // 🎯 CRÍTICO: Guardar en 'usuarios' con la nueva estructura
+        const userDocRef = doc(this.firestore, `usuarios/${result.user.uid}`);
+        
+        try {
+          await setDoc(userDocRef, {
+            nombreUsuario: name,
+            correo: email,
+            proveedorAuth: 'email',
+            haCompletadoConfiguracionInicial: false, // 👈 Siempre false al crear
+            creadoEn: Timestamp.now(),
+            ultimoAcceso: Timestamp.now(),
+            actualizadoEn: Timestamp.now()
+          });
+
+          console.log('✅ Registro exitoso y guardado en usuarios/', result.user.uid);
+        } catch (firestoreError: any) {
+          console.error('❌ Error guardando usuario en Firestore:', firestoreError);
+          
+          // Si es error de red/bloqueo, seguir igual
+          if (firestoreError?.code === 'unavailable' || 
+              firestoreError?.message?.includes('blocked')) {
+            console.warn('⚠️ Error de conexión, pero registro exitoso');
+          } else {
+            throw firestoreError;
+          }
+        }
       }
       
       return result;
     } catch (error) {
-      console.error('Register error:', error);
+      console.error('❌ Error en registro:', error);
       throw error;
     }
   }
@@ -181,16 +160,12 @@ export class AuthService {
   // Cerrar sesión
   async logout(): Promise<void> {
     try {
+      console.log('👋 Cerrando sesión...');
       await signOut(this.auth);
+      console.log('✅ Sesión cerrada correctamente');
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('❌ Error al cerrar sesión:', error);
       throw error;
     }
-  }
-
-  // NUEVO MÉTODO: Obtener información del proveedor
-  getProviderData(): any[] {
-    const user = this.auth.currentUser;
-    return user?.providerData || [];
   }
 }

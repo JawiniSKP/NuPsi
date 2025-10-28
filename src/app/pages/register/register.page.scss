@@ -396,3 +396,159 @@ ion-input {
     color: var(--ion-color-success);
   }
 }
+// 🎨 AGREGAR ESTOS ESTILOS AL ARCHIVO register.page.scss EXISTENTE
+
+// Banner de Error Moderno (Reemplaza Alertas Feas)
+.error-banner {
+  background: linear-gradient(135deg, #fee 0%, #fdd 100%);
+  border-left: 4px solid var(--ion-color-danger);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 12px rgba(245, 61, 61, 0.15);
+  animation: slideInDown 0.4s ease-out;
+  
+  ion-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  
+  span {
+    color: #c0392b;
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1.4;
+  }
+}
+
+// Animación del banner
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Estados de error en inputs
+.item-has-error {
+  --border-color: var(--ion-color-danger) !important;
+  border-color: var(--ion-color-danger) !important;
+  background: rgba(var(--ion-color-danger-rgb), 0.05) !important;
+  
+  .input-icon {
+    color: var(--ion-color-danger);
+  }
+}
+
+// Mensajes de error mejorados
+.error-messages {
+  margin-top: -1rem;
+  margin-bottom: 1rem;
+  
+  ion-note {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    padding-left: 16px;
+    font-weight: 500;
+    
+    ion-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+  }
+}
+
+// Spinner en botones
+.button-spinner {
+  margin-right: 8px;
+  width: 20px;
+  height: 20px;
+}
+
+// Estados de loading
+ion-button[disabled] {
+  --opacity: 0.7;
+  cursor: not-allowed;
+  
+  &.register-button {
+    --background: var(--ion-color-primary-shade);
+  }
+}
+
+// Mejora visual durante loading
+.form-item[disabled] {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+// Toast personalizado (agregar en global.scss si quieres)
+.custom-toast {
+  --border-radius: 12px;
+  --box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  font-weight: 600;
+  
+  &::part(message) {
+    font-size: 0.95rem;
+  }
+  
+  &::part(button) {
+    font-size: 1.2rem;
+  }
+}
+
+// Animación suave al hacer submit
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.98);
+  }
+}
+
+.register-button[type="submit"]:active:not([disabled]) {
+  animation: pulse 0.3s ease;
+}
+
+// Estado de éxito (opcional, para feedback visual)
+.success-state {
+  animation: successPulse 0.6s ease;
+}
+
+@keyframes successPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+    background: var(--ion-color-success);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+// Mejora responsive para errores
+@media (max-width: 380px) {
+  .error-banner {
+    padding: 14px 16px;
+    font-size: 0.9rem;
+    
+    ion-icon {
+      font-size: 20px;
+    }
+  }
+  
+  .error-messages ion-note {
+    font-size: 0.8rem;
+  }
+}

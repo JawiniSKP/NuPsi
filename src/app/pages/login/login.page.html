@@ -10,9 +10,14 @@
     <!-- Sección del Logo -->
     <div class="logo-section">
       <div class="logo-container">
-        <!-- Logo NuPsi -->
         <div class="logo-image">
-          <img src="assets/Nupsi/nupsiLogo.png" alt="NuPsi Logo" class="logo-img" (load)="onLogoLoad()" (error)="onLogoError()">
+          <img 
+            *ngIf="logoLoaded" 
+            src="assets/Nupsi/nupsiLogo.png" 
+            alt="NuPsi Logo" 
+            class="logo-img" 
+            (load)="onLogoLoad()" 
+            (error)="onLogoError()">
           <div class="logo-fallback" *ngIf="!logoLoaded">
             <ion-icon name="heart" color="primary"></ion-icon>
             <span>NuPsi</span>
@@ -23,40 +28,50 @@
       <p class="subtitle">Tu aliado en salud nutricional y emocional</p>
     </div>
 
+    <!-- Mensaje de Error Global (Reemplaza Alert) -->
+    <div class="error-banner" *ngIf="errorMessage && !isLoggingIn">
+      <ion-icon name="alert-circle" color="danger"></ion-icon>
+      <span>{{ errorMessage }}</span>
+    </div>
+
     <!-- Card del Formulario -->
     <div class="form-card">
       <form [formGroup]="loginForm" (ngSubmit)="login()">
         <ion-list lines="none">
           
           <!-- Campo Email -->
-          <ion-item class="form-item">
+          <ion-item class="form-item" [class.item-has-error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
             <ion-label position="stacked" class="input-label">Email</ion-label>
             <ion-input 
               type="email" 
               formControlName="email"
               placeholder="tu@email.com"
               class="custom-input"
+              (ionInput)="clearError()"
+              [disabled]="isLoggingIn"
               required>
             </ion-input>
             <ion-icon name="mail-outline" slot="start" class="input-icon"></ion-icon>
           </ion-item>
           
-          <!-- Mensajes de error Email -->
-          <div class="error-messages">
-            <ion-note *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.errors" color="danger">
+          <div class="error-messages" *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.errors">
+            <ion-note color="danger">
+              <ion-icon name="alert-circle"></ion-icon>
               <span *ngIf="loginForm.get('email')?.errors?.['required']">Email es requerido</span>
               <span *ngIf="loginForm.get('email')?.errors?.['email']">Formato de email inválido</span>
             </ion-note>
           </div>
 
           <!-- Campo Contraseña -->
-          <ion-item class="form-item">
+          <ion-item class="form-item" [class.item-has-error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
             <ion-label position="stacked" class="input-label">Contraseña</ion-label>
             <ion-input 
               [type]="showPassword ? 'text' : 'password'" 
               formControlName="password"
               placeholder="Mínimo 6 caracteres"
               class="custom-input"
+              (ionInput)="clearError()"
+              [disabled]="isLoggingIn"
               required>
             </ion-input>
             <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
@@ -65,6 +80,7 @@
               slot="end" 
               (click)="togglePasswordVisibility()"
               class="password-toggle"
+              [disabled]="isLoggingIn"
               aria-label="Mostrar/ocultar contraseña">
               <ion-icon 
                 slot="icon-only"
@@ -74,23 +90,25 @@
             </ion-button>
           </ion-item>
           
-          <!-- Mensajes de error Contraseña -->
-          <div class="error-messages">
-            <ion-note *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.errors" color="danger">
+          <div class="error-messages" *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.errors">
+            <ion-note color="danger">
+              <ion-icon name="alert-circle"></ion-icon>
               <span *ngIf="loginForm.get('password')?.errors?.['required']">Contraseña es requerida</span>
               <span *ngIf="loginForm.get('password')?.errors?.['minlength']">Mínimo 6 caracteres</span>
             </ion-note>
           </div>
         </ion-list>
 
-        <!-- Botón de Login -->
+        <!-- Botón de Login con Loading -->
         <ion-button 
           expand="block" 
           type="submit" 
-          [disabled]="!loginForm.valid"
+          [disabled]="!loginForm.valid || isLoggingIn"
           class="login-button ion-margin-vertical">
-          <ion-icon name="log-in-outline" slot="start"></ion-icon>
-          Iniciar Sesión
+          <ion-spinner *ngIf="isLoggingIn" name="crescent" class="button-spinner"></ion-spinner>
+          <ion-icon *ngIf="!isLoggingIn" name="log-in-outline" slot="start"></ion-icon>
+          <span *ngIf="!isLoggingIn">Iniciar Sesión</span>
+          <span *ngIf="isLoggingIn">Iniciando sesión...</span>
         </ion-button>
       </form>
 
@@ -101,14 +119,17 @@
         <span class="separator-line"></span>
       </div>
 
-      <!-- Botón Google -->
+      <!-- Botón Google con Loading -->
       <ion-button 
         expand="block" 
         fill="outline" 
         (click)="loginWithGoogle()"
+        [disabled]="isLoggingIn"
         class="google-button ion-margin-vertical">
-        <ion-icon slot="start" name="logo-google" color="danger"></ion-icon>
-        Continuar con Google
+        <ion-spinner *ngIf="isLoggingIn" name="crescent" class="button-spinner"></ion-spinner>
+        <ion-icon *ngIf="!isLoggingIn" slot="start" name="logo-google" color="danger"></ion-icon>
+        <span *ngIf="!isLoggingIn">Continuar con Google</span>
+        <span *ngIf="isLoggingIn">Conectando...</span>
       </ion-button>
     </div>
 

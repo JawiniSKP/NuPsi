@@ -1,155 +1,353 @@
-/* home.page.scss - FIXED INTERACTIVITY */
+/* ========================================
+   🎨 HOME PAGE - DISEÑO PROFESIONAL MEJORADO
+   ======================================== */
+
 :host {
   display: block;
   height: 100%;
 }
 
 /* ===============================
-   📌 ION CONTENT CONFIG
+   📱 ESTRUCTURA PRINCIPAL MEJORADA
    =============================== */
-ion-content {
-  --background: #f8f9fa;
-  --overflow: auto;
-  --padding-bottom: 90px; // 👈 espacio para que el contenido no quede bajo el menú
-
-  pointer-events: auto !important;
-  touch-action: pan-y !important;
-  z-index: 1;
-  position: relative;
-
+.home-content {
+  --background: linear-gradient(135deg, #f0f9ff 0%, #e0f7fa 100%);
+  --padding-top: 0;
+  --padding-bottom: 80px;
+  
   .inner-scroll {
-    overflow-y: auto !important;
-    scroll-behavior: smooth;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    pointer-events: auto !important;
+  }
+}
+
+.content-wrapper {
+  padding: 0;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* ===============================
+   🎯 HEADER ELEGANTE MEJORADO
+   =============================== */
+ion-header {
+  ion-toolbar {
+    --background: linear-gradient(135deg, #00C6B2 0%, #00A8E8 100%);
+    --color: white;
+    --min-height: 64px;
+    --border-width: 0;
+    
+    ion-title {
+      .title-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        animation: fadeInScale 0.6s ease-out;
+        
+        .logo {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          object-fit: contain;
+          filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+          transition: transform 0.3s ease;
+        }
+        
+        span {
+          font-weight: 700;
+          font-size: 20px;
+          color: white;
+          text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          transition: all 0.3s ease;
+        }
+      }
+    }
+    
+    ion-button {
+      --color: white;
+      --background-hover: rgba(255, 255, 255, 0.15);
+      --border-radius: 50%;
+      --padding-start: 8px;
+      --padding-end: 8px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      &:active {
+        transform: scale(0.9);
+      }
+    }
   }
 }
 
 /* ===============================
-   📌 MENÚ FIJO - NO BLOQUEA CLICKS
+   👋 SECCIÓN DE BIENVENIDA ANIMADA MEJORADA
    =============================== */
-app-menu {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000; // visible sobre el contenido
-  pointer-events: auto;
+.welcome-section {
+  background: linear-gradient(135deg, #00C6B2 0%, #00A8E8 100%);
+  padding: 60px 24px 40px;
+  margin-bottom: 0;
+  border-bottom-left-radius: 32px;
+  border-bottom-right-radius: 32px;
+  box-shadow: 0 12px 40px rgba(0, 198, 178, 0.4);
+  position: relative;
+  overflow: hidden;
+  animation: slideDownWithBounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  * {
-    pointer-events: auto;
+  &::before {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 180px;
+    height: 180px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 50%;
+    animation: float 8s ease-in-out infinite;
   }
 
   &::after {
-    content: "";
-    display: block;
-    height: 0;
-    width: 0;
+    content: '';
+    position: absolute;
+    bottom: -40px;
+    left: -40px;
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+    animation: float 10s ease-in-out infinite reverse;
   }
-}
-
-/* ===============================
-   🧭 SECCIONES
-   =============================== */
-
-/* Contenedor principal - interactivo */
-.content-wrapper {
-  min-height: calc(100vh - 60px);
-  padding-bottom: 20px;
-  pointer-events: auto !important;
-  position: relative;
-  z-index: 1;
-}
-
-.not-authenticated {
-  margin-bottom: 20px;
-}
-
-.welcome-section {
-  margin-bottom: 24px;
 
   .greeting {
-    font-size: 24px;
-    font-weight: 700;
-    color: #2c3e50;
-    margin: 0 0 8px 0;
-    line-height: 1.2;
+    font-size: 28px;
+    font-weight: 800;
+    color: white;
+    margin: 0 0 16px 0;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 2;
+    line-height: 1.3;
+    animation: textGlow 3s ease-in-out infinite alternate;
   }
 
   .date {
-    font-size: 16px;
-    color: #7f8c8d;
+    font-size: 17px;
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 600;
     margin: 0;
-    font-weight: 500;
     text-transform: capitalize;
+    position: relative;
+    z-index: 2;
+    line-height: 1.4;
+    animation: fadeInUp 0.8s ease-out 0.3s both;
   }
 }
 
 /* ===============================
-   🧠 INTERACTIVIDAD DE ELEMENTOS
+   🎴 CONTENIDO PRINCIPAL MEJORADO
+   =============================== */
+.authenticated-content {
+  padding: 32px 20px 120px;
+  animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+/* ===============================
+   💡 TARJETAS ELEGANTES MEJORADAS
    =============================== */
 .question-card {
-  margin-bottom: 16px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  pointer-events: auto !important;
-  touch-action: manipulation !important;
+  background: white;
+  border-radius: 24px;
+  margin: 0 0 32px 0;
+  border: none;
+  box-shadow: 
+    0 8px 32px rgba(0, 198, 178, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  animation: cardSlideIn 0.6s ease-out;
+  animation-fill-mode: both;
+
+  &:nth-child(1) { animation-delay: 0.1s; }
+  &:nth-child(2) { animation-delay: 0.2s; }
+
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow: 
+      0 16px 48px rgba(0, 198, 178, 0.25),
+      0 4px 16px rgba(0, 0, 0, 0.08);
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 100%;
+    background: linear-gradient(135deg, #00C6B2, #00A8E8);
+    border-radius: 6px 0 0 6px;
+    transition: all 0.3s ease;
+  }
+
+  &:hover::before {
+    width: 8px;
+    box-shadow: 0 0 20px rgba(0, 198, 178, 0.6);
+  }
 
   ion-card-header {
-    padding-bottom: 8px;
-    
+    padding: 28px 28px 20px;
+
     .card-title-small {
-      font-size: 14px;
-      font-weight: 600;
-      color: #2c3e50;
+      font-size: 12px;
+      font-weight: 700;
+      color: #00C6B2;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 1.5px;
+      margin: 0;
+      position: relative;
+      display: inline-block;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -4px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #00C6B2, #00A8E8);
+        transition: width 0.3s ease;
+      }
+    }
+
+    &:hover .card-title-small::after {
+      width: 100%;
     }
   }
 
   ion-card-content {
-    padding-top: 0;
+    padding: 0 28px 28px;
 
     .question-text {
       font-size: 18px;
-      font-weight: 500;
-      color: #34495e;
-      margin: 0 0 16px 0;
+      font-weight: 600;
+      color: #2C3E50;
+      margin: 0 0 28px 0;
+      line-height: 1.5;
+      animation: fadeIn 0.6s ease-out 0.4s both;
     }
   }
 }
 
+/* ===============================
+   😊 BOTONES DE EMOCIONES INTERACTIVOS MEJORADOS
+   =============================== */
 .emotions-container {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin: 20px 0;
-  flex-wrap: wrap;
-  align-items: center;
-  pointer-events: auto !important;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin: 28px 0;
 }
 
 .emotion-button {
-  --border-radius: 50%;
-  width: 60px;
-  height: 60px;
+  --background: rgba(0, 198, 178, 0.08);
+  --background-activated: rgba(0, 198, 178, 0.18);
+  --background-hover: rgba(0, 198, 178, 0.15);
+  --border-radius: 18px;
+  --padding-start: 4px;
+  --padding-end: 4px;
+  --padding-top: 18px;
+  --padding-bottom: 18px;
+  height: 92px;
+  border: 2px solid transparent;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   margin: 0;
-  pointer-events: auto !important;
-  touch-action: manipulation !important;
-  
+  position: relative;
+  overflow: hidden;
+  animation: emotionAppear 0.5s ease-out;
+  animation-fill-mode: both;
+
+  @for $i from 1 through 5 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 0.1 + 0.5}s;
+    }
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    transition: left 0.5s ease;
+  }
+
   .button-content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    font-size: 12px;
+    gap: 12px;
+    position: relative;
+    z-index: 2;
+
+    .emoji {
+      font-size: 26px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      filter: grayscale(0.3) brightness(0.9);
+      transform-origin: center;
+    }
 
     .button-text {
-      margin-top: 2px;
-      font-size: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #5A6C7D;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      line-height: 1.2;
+      text-align: center;
+      transition: all 0.3s ease;
     }
   }
 
-  &:active {
+  &:hover:not(.selected) {
+    transform: translateY(-3px);
+    --background: rgba(0, 198, 178, 0.12);
+    box-shadow: 0 8px 20px rgba(0, 198, 178, 0.2);
+    
+    .emoji {
+      transform: scale(1.15);
+      filter: grayscale(0.2) brightness(1);
+    }
+  }
+
+  &.selected {
+    --background: linear-gradient(135deg, #00C6B2, #00A8E8);
+    border-color: #00C6B2;
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 0 12px 28px rgba(0, 198, 178, 0.5);
+    animation: emotionPulse 2s infinite;
+
+    .button-content {
+      .emoji {
+        transform: scale(1.3);
+        filter: grayscale(0) brightness(1.3);
+        animation: emojiBounce 0.6s ease;
+      }
+
+      .button-text {
+        color: white;
+        font-weight: 800;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+      }
+    }
+
+    &::before {
+      left: 100%;
+    }
+  }
+
+  &:active:not(.selected) {
     transform: scale(0.95);
     transition: transform 0.1s ease;
   }
@@ -157,189 +355,1089 @@ app-menu {
 
 .selection-info {
   text-align: center;
-  font-size: 14px;
-  color: var(--ion-color-medium);
-  margin: 16px 0 0 0;
-  font-style: italic;
-}
-
-.divider {
-  height: 1px;
-  background: #ecf0f1;
-  margin: 20px 0;
+  font-size: 15px;
+  color: #5A6C7D;
+  margin: 28px 0 0;
+  padding: 18px;
+  background: linear-gradient(135deg, rgba(0, 198, 178, 0.08), rgba(0, 168, 232, 0.08));
+  border-radius: 18px;
+  font-weight: 600;
+  border: 1px solid rgba(0, 198, 178, 0.15);
+  animation: infoPulse 3s infinite;
+  backdrop-filter: blur(10px);
 }
 
 /* ===============================
-   📊 PROGRESO
+   💧 CONTADOR DE AGUA ELEGANTE MEJORADO
    =============================== */
-.progress-section {
-  margin-bottom: 20px;
+.water-tracker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32px 28px;
+  background: linear-gradient(135deg, rgba(0, 198, 178, 0.1), rgba(0, 168, 232, 0.1));
+  border-radius: 24px;
+  margin: 32px 0;
+  border: 1px solid rgba(0, 198, 178, 0.2);
+  position: relative;
+  overflow: hidden;
+  animation: waterContainerAppear 0.6s ease-out 0.6s both;
+  backdrop-filter: blur(10px);
 
-  .section-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #2c3e50;
-    margin: 0 0 12px 0;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #00C6B2, #00A8E8);
+    animation: progressShimmer 3s infinite;
   }
 
-  .progress-card {
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    pointer-events: auto !important;
+  ion-button {
+    --background: linear-gradient(135deg, #00C6B2, #00A8E8);
+    --border-radius: 50%;
+    --box-shadow: 0 6px 20px rgba(0, 198, 178, 0.5);
+    width: 52px;
+    height: 52px;
+    margin: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
 
-    ion-card-header {
-      padding-bottom: 8px;
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+      transition: left 0.5s ease;
+    }
 
-      .card-title-small {
-        font-size: 14px;
-        font-weight: 600;
-        color: #2c3e50;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+    ion-icon {
+      font-size: 24px;
+      color: white;
+      transition: transform 0.2s ease;
+    }
+
+    &:active:not([disabled]) {
+      transform: scale(0.85);
+      --box-shadow: 0 3px 12px rgba(0, 198, 178, 0.4);
+      
+      &::before {
+        left: 100%;
+      }
+      
+      ion-icon {
+        transform: scale(0.9);
       }
     }
 
-    ion-card-content {
-      padding: 12px 16px;
-
-      .progress-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-
-        .progress-info {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-
-          .progress-icon {
-            font-size: 20px;
-          }
-
-          .progress-label {
-            font-size: 16px;
-            font-weight: 500;
-            color: #2c3e50;
-          }
-        }
-
-        .progress-value {
-          font-size: 16px;
-          font-weight: 600;
-          color: #3498db;
-        }
-      }
+    &[disabled] {
+      --background: rgba(0, 198, 178, 0.3);
+      opacity: 0.7;
+      transform: scale(0.9);
     }
   }
-}
 
-/* ===============================
-   🧭 BOTONES
-   =============================== */
-.action-buttons {
-  margin-bottom: 20px;
+  .water-count {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    animation: waterCountAppear 0.8s ease-out 0.8s both;
 
-  .primary-button {
-    --border-radius: 8px;
-    --box-shadow: 0 2px 6px rgba(52, 152, 219, 0.3);
-    height: 48px;
-    font-weight: 600;
-    font-size: 16px;
-    margin-bottom: 12px;
-    pointer-events: auto !important;
-    touch-action: manipulation !important;
-  }
+    .water-icon {
+      font-size: 36px;
+      animation: waterDropEnhanced 4s ease-in-out infinite;
+      filter: drop-shadow(0 4px 8px rgba(0, 198, 178, 0.6));
+      transform-origin: center;
+    }
 
-  .secondary-button {
-    --border-radius: 8px;
-    --border-width: 2px;
-    --border-color: #3498db;
-    --color: #3498db;
-    height: 44px;
-    font-weight: 500;
-    font-size: 14px;
-    pointer-events: auto !important;
-    touch-action: manipulation !important;
-  }
-}
+    .water-number {
+      font-size: 40px;
+      font-weight: 900;
+      color: #00C6B2;
+      line-height: 1;
+      text-shadow: 0 4px 8px rgba(0, 198, 178, 0.3);
+      transition: all 0.3s ease;
+    }
 
-/* ===============================
-   💡 TIP CARD
-   =============================== */
-.tip-card {
-  margin-bottom: 16px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
-  border: 1px solid #ffeaa7;
-  pointer-events: auto !important;
-
-  ion-card-header {
-    padding-bottom: 8px;
-
-    .card-title-small {
-      font-size: 14px;
+    .water-text {
+      font-size: 15px;
+      color: #5A6C7D;
       font-weight: 600;
-      color: #856404;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+.water-progress {
+  margin-top: 28px;
+  animation: fadeInUp 0.6s ease-out 1s both;
+
+  .progress-bar {
+    width: 100%;
+    height: 12px;
+    background: rgba(0, 198, 178, 0.2);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 
+      inset 0 2px 4px rgba(0,0,0,0.1),
+      0 2px 4px rgba(0,0,0,0.05);
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #00C6B2, #00A8E8);
+      border-radius: 12px;
+      transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      box-shadow: 
+        0 2px 12px rgba(0, 198, 178, 0.6),
+        inset 0 1px 0 rgba(255,255,255,0.3);
+      
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+        animation: shimmerEnhanced 4s infinite;
+        border-radius: 12px;
+      }
+    }
+  }
+
+  .progress-text {
+    text-align: center;
+    font-size: 15px;
+    color: #5A6C7D;
+    margin: 16px 0 0;
+    font-weight: 600;
+    animation: textPulse 3s infinite;
+  }
+}
+
+/* ===============================
+   🎯 SECCIÓN DE PROGRESO MEJORADA
+   =============================== */
+
+.progress-section-improved {
+  margin-bottom: 32px;
+  animation: fadeInUp 0.6s ease-out 0.3s both;
+
+  .section-title-improved {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #2C3E50;
+    margin: 0 0 20px 0;
+    
+    .title-icon {
+      color: #00C6B2;
+      font-size: 28px;
+      filter: drop-shadow(0 2px 4px rgba(0, 198, 178, 0.3));
+    }
+  }
+}
+
+.progress-card-improved {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fdff 100%);
+  border-radius: 20px;
+  margin: 0;
+  border: 1px solid rgba(0, 198, 178, 0.2);
+  box-shadow: 
+    0 8px 32px rgba(0, 198, 178, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #00C6B2, #00A8E8);
+  }
+
+  .progress-header {
+    padding: 24px 24px 16px;
+
+    .card-title-small-improved {
+      font-size: 14px;
+      font-weight: 700;
+      color: #00C6B2;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin: 0;
+    }
+  }
+
+  .progress-content {
+    padding: 0 24px 24px;
+  }
+}
+
+.progress-items-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.progress-item-improved {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+
+  .progress-info-improved {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+
+    .icon-wrapper {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, rgba(0, 198, 178, 0.1), rgba(0, 168, 232, 0.1));
+      border-radius: 12px;
       display: flex;
       align-items: center;
-      gap: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      justify-content: center;
+      
+      .progress-icon-improved {
+        font-size: 20px;
+        color: #00C6B2;
+      }
+    }
 
-      ion-icon {
+    .text-content {
+      flex: 1;
+
+      .progress-label-improved {
+        font-size: 14px;
+        font-weight: 600;
+        color: #5A6C7D;
+        display: block;
+        margin-bottom: 8px;
+      }
+    }
+  }
+
+  .progress-value-improved {
+    font-size: 16px;
+    font-weight: 700;
+    color: #00C6B2;
+    text-align: right;
+    min-width: 80px;
+  }
+}
+
+.progress-bar-mini {
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 198, 178, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+  
+  .progress-fill-mini {
+    height: 100%;
+    background: linear-gradient(90deg, #00C6B2, #00A8E8);
+    border-radius: 3px;
+    transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+      animation: shimmer 3s infinite;
+    }
+  }
+}
+
+.progress-divider {
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(0, 198, 178, 0.3), 
+    transparent
+  );
+  margin: 0;
+}
+
+/* ===============================
+   🎯 BOTONES DE ACCIÓN MEJORADOS
+   =============================== */
+
+.action-buttons-improved {
+  margin: 32px 0;
+  animation: fadeInUp 0.6s ease-out 0.4s both;
+
+  .action-buttons-group {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+.primary-button-improved,
+.secondary-button-improved {
+  --border-radius: 16px;
+  height: 56px;
+  font-weight: 700;
+  font-size: 16px;
+  margin: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    transition: left 0.5s ease;
+  }
+
+  ion-icon {
+    font-size: 20px;
+    margin-right: 8px;
+    transition: transform 0.3s ease;
+  }
+}
+
+.primary-button-improved {
+  --background: linear-gradient(135deg, #00C6B2, #00A8E8);
+  --background-activated: linear-gradient(135deg, #00A896, #0091EA);
+  --box-shadow: 0 8px 25px rgba(0, 198, 178, 0.4);
+  
+  &:hover {
+    transform: translateY(-2px);
+    --box-shadow: 0 12px 30px rgba(0, 198, 178, 0.5);
+  }
+  
+  &:active {
+    transform: translateY(1px);
+    --box-shadow: 0 4px 15px rgba(0, 198, 178, 0.3);
+    
+    &::before {
+      left: 100%;
+    }
+    
+    ion-icon {
+      transform: scale(0.9);
+    }
+  }
+}
+
+.secondary-button-improved {
+  --background: white;
+  --border-width: 2px;
+  --border-color: #00C6B2;
+  --color: #00C6B2;
+  --background-activated: rgba(0, 198, 178, 0.1);
+  
+  &:hover {
+    transform: translateY(-2px);
+    --box-shadow: 0 8px 20px rgba(0, 198, 178, 0.25);
+  }
+  
+  &:active {
+    transform: translateY(1px);
+    --box-shadow: 0 4px 12px rgba(0, 198, 178, 0.2);
+    
+    &::before {
+      left: 100%;
+    }
+    
+    ion-icon {
+      transform: scale(0.9);
+    }
+  }
+}
+
+/* ===============================
+   💡 TIP MOTIVACIONAL MEJORADO
+   =============================== */
+
+.tip-card-improved {
+  background: linear-gradient(135deg, #fff9ed 0%, #fff4e6 100%);
+  border-radius: 20px;
+  margin: 0 0 28px 0;
+  border: 1px solid rgba(255, 183, 77, 0.3);
+  box-shadow: 0 8px 32px rgba(255, 183, 77, 0.15);
+  position: relative;
+  overflow: hidden;
+  animation: fadeInUp 0.6s ease-out 0.5s both;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 100%;
+    background: linear-gradient(135deg, #FFB74D, #FF9800);
+    border-radius: 6px 0 0 6px;
+  }
+}
+
+.tip-header-improved {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 20px 0;
+
+  .tip-icon-container {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #FFB74D, #FF9800);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    .tip-main-icon {
+      font-size: 20px;
+      color: white;
+    }
+  }
+
+  .tip-card-header {
+    padding: 0;
+    
+    .card-title-small-improved {
+      font-size: 14px;
+      font-weight: 700;
+      color: #FF9800;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin: 0;
+    }
+  }
+}
+
+.tip-content-improved {
+  padding: 16px 20px 24px;
+  position: relative;
+
+  .tip-text-improved {
+    font-size: 16px;
+    font-weight: 600;
+    color: #5A3E1B;
+    line-height: 1.6;
+    margin: 0;
+    text-align: center;
+    font-style: italic;
+  }
+
+  .tip-decoration {
+    position: absolute;
+    bottom: 10px;
+    right: 20px;
+    font-size: 20px;
+    opacity: 0.6;
+    animation: twinkle 2s ease-in-out infinite;
+  }
+}
+
+/* ===============================
+   🚀 PRÓXIMAS FUNCIONES MEJORADAS
+   =============================== */
+
+.features-card-improved {
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+  border-radius: 20px;
+  margin: 0 0 28px 0;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15);
+  animation: fadeInUp 0.6s ease-out 0.6s both;
+
+  .features-header {
+    padding: 24px 24px 16px;
+
+    .card-title-small-improved {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #667EEA;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin: 0;
+
+      .title-icon {
         font-size: 18px;
       }
     }
   }
 
-  ion-card-content {
-    padding-top: 0;
+  .features-content {
+    padding: 0 24px 24px;
+  }
+}
 
-    .tip-text {
-      font-size: 14px;
-      color: #856404;
-      margin: 0;
-      line-height: 1.5;
-      font-weight: 500;
+.features-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.feature-item-improved {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(135deg, #667EEA, #764BA2);
+    transition: width 0.3s ease;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+    
+    &::before {
+      width: 6px;
+    }
+  }
+
+  .feature-icon {
+    font-size: 20px;
+    width: 32px;
+    text-align: center;
+  }
+
+  .feature-text {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    color: #2C3E50;
+  }
+
+  .feature-status {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    &.coming-soon {
+      background: rgba(102, 126, 234, 0.1);
+      color: #667EEA;
+    }
+
+    &:not(.coming-soon) {
+      background: rgba(76, 175, 80, 0.1);
+      color: #4CAF50;
     }
   }
 }
 
-.test-scroll-content {
-  margin-bottom: 20px;
-
-  ion-card {
-    pointer-events: auto !important;
-    margin-bottom: 12px;
+/* ===============================
+   🎨 ANIMACIONES PROFESIONALES MEJORADAS
+   =============================== */
+@keyframes slideDownWithBounce {
+  0% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(10px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
-/* Espaciador para evitar que el contenido quede bajo el menú */
-.bottom-spacer {
-  height: 80px; // 👈 antes era 20px — más espacio para separación limpia
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
-/* Asegura que TODOS los elementos sean interactivos */
-ion-card, ion-button, .emotions-container, .feature-card {
-  pointer-events: auto !important;
-  touch-action: manipulation !important;
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes emotionAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) rotate(-10deg);
+  }
+  70% {
+    transform: scale(1.1) rotate(5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+@keyframes emotionPulse {
+  0%, 100% {
+    box-shadow: 0 12px 28px rgba(0, 198, 178, 0.5);
+  }
+  50% {
+    box-shadow: 0 12px 35px rgba(0, 198, 178, 0.8);
+  }
+}
+
+@keyframes emojiBounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: scale(1.3) translateY(0);
+  }
+  40% {
+    transform: scale(1.4) translateY(-5px);
+  }
+  60% {
+    transform: scale(1.35) translateY(-2px);
+  }
+}
+
+@keyframes waterDropEnhanced {
+  0%, 100% {
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-6px) scale(1.15) rotate(5deg);
+  }
+  50% {
+    transform: translateY(0) scale(1.1) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-3px) scale(1.12) rotate(-3deg);
+  }
+}
+
+@keyframes waterContainerAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes waterCountAppear {
+  0% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmerEnhanced {
+  0% {
+    transform: translateX(-100%);
+  }
+  50%, 100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes progressShimmer {
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+  33% {
+    transform: translateY(-15px) rotate(3deg) scale(1.05);
+  }
+  66% {
+    transform: translateY(5px) rotate(-2deg) scale(0.95);
+  }
+}
+
+@keyframes textGlow {
+  0%, 100% {
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+  50% {
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 255, 255, 0.3);
+  }
+}
+
+@keyframes infoPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(0, 198, 178, 0.1);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 15px rgba(0, 198, 178, 0);
+    transform: scale(1.02);
+  }
+}
+
+@keyframes textPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 /* ===============================
-   📱 RESPONSIVE
+   📱 RESPONSIVE DESIGN MEJORADO
    =============================== */
-@media (max-width: 480px) {
+@media (max-width: 380px) {
+  .welcome-section {
+    padding: 50px 20px 32px;
+    
+    .greeting {
+      font-size: 26px;
+    }
+    
+    .date {
+      font-size: 16px;
+    }
+  }
+
+  .authenticated-content {
+    padding: 28px 16px 120px;
+  }
+
   .emotions-container {
-    gap: 6px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
   }
 
   .emotion-button {
-    width: 50px;
-    height: 50px;
+    height: 86px;
+    
+    .button-content {
+      .emoji {
+        font-size: 24px;
+      }
+      
+      .button-text {
+        font-size: 10px;
+      }
+    }
   }
 
-  .content-wrapper {
-    min-height: calc(100vh - 50px);
+  .water-tracker {
+    padding: 28px 24px;
+    
+    ion-button {
+      width: 48px;
+      height: 48px;
+      
+      ion-icon {
+        font-size: 22px;
+      }
+    }
+    
+    .water-count {
+      .water-icon {
+        font-size: 32px;
+      }
+      
+      .water-number {
+        font-size: 36px;
+      }
+      
+      .water-text {
+        font-size: 14px;
+      }
+    }
+  }
+
+  .question-card {
+    ion-card-header {
+      padding: 24px 24px 18px;
+    }
+    
+    ion-card-content {
+      padding: 0 24px 24px;
+    }
+  }
+
+  .progress-section-improved {
+    .section-title-improved {
+      font-size: 22px;
+      
+      .title-icon {
+        font-size: 24px;
+      }
+    }
+  }
+
+  .progress-card-improved,
+  .tip-card-improved,
+  .features-card-improved {
+    border-radius: 16px;
+    
+    .progress-header,
+    .tip-card-header,
+    .features-header {
+      padding: 20px 20px 12px;
+    }
+    
+    .progress-content,
+    .tip-content-improved,
+    .features-content {
+      padding: 0 20px 20px;
+    }
+  }
+
+  .progress-item-improved {
+    padding: 12px 0;
+    
+    .progress-info-improved {
+      gap: 12px;
+      
+      .icon-wrapper {
+        width: 40px;
+        height: 40px;
+        
+        .progress-icon-improved {
+          font-size: 18px;
+        }
+      }
+    }
+    
+    .progress-value-improved {
+      font-size: 14px;
+    }
+  }
+
+  .primary-button-improved,
+  .secondary-button-improved {
+    height: 52px;
+    font-size: 15px;
+  }
+
+  .tip-header-improved {
+    padding: 16px 16px 0;
+    
+    .tip-icon-container {
+      width: 36px;
+      height: 36px;
+      
+      .tip-main-icon {
+        font-size: 18px;
+      }
+    }
+  }
+
+  .feature-item-improved {
+    padding: 14px;
+    
+    .feature-icon {
+      font-size: 18px;
+    }
+    
+    .feature-text {
+      font-size: 13px;
+    }
+  }
+}
+
+/* Espaciador para el menú inferior */
+.bottom-spacer {
+  height: 100px;
+}
+
+/* Asegurar que el footer se vea bien */
+app-menu {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: white;
+  box-shadow: 0 -6px 25px rgba(0, 0, 0, 0.12);
+  border-radius: 24px 24px 0 0;
+  animation: menuSlideUp 0.5s ease-out;
+}
+
+@keyframes menuSlideUp {
+  0% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Mejoras de accesibilidad y rendimiento */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Estados de carga mejorados */
+.loading-state {
+  opacity: 0.7;
+  pointer-events: none;
+  
+  * {
+    animation: skeletonPulse 2s infinite;
+  }
+}
+
+@keyframes skeletonPulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+/* ===============================
+   🎯 HEADER CON LOGO MEJORADO
+   =============================== */
+.logo-title {
+  .title-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+
+    .logo-container {
+      .logo-image {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        
+        .logo-img {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          object-fit: contain;
+          filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+        }
+      }
+    }
+
+    span {
+      font-weight: 700;
+      font-size: 20px;
+      color: white;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+  }
+}
+
+/* Fallback para cuando el logo no carga */
+.logo-fallback {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  font-weight: 600;
+  
+  ion-icon {
+    font-size: 24px;
   }
 }

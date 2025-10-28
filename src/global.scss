@@ -1,63 +1,74 @@
-/*
- * App Global CSS
- * ----------------------------------------------------------------------------
- * Put style rules here that you want to apply globally. These styles are for
- * the entire app and not just one component. Additionally, this file can be
- * used as an entry point to import other CSS/Sass files to be included in the
- * output CSS.
- * For more information on global stylesheets, visit the documentation:
- * https://ionicframework.com/docs/layout/global-stylesheets
- */
-
 /* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
-
-/* Basic CSS for apps built with Ionic */
 @import "@ionic/angular/css/normalize.css";
 @import "@ionic/angular/css/structure.css";
 @import "@ionic/angular/css/typography.css";
 @import "@ionic/angular/css/display.css";
 
-/* Optional CSS utils that can be commented out */
+/* Optional CSS utils */
 @import "@ionic/angular/css/padding.css";
 @import "@ionic/angular/css/float-elements.css";
 @import "@ionic/angular/css/text-alignment.css";
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
-
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
+/* Dark Mode */
 @import '@ionic/angular/css/palettes/dark.system.css';
 
-/* global.scss - SCROLL FIX */
+/* ========================================
+   🎨 VARIABLES GLOBALES SIMPLIFICADAS
+   ======================================== */
+
+:root {
+  /* PALETA DE COLORES */
+  --nupsi-primary: #00C6B2;
+  --nupsi-secondary: #00A896;
+  --text-white: #FFFFFF;
+  --text-primary: #2D3748;
+  --text-secondary: #718096;
+  --text-muted: #A0AEC0;
+  
+  /* GRADIENTES */
+  --gradient-hero: linear-gradient(135deg, #00C6B2 0%, #00A896 100%);
+  --gradient-primary: linear-gradient(135deg, #00C6B2 0%, #00A896 100%);
+  --gradient-card: linear-gradient(135deg, rgba(0, 198, 178, 0.05) 0%, rgba(0, 168, 150, 0.05) 100%);
+  
+  /* FONDOS */
+  --bg-main: #F7FAFC;
+  --bg-card: #FFFFFF;
+  
+  /* BORDES */
+  --border-light: 1px solid #E2E8F0;
+  
+  /* SOMBRAS */
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.15);
+  --shadow-floating: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* ===============================
+   📱 LAYOUT GLOBAL BÁSICO
+   =============================== */
+
 html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
 }
 
 ion-app {
   height: 100vh;
-  display: flex;
-  flex-direction: column;
+  display: block;
 }
 
-ion-content {
-  --overflow: auto;
-  flex: 1;
-  overflow-y: auto !important;
-  
-  .inner-scroll {
-    overflow-y: auto !important;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-  }
+/* Mejorar legibilidad global */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--bg-main);
+  color: var(--text-primary);
+  line-height: 1.5;
 }

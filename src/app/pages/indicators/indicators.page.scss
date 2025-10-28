@@ -1,19 +1,366 @@
-.indicator-item {
-  margin-bottom: 8px;
-  border-radius: 8px;
-  --background: var(--ion-color-light);
+// src/app/pages/indicators/indicators.page.scss
+
+:host {
+  --nupsi-primary: #3880ff;
+  --nupsi-background: #f8f9fa;
+  --nupsi-card-bg: #ffffff;
+  --nupsi-text: #2c3e50;
+  --nupsi-text-light: #7f8c8d;
 }
 
-ion-card {
+ion-content {
+  --background: var(--nupsi-background);
+}
+
+// ============================================
+// TARJETA DE BIENVENIDA
+// ============================================
+.welcome-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  margin-bottom: 20px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+
+  .welcome-content {
+    text-align: center;
+    padding: 16px 0;
+
+    h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin: 0 0 12px 0;
+    }
+
+    p {
+      font-size: 1rem;
+      line-height: 1.6;
+      margin: 0;
+      opacity: 0.95;
+    }
+  }
+}
+
+// ============================================
+// TARJETA DE FORMULARIO
+// ============================================
+.form-card {
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+
+  ion-card-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--nupsi-text);
+  }
+}
+
+// ============================================
+// SECCIONES DEL FORMULARIO
+// ============================================
+.form-section {
+  margin-bottom: 24px;
+
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--nupsi-primary);
+    margin: 0 0 16px 0;
+    padding-left: 8px;
+    border-left: 4px solid var(--nupsi-primary);
+  }
+}
+
+.form-item {
+  --background: #fafbfc;
+  --border-radius: 12px;
+  --border-color: #e8ecef;
   margin-bottom: 16px;
+  border: 2px solid #e8ecef;
+  transition: all 0.3s ease;
+
+  &.item-has-focus {
+    --border-color: var(--ion-color-primary);
+    border-color: var(--ion-color-primary);
+    box-shadow: 0 0 0 3px rgba(var(--ion-color-primary-rgb), 0.15);
+    --background: #ffffff;
+  }
+
+  ion-label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--nupsi-text);
+    margin-bottom: 8px;
+  }
+
+  ion-input,
+  ion-textarea,
+  ion-select {
+    font-size: 1rem;
+    color: var(--nupsi-text);
+  }
 }
 
+// Mensajes de error
 ion-note {
   display: block;
   margin-top: 4px;
-  font-size: 0.8rem;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  padding-left: 12px;
 }
 
-ion-select::part(icon) {
-  color: var(--ion-color-primary);
+// ============================================
+// VISTA PREVIA DEL IMC
+// ============================================
+.imc-preview {
+  margin: 16px 0;
+  padding: 16px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 12px;
+  text-align: center;
+
+  .imc-text {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+}
+
+// ============================================
+// SECCIÓN DE EMOCIONES
+// ============================================
+.emotions-section {
+  margin-top: 16px;
+
+  .emotions-label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--nupsi-text);
+    margin-bottom: 12px;
+  }
+
+  .emotions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+
+    .emotion-chip {
+      --border-radius: 20px;
+      --padding-start: 12px;
+      --padding-end: 12px;
+      height: 40px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      text-transform: none;
+      transition: all 0.3s ease;
+
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+  }
+}
+
+// ============================================
+// INFORMACIÓN DE HIDRATACIÓN
+// ============================================
+.water-info {
+  margin-top: 12px;
+  padding: 12px;
+  background: #e3f2fd;
+  border-radius: 8px;
+
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+}
+
+// ============================================
+// DIVISORES
+// ============================================
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, #e1e5e9 50%, transparent 100%);
+  margin: 24px 0;
+}
+
+// ============================================
+// BOTÓN DE ENVÍO
+// ============================================
+.submit-button {
+  --border-radius: 14px;
+  --box-shadow: 0 6px 20px rgba(var(--ion-color-primary-rgb), 0.3);
+  height: 52px;
+  font-weight: 600;
+  font-size: 1.05rem;
+  margin-top: 24px;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+
+  &:hover:not([disabled]) {
+    --box-shadow: 0 8px 25px rgba(var(--ion-color-primary-rgb), 0.4);
+  }
+
+  &:active:not([disabled]) {
+    transform: translateY(2px);
+  }
+
+  ion-spinner {
+    margin-right: 8px;
+  }
+}
+
+.required-note {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--nupsi-text-light);
+  margin-top: 12px;
+  font-style: italic;
+}
+
+// ============================================
+// TARJETA DE HISTORIAL
+// ============================================
+.history-card {
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+
+  ion-card-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--nupsi-text);
+  }
+}
+
+.indicator-item {
+  margin-bottom: 12px;
+  border-radius: 12px;
+  background: #fafbfc;
+  border: 1px solid #e8ecef;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --inner-padding-end: 0;
+
+  .indicator-date {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--nupsi-primary);
+    margin: 0 0 8px 0;
+  }
+
+  .indicator-details {
+    p {
+      font-size: 0.9rem;
+      color: var(--nupsi-text);
+      margin: 4px 0;
+      line-height: 1.5;
+
+      strong {
+        font-weight: 600;
+      }
+    }
+
+    .indicator-notes {
+      font-style: italic;
+      color: var(--nupsi-text-light);
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #e8ecef;
+    }
+  }
+}
+
+// ============================================
+// ESTADO VACÍO
+// ============================================
+.empty-state {
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+  .empty-content {
+    text-align: center;
+    padding: 32px 16px;
+
+    p {
+      font-size: 1.1rem;
+      margin: 8px 0;
+      font-weight: 500;
+    }
+  }
+}
+
+// ============================================
+// LOADING
+// ============================================
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+
+  ion-spinner {
+    margin-bottom: 12px;
+  }
+
+  p {
+    color: var(--nupsi-text-light);
+    font-size: 0.9rem;
+  }
+}
+
+// ============================================
+// RESPONSIVE
+// ============================================
+@media (max-width: 576px) {
+  .emotions-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+
+    .emotion-chip {
+      font-size: 0.85rem;
+      height: 36px;
+    }
+  }
+
+  .welcome-card .welcome-content h2 {
+    font-size: 1.5rem;
+  }
+
+  .form-card ion-card-title {
+    font-size: 1.2rem;
+  }
+}
+
+// ============================================
+// ANIMACIONES
+// ============================================
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-card,
+.history-card,
+.welcome-card {
+  animation: fadeIn 0.5s ease-out;
+}
+
+// Estados disabled
+ion-button[disabled] {
+  --opacity: 0.5;
+  cursor: not-allowed;
 }

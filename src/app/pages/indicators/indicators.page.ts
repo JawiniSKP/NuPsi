@@ -1,30 +1,23 @@
+// src/app/pages/indicators/indicators.page.ts
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
 import { 
-  IonContent, 
-  IonHeader, 
-  IonTitle, 
-  IonToolbar,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent,
-  IonItem,
-  IonLabel,
-  IonInput,
-  IonSelect,
-  IonSelectOption,
-  IonButton,
-  IonTextarea,
-  IonList,
-  IonNote,
-  IonLoading
+  IonContent, IonHeader, IonTitle, IonToolbar, IonCard, IonCardHeader,
+  IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonSelect,
+  IonSelectOption, IonButton, IonTextarea, IonList, IonNote, IonSpinner,
+  IonButtons, IonBackButton, IonText, IonChip, IonIcon
 } from '@ionic/angular/standalone';
-
-// ✅ IMPORTAR CORRECTAMENTE
-import { IndicatorsService, Indicator } from '../../services/indicators.service';
+import { LoadingController, ToastController } from '@ionic/angular';
 import { AuthService } from '../../services/auth.service';
+import { HomeService, Indicador, UltimosValoresFisicos } from '../../services/home.service';
+import { Timestamp } from '@angular/fire/firestore';
+import { addIcons } from 'ionicons';
+import { 
+  checkmarkCircle, alertCircle, waterOutline, scaleOutline, resizeOutline,
+  happyOutline, heartOutline, trendingUpOutline, createOutline, documentOutline
+} from 'ionicons/icons';
 
 @Component({
   selector: 'app-indicators',
@@ -32,187 +25,377 @@ import { AuthService } from '../../services/auth.service';
   styleUrls: ['./indicators.page.scss'],
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule,
-    ReactiveFormsModule,
-    IonContent, 
-    IonHeader, 
-    IonTitle, 
-    IonToolbar,
-    IonCard,
-    IonCardHeader,
-    IonCardTitle,
-    IonCardContent,
-    IonItem,
-    IonLabel,
-    IonInput,
-    IonSelect,
-    IonSelectOption,
-    IonButton,
-    IonTextarea,
-    IonList,
-    IonNote,
-    IonLoading
+    CommonModule, FormsModule, ReactiveFormsModule,
+    IonContent, IonHeader, IonTitle, IonToolbar, IonCard, IonCardHeader,
+    IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonSelect,
+    IonSelectOption, IonButton, IonTextarea, IonList, IonNote, IonSpinner,
+    IonButtons, IonBackButton, IonText, IonChip, IonIcon
   ]
 })
 export class IndicatorsPage implements OnInit {
   indicatorForm: FormGroup;
-  userIndicators: Indicator[] = []; // ✅ Ahora Indicator está definido
+  userIndicators: Indicador[] = [];
   loading = false;
+  esConfiguracionInicial = false;
+  currentUserId: string = '';
+  ultimosValores: UltimosValoresFisicos = {};
+  errorMessage = '';
 
-  private indicatorsService = inject(IndicatorsService);
+  private homeService = inject(HomeService);
   private authService = inject(AuthService);
   private fb = inject(FormBuilder);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private loadingController = inject(LoadingController);
+  private toastController = inject(ToastController);
 
   constructor() {
     this.indicatorForm = this.fb.group({
-      weight: ['', [Validators.required, Validators.min(30), Validators.max(300)]],
-      height: ['', [Validators.required, Validators.min(100), Validators.max(250)]],
-      mood: ['', Validators.required],
-      notes: [''],
-      date: [new Date().toISOString().substring(0, 10)]
+      peso: ['', [Validators.required, Validators.min(30), Validators.max(300)]],
+      estatura: ['', [Validators.required, Validators.min(100), Validators.max(250)]],
+      estadoAnimo: ['', Validators.required],
+      emociones: [[], Validators.required],
+      vasosAgua: [0, [Validators.min(0), Validators.max(20)]],
+      notas: ['']
+    });
+
+    addIcons({
+      alertCircle, trendingUpOutline, scaleOutline, heartOutline,
+      happyOutline, waterOutline, createOutline, checkmarkCircle,
+      resizeOutline, documentOutline
     });
   }
 
   async ngOnInit() {
-    await this.loadUserIndicators();
-  }
+    // 🎯 Detectar si es configuración inicial desde URL
+    this.route.queryParams.subscribe(params => {
+      this.esConfiguracionInicial = params['setupInicial'] === 'true';
+      console.log('📋 Modo:', this.esConfiguracionInicial ? 'Configuración Inicial' : 'Registro Diario');
+    });
 
-  async loadUserIndicators() {
-    this.loading = true;
-    const userId = this.authService.getCurrentUserId();
-    
-    if (userId) {
-      this.indicatorsService.getIndicators(userId).subscribe({
-        next: (data: Indicator[]) => {
-          // Ordenar localmente temporalmente
-          this.userIndicators = data.sort((a, b) => 
-            new Date(b.date).getTime() - new Date(a.date).getTime()
-          );
-          this.loading = false;
-          console.log('Indicadores cargados:', this.userIndicators);
-        },
-        error: (error: any) => {
-          console.error('Error loading indicators:', error);
-          this.loading = false;
-        }
-      });
-    } else {
-      console.warn('No user ID available');
-      this.loading = false;
+    this.currentUserId = this.authService.getCurrentUserId();
+
+    if (!this.currentUserId) {
+      console.error('❌ No hay usuario autenticado');
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    // Cargar últimos valores físicos SIEMPRE
+    await this.cargarUltimosValoresFisicos();
+
+    // Cargar historial solo si NO es configuración inicial
+    if (!this.esConfiguracionInicial) {
+      await this.loadUserIndicators();
     }
   }
 
-  async submitIndicator() {
-    if (this.indicatorForm.valid) {
-      this.loading = true;
-      const userId = this.authService.getCurrentUserId();
-      
-      if (userId) {
-        try {
-          const formData = {
-            ...this.indicatorForm.value,
-            bmi: this.calculateBMI(
-              Number(this.indicatorForm.value.weight), 
-              Number(this.indicatorForm.value.height)
-            )
-          };
-          
-          await this.indicatorsService.addIndicator(userId, formData);
-          
-          // Reset form
-          this.indicatorForm.reset({
-            date: new Date().toISOString().substring(0, 10),
-            mood: '',
-            notes: ''
-          });
-          
-          // Recargar indicadores
-          await this.loadUserIndicators();
-          
-          // Mostrar mensaje de éxito
-          this.showSuccessMessage();
-          
-        } catch (error: any) {
-          console.error('Error saving indicator:', error);
-          this.showErrorMessage();
-        } finally {
-          this.loading = false;
-        }
+  // ============================================
+  // 🎯 CARGAR ÚLTIMOS VALORES FÍSICOS
+  // ============================================
+  async cargarUltimosValoresFisicos() {
+    try {
+      this.ultimosValores = await this.homeService.obtenerUltimosValoresFisicos(this.currentUserId);
+
+      if (this.ultimosValores.peso && this.ultimosValores.estatura) {
+        // Pre-llenar el formulario con los últimos valores
+        this.indicatorForm.patchValue({
+          peso: this.ultimosValores.peso,
+          estatura: this.ultimosValores.estatura
+        });
+
+        console.log('✅ Últimos valores cargados en formulario:', this.ultimosValores);
       } else {
-        console.warn('No user ID available for saving indicator');
+        console.log('ℹ️ No hay valores físicos previos, campos vacíos');
+      }
+    } catch (error) {
+      console.error('❌ Error cargando últimos valores:', error);
+    }
+  }
+
+  // ============================================
+  // CARGAR HISTORIAL
+  // ============================================
+  async loadUserIndicators() {
+    this.loading = true;
+    
+    this.homeService.getHistorialIndicadores(this.currentUserId, 30).subscribe({
+      next: (indicadores) => {
+        this.userIndicators = indicadores;
+        console.log('✅ Indicadores cargados:', indicadores.length);
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('❌ Error cargando indicadores:', error);
         this.loading = false;
       }
-    } else {
-      // Marcar todos los campos como touched para mostrar errores
+    });
+  }
+
+  // ============================================
+  // GUARDAR INDICADOR
+  // ============================================
+  async submitIndicator() {
+    this.errorMessage = '';
+
+    if (!this.indicatorForm.valid) {
       Object.keys(this.indicatorForm.controls).forEach(key => {
         this.indicatorForm.get(key)?.markAsTouched();
       });
+      
+      this.errorMessage = 'Por favor completa todos los campos requeridos';
+      this.showToast(this.errorMessage, 'warning');
+      return;
+    }
+
+    const loading = await this.loadingController.create({
+      message: this.esConfiguracionInicial 
+        ? 'Guardando tu configuración...' 
+        : 'Guardando indicador...',
+      spinner: 'crescent'
+    });
+    await loading.present();
+
+    try {
+      const formData = this.indicatorForm.value;
+      const imc = this.calculateBMI(Number(formData.peso), Number(formData.estatura));
+
+      const indicadorData: Partial<Indicador> = {
+        peso: Number(formData.peso),
+        estatura: Number(formData.estatura),
+        imc: imc,
+        estadoAnimo: formData.estadoAnimo,
+        emociones: formData.emociones || [],
+        vasosAgua: Number(formData.vasosAgua) || 0,
+        notas: formData.notas || '',
+        esConfiguracionInicial: this.esConfiguracionInicial,
+        fecha: Timestamp.fromDate(new Date()),
+        creadoEn: Timestamp.now()
+      };
+
+      console.log('💾 Guardando indicador:', indicadorData);
+
+      this.homeService.guardarIndicadorCompleto(this.currentUserId, indicadorData).subscribe({
+        next: async (success) => {
+          if (success) {
+            await loading.dismiss();
+
+            // 🎯 SI ES CONFIGURACIÓN INICIAL → Marcar como completada
+            if (this.esConfiguracionInicial) {
+              await this.completarConfiguracionInicial();
+            } else {
+              // Si es registro diario → Mantener peso/estatura, limpiar resto
+              await this.showToast('¡Indicador guardado correctamente! 🎉', 'success');
+              
+              this.indicatorForm.patchValue({
+                estadoAnimo: '',
+                emociones: [],
+                vasosAgua: 0,
+                notas: ''
+              });
+              
+              await this.loadUserIndicators();
+            }
+          } else {
+            throw new Error('No se pudo guardar');
+          }
+        },
+        error: async (error) => {
+          console.error('❌ Error:', error);
+          await loading.dismiss();
+          this.errorMessage = 'No se pudo guardar el indicador';
+          this.showToast(this.errorMessage, 'danger');
+        }
+      });
+
+    } catch (error: any) {
+      console.error('❌ Error guardando:', error);
+      await loading.dismiss();
+      this.errorMessage = 'Error al guardar. Intenta nuevamente';
+      this.showToast(this.errorMessage, 'danger');
     }
   }
 
-  calculateBMI(weight: number, height: number): number {
-    const heightInMeters = height / 100;
-    const bmi = weight / (heightInMeters * heightInMeters);
-    return Number(bmi.toFixed(1));
+
+    // ============================================
+  // 🎯 COMPLETAR CONFIGURACIÓN INICIAL
+  // ============================================
+  private async completarConfiguracionInicial() {
+    console.log('🎉 Completando configuración inicial...');
+
+    const loading = await this.loadingController.create({
+      message: 'Finalizando configuración...',
+      spinner: 'crescent'
+    });
+    await loading.present();
+
+    try {
+      // Intentar marcar como completada
+      const result = await new Promise<boolean>((resolve, reject) => {
+        this.homeService.marcarConfiguracionInicialCompleta(this.currentUserId).subscribe({
+          next: (success) => {
+            console.log('📡 Respuesta de marcarConfiguracion:', success);
+            resolve(success);
+          },
+          error: (error) => {
+            console.error('📡 Error en marcarConfiguracion:', error);
+            reject(error);
+          }
+        });
+      });
+
+      await loading.dismiss();
+
+      if (result) {
+        console.log('✅ Configuración marcada correctamente');
+        await this.showToast('¡Perfil configurado exitosamente! 🎉', 'success');
+        
+        // Esperar 2 segundos antes de redirigir
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        console.log('🚀 Navegando al home...');
+        
+        // Navegar con replaceUrl para limpiar historial
+        await this.router.navigate(['/home'], { replaceUrl: true });
+        
+        console.log('✅ Navegación completada');
+      } else {
+        throw new Error('No se pudo marcar como completada');
+      }
+    } catch (error: any) {
+      await loading.dismiss();
+      console.error('❌ Error marcando configuración:', error);
+      
+      // Mostrar mensaje específico según el error
+      if (error?.message?.includes('ERR_BLOCKED_BY_CLIENT') || 
+          error?.message?.includes('blocked') ||
+          error?.code === 'unavailable') {
+        await this.showToast(
+          '⚠️ Tu navegador está bloqueando la conexión. Desactiva extensiones de privacidad (AdBlock/Brave Shields) e intenta nuevamente.',
+          'warning'
+        );
+      } else if (error?.code === 'permission-denied') {
+        await this.showToast(
+          '❌ Error de permisos. Cierra sesión e inicia nuevamente.',
+          'danger'
+        );
+      } else {
+        await this.showToast(
+          '❌ Error al finalizar configuración. Verifica tu conexión a internet.',
+          'danger'
+        );
+      }
+      
+      console.log('⚠️ No se redirige al home debido al error');
+    }
   }
 
-  getBMICategory(bmi: number): string {
-    if (bmi < 18.5) return 'Bajo peso';
-    if (bmi < 25) return 'Peso normal';
-    if (bmi < 30) return 'Sobrepeso';
+  // ============================================
+  // CALCULAR IMC
+  // ============================================
+  calculateBMI(peso: number, estatura: number): number {
+    const estaturaEnMetros = estatura / 100;
+    const imc = peso / (estaturaEnMetros * estaturaEnMetros);
+    return Number(imc.toFixed(1));
+  }
+
+  getBMICategory(imc: number): string {
+    if (imc < 18.5) return 'Bajo peso';
+    if (imc < 25) return 'Peso normal';
+    if (imc < 30) return 'Sobrepeso';
     return 'Obesidad';
   }
 
-  getBMIColor(bmi: number): string {
-    if (bmi < 18.5) return 'warning';
-    if (bmi < 25) return 'success';
-    if (bmi < 30) return 'warning';
+  getBMIColor(imc: number): string {
+    if (imc < 18.5) return 'warning';
+    if (imc < 25) return 'success';
+    if (imc < 30) return 'warning';
     return 'danger';
   }
 
-  getMoodEmoji(mood: string): string {
+  // ============================================
+  // EMOJIS Y FORMATOS
+  // ============================================
+  getMoodEmoji(estadoAnimo: string): string {
     const moodEmojis: { [key: string]: string } = {
       'excelente': '😊',
       'bueno': '🙂',
       'regular': '😐',
       'malo': '😔',
-      'terrible': '😢'
+      'muy-malo': '😢'
     };
-    return moodEmojis[mood] || '❓';
+    return moodEmojis[estadoAnimo] || '❓';
   }
 
-  formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('es-ES', {
+  formatDate(timestamp: any): string {
+    let date: Date;
+    
+    if (timestamp?.toDate) {
+      date = timestamp.toDate();
+    } else if (timestamp?.seconds) {
+      date = new Date(timestamp.seconds * 1000);
+    } else {
+      date = new Date(timestamp);
+    }
+    
+    return date.toLocaleDateString('es-ES', {
       day: '2-digit',
-      month: '2-digit',
+      month: 'long',
       year: 'numeric'
     });
   }
 
-  private async showSuccessMessage() {
-    const toast = document.createElement('ion-toast');
-    toast.message = 'Indicador guardado correctamente';
-    toast.duration = 2000;
-    toast.position = 'top';
-    toast.color = 'success';
+  // ============================================
+  // EMOCIONES
+  // ============================================
+  emocionesDisponibles = [
+    { value: 'feliz', label: 'Feliz', emoji: '😊' },
+    { value: 'tranquilo', label: 'Tranquilo', emoji: '😌' },
+    { value: 'motivado', label: 'Motivado', emoji: '💪' },
+    { value: 'cansado', label: 'Cansado', emoji: '😴' },
+    { value: 'estresado', label: 'Estresado', emoji: '😰' },
+    { value: 'ansioso', label: 'Ansioso', emoji: '😨' },
+    { value: 'triste', label: 'Triste', emoji: '😢' },
+    { value: 'enojado', label: 'Enojado', emoji: '😠' }
+  ];
 
-    document.body.appendChild(toast);
+  toggleEmocion(emocion: string) {
+    const emociones = this.indicatorForm.get('emociones')?.value || [];
+    const index = emociones.indexOf(emocion);
+    
+    if (index > -1) {
+      emociones.splice(index, 1);
+    } else {
+      emociones.push(emocion);
+    }
+    
+    this.indicatorForm.patchValue({ emociones });
+  }
+
+  isEmocionSelected(emocion: string): boolean {
+    const emociones = this.indicatorForm.get('emociones')?.value || [];
+    return emociones.includes(emocion);
+  }
+
+  // ============================================
+  // UTILIDADES
+  // ============================================
+  private async showToast(message: string, color: 'success' | 'danger' | 'warning' = 'success') {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 3000,
+      position: 'top',
+      color: color,
+      cssClass: 'custom-toast',
+      buttons: [{ icon: 'close', role: 'cancel' }]
+    });
     await toast.present();
   }
 
-  private async showErrorMessage() {
-    const toast = document.createElement('ion-toast');
-    toast.message = 'Error al guardar el indicador';
-    toast.duration = 3000;
-    toast.position = 'top';
-    toast.color = 'danger';
-
-    document.body.appendChild(toast);
-    await toast.present();
+  clearError() {
+    this.errorMessage = '';
   }
 
-  // Método para debug
   get formControls() {
     return this.indicatorForm.controls;
   }

@@ -1,9 +1,9 @@
+// src/app/pages/login/login.page.ts
 import { Component, OnInit, inject } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
+import { Auth } from '@angular/fire/auth';
 import { CommonModule } from '@angular/common';
-
-// Importar componentes Ionic individualmente
 import { 
   IonContent, 
   IonHeader, 
@@ -15,22 +15,23 @@ import {
   IonButton,
   IonIcon,
   IonNote,
-  IonList
+  IonList,
+  IonSpinner,
+  IonText
 } from '@ionic/angular/standalone';
-import { 
-  AlertController, 
-  LoadingController 
-} from '@ionic/angular';
+import { LoadingController, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { 
   eye, 
   eyeOff, 
   logoGoogle, 
   mailOutline, 
-  lockClosedOutline
+  lockClosedOutline,
+  logInOutline,
+  heart,
+  checkmarkCircle,
+  alertCircle
 } from 'ionicons/icons';
-
-// ✅ Importaciones corregidas
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
@@ -51,18 +52,23 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
     IonButton,
     IonIcon,
     IonNote,
-    IonList
+    IonList,
+    IonSpinner,
+    IonText
   ]
 })
 export class LoginPage implements OnInit {
   loginForm: FormGroup;
   showPassword = false;
   logoLoaded = false;
+  isLoggingIn = false;
+  errorMessage = '';
 
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
-  private alertController = inject(AlertController);
+  private auth = inject(Auth);
   private loadingController = inject(LoadingController);
+  private toastController = inject(ToastController);
   private router = inject(Router);
 
   constructor() {
@@ -71,102 +77,38 @@ export class LoginPage implements OnInit {
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
 
-    // Registrar íconos
     addIcons({ 
       eye, 
       eyeOff, 
       logoGoogle, 
       mailOutline, 
-      lockClosedOutline
+      lockClosedOutline,
+      logInOutline,
+      heart,
+      checkmarkCircle,
+      alertCircle
     });
   }
 
   ngOnInit() {
     this.checkLogo();
     
-    this.authService.user.subscribe(user => {
-      if (user) {
-        this.router.navigate(['/home']);
-      }
-    });
+    const currentUser = this.auth.currentUser;
+    if (currentUser) {
+      console.log('✅ Usuario ya autenticado, redirigiendo al home...');
+      this.router.navigate(['/home']);
+    }
   }
 
-  // ✅ MÉTODOS FALTANTES AGREGADOS
+  // ============================================
+  // MÉTODOS DE LOGO
+  // ============================================
   onLogoLoad() {
-    console.log('✅ Logo de NuPsi cargado correctamente');
     this.logoLoaded = true;
   }
 
   onLogoError() {
-    console.log('⚠️ No se pudo cargar el logo, usando fallback');
     this.logoLoaded = false;
-  }
-
-  async login() {
-    if (this.loginForm.valid) {
-      const loading = await this.loadingController.create({
-        message: 'Iniciando sesión...',
-        spinner: 'crescent'
-      });
-      await loading.present();
-
-      try {
-        const { email, password } = this.loginForm.value;
-        await this.authService.login(email, password);
-        await loading.dismiss();
-      } catch (error: any) {
-        await loading.dismiss();
-        this.showAlert('Error', this.getErrorMessage(error.code));
-      }
-    }
-  }
-
-  async loginWithGoogle() {
-    const loading = await this.loadingController.create({
-      message: 'Conectando con Google...',
-      spinner: 'crescent'
-    });
-    await loading.present();
-
-    try {
-      await this.authService.googleLogin();
-      await loading.dismiss();
-    } catch (error: any) {
-      await loading.dismiss();
-      this.showAlert('Error', this.getErrorMessage(error.code));
-    }
-  }
-
-  private getErrorMessage(errorCode: string): string {
-    const errorMessages: { [key: string]: string } = {
-      'auth/invalid-email': 'El formato del email es inválido',
-      'auth/user-disabled': 'Esta cuenta ha sido deshabilitada',
-      'auth/user-not-found': 'No existe una cuenta con este email',
-      'auth/wrong-password': 'La contraseña es incorrecta',
-      'auth/too-many-requests': 'Demasiados intentos. Intenta más tarde',
-      'auth/popup-closed-by-user': 'Cancelaste el inicio de sesión con Google',
-      'auth/popup-blocked': 'El popup fue bloqueado. Permite popups para este sitio',
-      'auth/network-request-failed': 'Error de conexión. Verifica tu internet'
-    };
-
-    return errorMessages[errorCode] || 'Ocurrió un error inesperado. Intenta nuevamente.';
-  }
-
-  private async showAlert(header: string, message: string) {
-    const alert = await this.alertController.create({
-      header,
-      message,
-      buttons: ['Entendido']
-    });
-    await alert.present();
-  }
-
-  togglePasswordVisibility() {
-    this.showPassword = !this.showPassword;
-  }
-
-  goToRegister() {
-    this.router.navigate(['/register']);
   }
 
   private async checkLogo() {
@@ -175,16 +117,142 @@ export class LoginPage implements OnInit {
       const img = new Image();
       img.onload = () => {
         this.logoLoaded = true;
-        console.log('🎯 Logo encontrado en:', logoPath);
       };
       img.onerror = () => {
         this.logoLoaded = false;
-        console.warn('📁 Logo no encontrado en:', logoPath);
       };
       img.src = logoPath;
     } catch (error) {
-      console.error('Error verificando logo:', error);
       this.logoLoaded = false;
     }
+  }
+
+  // ============================================
+  // LOGIN CON EMAIL Y CONTRASEÑA
+  // ============================================
+  async login() {
+    this.errorMessage = '';
+
+    if (!this.loginForm.valid) {
+      this.errorMessage = 'Por favor completa todos los campos correctamente';
+      this.showToast(this.errorMessage, 'warning');
+      return;
+    }
+
+    this.isLoggingIn = true;
+
+    try {
+      const { email, password } = this.loginForm.value;
+      
+      console.log('🔑 Intentando login con:', email);
+      
+      const result = await this.authService.login(email, password);
+      
+      if (result && result.user) {
+        console.log('✅ Login exitoso:', result.user.uid);
+        
+        await this.showToast('¡Bienvenido de nuevo! 👋', 'success');
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // 🎯 DIRECTO AL HOME - SIN VERIFICAR CONFIGURACIÓN INICIAL
+        console.log('➡️ Redirigiendo directo al home...');
+        this.router.navigate(['/home']);
+      }
+    } catch (error: any) {
+      console.error('❌ Error en login:', error);
+      this.errorMessage = this.getErrorMessage(error.code);
+      this.showToast(this.errorMessage, 'danger');
+    } finally {
+      this.isLoggingIn = false;
+    }
+  }
+
+  // ============================================
+  // LOGIN CON GOOGLE
+  // ============================================
+  async loginWithGoogle() {
+    this.errorMessage = '';
+    this.isLoggingIn = true;
+
+    try {
+      console.log('🔑 Intentando login con Google');
+      
+      const result = await this.authService.googleLogin();
+      
+      if (result && result.user) {
+        console.log('✅ Login con Google exitoso:', result.user.uid);
+        
+        await this.showToast('¡Bienvenido! 🎉', 'success');
+        await new Promise(resolve => setTimeout(resolve, 600));
+        
+        // 🎯 DIRECTO AL HOME - SIN VERIFICAR CONFIGURACIÓN INICIAL
+        console.log('➡️ Redirigiendo directo al home...');
+        this.router.navigate(['/home']);
+      }
+    } catch (error: any) {
+      console.error('❌ Error en Google login:', error);
+      
+      if (error.code !== 'auth/popup-closed-by-user' && 
+          error.code !== 'auth/cancelled-popup-request') {
+        this.errorMessage = this.getErrorMessage(error.code);
+        this.showToast(this.errorMessage, 'danger');
+      }
+    } finally {
+      this.isLoggingIn = false;
+    }
+  }
+
+  // ============================================
+  // MANEJO DE ERRORES MEJORADO
+  // ============================================
+  private getErrorMessage(errorCode: string): string {
+    const errorMessages: { [key: string]: string } = {
+      'auth/invalid-email': 'Email inválido',
+      'auth/user-disabled': 'Cuenta deshabilitada',
+      'auth/user-not-found': 'No existe una cuenta con este email',
+      'auth/wrong-password': 'Contraseña incorrecta',
+      'auth/invalid-credential': 'Email o contraseña incorrectos',
+      'auth/too-many-requests': 'Demasiados intentos. Intenta más tarde',
+      'auth/network-request-failed': 'Error de conexión. Verifica tu internet',
+      'auth/popup-blocked': 'Habilita los popups para continuar',
+      'auth/account-exists-with-different-credential': 'Este email ya existe con otro método de inicio de sesión'
+    };
+
+    return errorMessages[errorCode] || 'Error al iniciar sesión. Intenta nuevamente';
+  }
+
+  // ============================================
+  // TOAST MODERNO (REEMPLAZA ALERTAS)
+  // ============================================
+  private async showToast(message: string, color: 'success' | 'danger' | 'warning' = 'success') {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 3000,
+      position: 'top',
+      color: color,
+      cssClass: 'custom-toast',
+      buttons: [
+        {
+          icon: 'close',
+          role: 'cancel'
+        }
+      ]
+    });
+    await toast.present();
+  }
+
+  // ============================================
+  // UTILIDADES
+  // ============================================
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
+  }
+
+  goToRegister() {
+    this.router.navigate(['/register']);
+  }
+
+  clearError() {
+    this.errorMessage = '';
   }
 }

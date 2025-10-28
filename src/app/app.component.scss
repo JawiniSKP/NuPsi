@@ -1,0 +1,37 @@
+/* Estilos para el header con logo */
+.logo-title {
+  .title-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    
+    .logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      object-fit: contain;
+    }
+    
+    span {
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--text-white);
+    }
+  }
+}
+
+/* Asegurar que el header se vea bien */
+ion-header {
+  ion-toolbar {
+    --background: var(--gradient-hero);
+    
+    ion-title {
+      text-align: center;
+    }
+    
+    ion-button {
+      --color: var(--text-white);
+    }
+  }
+}

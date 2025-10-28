@@ -1,9 +1,10 @@
+// src/app/pages/register/register.page.ts
 import { Component, OnInit, inject } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
+import { HomeService } from '../../services/home.service';
 import { Router } from '@angular/router';
+import { Auth } from '@angular/fire/auth';
 import { CommonModule } from '@angular/common';
-
-// Importar componentes Ionic individualmente
 import { 
   IonContent, 
   IonHeader, 
@@ -16,12 +17,11 @@ import {
   IonInput,
   IonButton,
   IonIcon,
-  IonNote
+  IonNote,
+  IonSpinner,
+  IonText
 } from '@ionic/angular/standalone';
-import { 
-  AlertController, 
-  LoadingController 
-} from '@ionic/angular';
+import { LoadingController, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { 
   eye, 
@@ -29,10 +29,12 @@ import {
   logoGoogle, 
   mailOutline, 
   lockClosedOutline, 
-  personOutline
+  personOutline,
+  personAddOutline,
+  heart,
+  checkmarkCircle,
+  alertCircle
 } from 'ionicons/icons';
-
-// ✅ Importaciones corregidas
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import type { AbstractControl } from '@angular/forms';
 
@@ -55,7 +57,9 @@ import type { AbstractControl } from '@angular/forms';
     IonInput,
     IonButton,
     IonIcon,
-    IonNote
+    IonNote,
+    IonSpinner,
+    IonText
   ]
 })
 export class RegisterPage implements OnInit {
@@ -63,11 +67,15 @@ export class RegisterPage implements OnInit {
   showPassword = false;
   showConfirmPassword = false;
   logoLoaded = false;
+  isRegistering = false;
+  errorMessage = '';
 
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
-  private alertController = inject(AlertController);
+  private homeService = inject(HomeService);
+  private auth = inject(Auth);
   private loadingController = inject(LoadingController);
+  private toastController = inject(ToastController);
   private router = inject(Router);
 
   constructor() {
@@ -78,32 +86,60 @@ export class RegisterPage implements OnInit {
       confirmPassword: ['', [Validators.required]]
     }, { validators: this.passwordMatchValidator });
 
-    // Registrar íconos
     addIcons({ 
       eye, 
       eyeOff, 
       logoGoogle, 
       mailOutline, 
       lockClosedOutline, 
-      personOutline
+      personOutline,
+      personAddOutline,
+      heart,
+      checkmarkCircle,
+      alertCircle
     });
   }
 
   ngOnInit() {
     this.checkLogo();
+    
+    const currentUser = this.auth.currentUser;
+    if (currentUser) {
+      console.log('✅ Usuario ya autenticado, verificando estado...');
+      this.redirectAfterRegister(currentUser.uid);
+    }
   }
 
-  // ✅ MÉTODOS FALTANTES AGREGADOS
+  // ============================================
+  // MÉTODOS DE LOGO
+  // ============================================
   onLogoLoad() {
-    console.log('✅ Logo de NuPsi cargado correctamente');
     this.logoLoaded = true;
   }
 
   onLogoError() {
-    console.log('⚠️ No se pudo cargar el logo, usando fallback');
     this.logoLoaded = false;
   }
 
+  private async checkLogo() {
+    try {
+      const logoPath = 'assets/Nupsi/nupsiLogo.png';
+      const img = new Image();
+      img.onload = () => {
+        this.logoLoaded = true;
+      };
+      img.onerror = () => {
+        this.logoLoaded = false;
+      };
+      img.src = logoPath;
+    } catch (error) {
+      this.logoLoaded = false;
+    }
+  }
+
+  // ============================================
+  // VALIDADOR DE CONTRASEÑAS
+  // ============================================
   passwordMatchValidator(control: AbstractControl) {
     const password = control.get('password');
     const confirmPassword = control.get('confirmPassword');
@@ -112,69 +148,161 @@ export class RegisterPage implements OnInit {
       confirmPassword?.setErrors({ passwordMismatch: true });
       return { passwordMismatch: true };
     } else {
-      confirmPassword?.setErrors(null);
+      const errors = confirmPassword?.errors;
+      if (errors) {
+        delete errors['passwordMismatch'];
+        confirmPassword?.setErrors(Object.keys(errors).length > 0 ? errors : null);
+      }
     }
     return null;
   }
 
+  // ============================================
+  // REGISTRO CON EMAIL Y CONTRASEÑA
+  // ============================================
   async register() {
-    if (this.registerForm.valid) {
-      const loading = await this.loadingController.create({
-        message: 'Creando tu cuenta...',
-        spinner: 'crescent'
-      });
-      await loading.present();
+    this.errorMessage = '';
 
-      try {
-        const { name, email, password } = this.registerForm.value;
-        await this.authService.register(email, password, name);
-        await loading.dismiss();
-      } catch (error: any) {
-        await loading.dismiss();
-        this.showAlert('Error', this.getErrorMessage(error.code));
-      }
+    if (!this.registerForm.valid) {
+      this.errorMessage = 'Por favor completa todos los campos correctamente';
+      this.showToast(this.errorMessage, 'warning');
+      return;
     }
-  }
 
-  async registerWithGoogle() {
-    const loading = await this.loadingController.create({
-      message: 'Conectando con Google...',
-      spinner: 'crescent'
-    });
-    await loading.present();
+    this.isRegistering = true;
 
     try {
-      await this.authService.googleLogin();
-      await loading.dismiss();
+      const { name, email, password } = this.registerForm.value;
+      
+      console.log('📝 Registrando nuevo usuario:', email);
+      
+      const result = await this.authService.register(email, password, name);
+      
+      if (result && result.user) {
+        console.log('✅ Registro exitoso:', result.user.uid);
+        
+        await this.showToast('¡Cuenta creada exitosamente! 🎉', 'success');
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // 🎯 SIEMPRE REDIRIGIR A INDICADORES EN REGISTRO
+        await this.redirectAfterRegister(result.user.uid);
+      }
     } catch (error: any) {
-      await loading.dismiss();
-      this.showAlert('Error', this.getErrorMessage(error.code));
+      console.error('❌ Error en registro:', error);
+      this.errorMessage = this.getErrorMessage(error.code);
+      this.showToast(this.errorMessage, 'danger');
+    } finally {
+      this.isRegistering = false;
     }
   }
 
+  // ============================================
+  // REGISTRO CON GOOGLE
+  // ============================================
+  async registerWithGoogle() {
+    this.errorMessage = '';
+    this.isRegistering = true;
+
+    try {
+      console.log('🔑 Registrando con Google');
+      
+      const result = await this.authService.googleLogin();
+      
+      if (result && result.user) {
+        console.log('✅ Registro con Google exitoso:', result.user.uid);
+        
+        await this.showToast('¡Bienvenido! 🎉', 'success');
+        await new Promise(resolve => setTimeout(resolve, 600));
+        
+        // 🎯 VERIFICAR SI ES NUEVO O EXISTENTE
+        await this.redirectAfterRegister(result.user.uid);
+      }
+    } catch (error: any) {
+      console.error('❌ Error en registro con Google:', error);
+      
+      if (error.code !== 'auth/popup-closed-by-user' && 
+          error.code !== 'auth/cancelled-popup-request') {
+        this.errorMessage = this.getErrorMessage(error.code);
+        this.showToast(this.errorMessage, 'danger');
+      }
+    } finally {
+      this.isRegistering = false;
+    }
+  }
+
+  // ============================================
+  // 🎯 REDIRECCIÓN DESPUÉS DEL REGISTRO
+  // ============================================
+  private async redirectAfterRegister(uid: string) {
+    console.log('🔄 Verificando estado del usuario registrado:', uid);
+    
+    try {
+      const necesitaConfig = await this.homeService.necesitaConfiguracionInicial(uid);
+      
+      if (necesitaConfig) {
+        console.log('📝 Usuario NUEVO → Ir a configuración inicial');
+        
+        // Usuario nuevo SIEMPRE va a indicators con setupInicial=true
+        this.router.navigate(['/indicators'], { 
+          queryParams: { setupInicial: 'true' }
+        });
+      } else {
+        console.log('✅ Usuario EXISTENTE (Google) → Ya tiene configuración, ir al home');
+        
+        // Usuario que ya existe (ej: Google login de alguien que ya se registró antes)
+        this.router.navigate(['/home']);
+      }
+    } catch (error) {
+      console.error('❌ Error verificando configuración, enviando a indicators por seguridad');
+      
+      // En caso de error, enviar a indicators para que complete el setup
+      this.router.navigate(['/indicators'], { 
+        queryParams: { setupInicial: 'true' }
+      });
+    }
+  }
+
+  // ============================================
+  // MANEJO DE ERRORES MEJORADO
+  // ============================================
   private getErrorMessage(errorCode: string): string {
     const errorMessages: { [key: string]: string } = {
       'auth/email-already-in-use': 'Este email ya está registrado',
-      'auth/invalid-email': 'El formato del email es inválido',
-      'auth/operation-not-allowed': 'Esta operación no está permitida',
-      'auth/weak-password': 'La contraseña es muy débil',
-      'auth/popup-closed-by-user': 'Cancelaste el registro con Google',
-      'auth/popup-blocked': 'El popup fue bloqueado. Permite popups para este sitio',
-      'auth/network-request-failed': 'Error de conexión. Verifica tu internet'
+      'auth/invalid-email': 'Email inválido',
+      'auth/operation-not-allowed': 'Operación no permitida',
+      'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres',
+      'auth/network-request-failed': 'Error de conexión. Verifica tu internet',
+      'auth/invalid-credential': 'Credenciales inválidas',
+      'auth/account-exists-with-different-credential': 'Este email ya existe con otro método de registro',
+      'auth/popup-blocked': 'Habilita los popups para continuar'
     };
 
-    return errorMessages[errorCode] || 'Ocurrió un error durante el registro. Intenta nuevamente.';
+    return errorMessages[errorCode] || 'Error al crear la cuenta. Intenta nuevamente';
   }
 
-  private async showAlert(header: string, message: string) {
-    const alert = await this.alertController.create({
-      header,
-      message,
-      buttons: ['Entendido']
+  // ============================================
+  // TOAST MODERNO
+  // ============================================
+  private async showToast(message: string, color: 'success' | 'danger' | 'warning' = 'success') {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 3000,
+      position: 'top',
+      color: color,
+      cssClass: 'custom-toast',
+      buttons: [
+        {
+          icon: 'close',
+          role: 'cancel'
+        }
+      ]
     });
-    await alert.present();
+    await toast.present();
   }
 
+  // ============================================
+  // UTILIDADES
+  // ============================================
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
   }
@@ -187,22 +315,7 @@ export class RegisterPage implements OnInit {
     this.router.navigate(['/login']);
   }
 
-  private async checkLogo() {
-    try {
-      const logoPath = 'assets/Nupsi/nupsiLogo.png';
-      const img = new Image();
-      img.onload = () => {
-        this.logoLoaded = true;
-        console.log('🎯 Logo encontrado en:', logoPath);
-      };
-      img.onerror = () => {
-        this.logoLoaded = false;
-        console.warn('📁 Logo no encontrado en:', logoPath);
-      };
-      img.src = logoPath;
-    } catch (error) {
-      console.error('Error verificando logo:', error);
-      this.logoLoaded = false;
-    }
+  clearError() {
+    this.errorMessage = '';
   }
 }
