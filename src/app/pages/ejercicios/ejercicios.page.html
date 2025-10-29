@@ -1,0 +1,376 @@
+<!-- src/app/pages/ejercicios/ejercicios.page.html -->
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="logo-title">
+      <div class="title-content">
+        <ion-icon name="fitness"></ion-icon>
+        <span>Mis Ejercicios</span>
+      </div>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ejercicios-content" [scrollEvents]="true">
+  <div class="content-padding-top"></div>
+  
+  <div class="content-wrapper">
+    
+    <!-- ESTADO DE CARGA -->
+    <div *ngIf="cargando" class="cargando-state">
+      <div class="spinner-container">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Cargando ejercicios...</p>
+      </div>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div *ngIf="!cargando" class="main-content">
+      
+      <!-- SECCIÓN DE BIENVENIDA -->
+      <div class="welcome-section">
+        <h1 class="greeting">💪 Entrenamientos</h1>
+        <p class="date">Diseña y completa tus rutinas personalizadas</p>
+      </div>
+
+      <div class="authenticated-content">
+        
+        <!-- ESTADÍSTICAS -->
+        <div class="progress-section-improved" *ngIf="estadisticas">
+          <div class="section-title-improved">
+            <span class="title-icon">📊</span>
+            <span>Tu Progreso</span>
+          </div>
+
+          <div class="progress-card-improved">
+            <div class="progress-content">
+              <div class="progress-items-container">
+                
+                <!-- Total Ejercicios -->
+                <div class="progress-item-improved">
+                  <div class="progress-info-improved">
+                    <div class="icon-wrapper">
+                      <ion-icon name="barbell" class="progress-icon-improved"></ion-icon>
+                    </div>
+                    <div class="text-content">
+                      <span class="progress-label-improved">Total de Ejercicios</span>
+                      <div class="progress-bar-mini">
+                        <div class="progress-fill-mini" [style.width.%]="100"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="progress-value-improved">{{estadisticas.totalEjercicios}}</div>
+                </div>
+
+                <div class="progress-divider"></div>
+
+                <!-- Completados -->
+                <div class="progress-item-improved">
+                  <div class="progress-info-improved">
+                    <div class="icon-wrapper">
+                      <ion-icon name="checkmark-circle" class="progress-icon-improved"></ion-icon>
+                    </div>
+                    <div class="text-content">
+                      <span class="progress-label-improved">Completados</span>
+                      <div class="progress-bar-mini">
+                        <div class="progress-fill-mini" [style.width.%]="getPorcentajeCompletado()"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="progress-value-improved">{{estadisticas.ejerciciosCompletados}}</div>
+                </div>
+
+                <div class="progress-divider"></div>
+
+                <!-- Tiempo Total -->
+                <div class="progress-item-improved">
+                  <div class="progress-info-improved">
+                    <div class="icon-wrapper">
+                      <ion-icon name="time" class="progress-icon-improved"></ion-icon>
+                    </div>
+                    <div class="text-content">
+                      <span class="progress-label-improved">Tiempo Total Entrenado</span>
+                    </div>
+                  </div>
+                  <div class="progress-value-improved">{{getTiempoTotalFormateado()}}</div>
+                </div>
+
+                <div class="progress-divider"></div>
+
+                <!-- Racha -->
+                <div class="progress-item-improved">
+                  <div class="progress-info-improved">
+                    <div class="icon-wrapper">
+                      <ion-icon name="flame" class="progress-icon-improved"></ion-icon>
+                    </div>
+                    <div class="text-content">
+                      <span class="progress-label-improved">Racha de Días</span>
+                    </div>
+                  </div>
+                  <div class="progress-value-improved">{{estadisticas.racha}} días</div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PLANTILLAS DE EJERCICIO -->
+        <div class="question-card" *ngIf="plantillasEjercicio.length > 0">
+          <ion-card-header>
+            <p class="card-title-small">🏋️ PLANTILLAS PREDEFINIDAS</p>
+          </ion-card-header>
+          <ion-card-content>
+            <p class="question-text">Usa estas plantillas como base para tus rutinas</p>
+            
+            <div class="plantillas-grid">
+              <div 
+                *ngFor="let plantilla of plantillasEjercicio" 
+                class="plantilla-item"
+                (click)="usarPlantillaEjercicio(plantilla)">
+                <div class="plantilla-icon">
+                  <ion-icon [name]="getIconoTipoEjercicio(plantilla.tipo)"></ion-icon>
+                </div>
+                <div class="plantilla-info">
+                  <h4>{{plantilla.nombre}}</h4>
+                  <p>{{plantilla.descripcion}}</p>
+                  <div class="plantilla-meta">
+                    <span class="meta-item">
+                      <ion-icon name="time"></ion-icon>
+                      {{getDuracionFormateada(plantilla.duracion)}}
+                    </span>
+                    <span class="meta-item">
+                      <ion-icon name="flame"></ion-icon>
+                      {{plantilla.caloriasEstimadas}} cal
+                    </span>
+                    <span class="badge" [class]="plantilla.dificultad">
+                      {{plantilla.dificultad}}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ion-card-content>
+        </div>
+
+        <!-- CREAR/EDITAR EJERCICIO -->
+        <div class="question-card crear-ejercicio-card">
+          <ion-card-header>
+            <p class="card-title-small">
+              {{modoEdicion ? '✏️ EDITAR EJERCICIO' : '➕ CREAR RUTINA PERSONALIZADA'}}
+            </p>
+          </ion-card-header>
+          <ion-card-content>
+            <p class="question-text">
+              {{modoEdicion ? 'Modifica tu ejercicio' : 'Diseña tu propio ejercicio con temporizador'}}
+            </p>
+            
+            <div class="form-group">
+              <ion-item class="custom-input">
+                <ion-label position="stacked">Nombre del Ejercicio</ion-label>
+                <ion-input 
+                  [(ngModel)]="nuevoEjercicio.nombre" 
+                  placeholder="Ej: Sentadillas, Flexiones..."
+                  class="input-elegante">
+                </ion-input>
+              </ion-item>
+
+              <ion-item class="custom-input">
+                <ion-label position="stacked">Descripción</ion-label>
+                <ion-textarea 
+                  [(ngModel)]="nuevoEjercicio.descripcion"
+                  placeholder="Describe tu ejercicio..."
+                  rows="3"
+                  class="input-elegante">
+                </ion-textarea>
+              </ion-item>
+
+              <div class="temporizador-config">
+                <h4>⏱️ Configurar Temporizador</h4>
+                <div class="temporizador-grid">
+                  <div class="temporizador-item">
+                    <label>Trabajo (seg)</label>
+                    <ion-input 
+                      type="number" 
+                      [(ngModel)]="nuevoEjercicio.temporizador.trabajo"
+                      min="5" 
+                      max="300"
+                      class="input-number">
+                    </ion-input>
+                  </div>
+                  <div class="temporizador-item">
+                    <label>Descanso (seg)</label>
+                    <ion-input 
+                      type="number" 
+                      [(ngModel)]="nuevoEjercicio.temporizador.descanso"
+                      min="5" 
+                      max="120"
+                      class="input-number">
+                    </ion-input>
+                  </div>
+                  <div class="temporizador-item">
+                    <label>Series</label>
+                    <ion-input 
+                      type="number" 
+                      [(ngModel)]="nuevoEjercicio.temporizador.series"
+                      min="1" 
+                      max="10"
+                      class="input-number">
+                    </ion-input>
+                  </div>
+                </div>
+                
+                <div class="temporizador-total">
+                  <ion-icon name="hourglass"></ion-icon>
+                  <strong>Duración total: {{ (nuevoEjercicio.temporizador.trabajo + nuevoEjercicio.temporizador.descanso) * nuevoEjercicio.temporizador.series }} segundos</strong>
+                </div>
+              </div>
+
+              <div class="form-actions" *ngIf="modoEdicion">
+                <ion-button 
+                  expand="block" 
+                  class="primary-button-improved"
+                  (click)="actualizarEjercicio()"
+                  [disabled]="!nuevoEjercicio.nombre">
+                  <ion-icon slot="start" name="save"></ion-icon>
+                  Actualizar Ejercicio
+                </ion-button>
+                <ion-button 
+                  expand="block" 
+                  class="secondary-button-improved"
+                  (click)="cancelarEdicion()">
+                  <ion-icon slot="start" name="close"></ion-icon>
+                  Cancelar
+                </ion-button>
+              </div>
+
+              <ion-button 
+                *ngIf="!modoEdicion"
+                expand="block" 
+                class="primary-button-improved"
+                (click)="crearEjercicio()"
+                [disabled]="!nuevoEjercicio.nombre">
+                <ion-icon slot="start" name="add-circle"></ion-icon>
+                Crear Ejercicio
+              </ion-button>
+            </div>
+          </ion-card-content>
+        </div>
+
+        <!-- LISTA DE EJERCICIOS -->
+        <div class="ejercicios-section" *ngIf="ejercicios.length > 0">
+          <div class="section-title-improved">
+            <span class="title-icon">💪</span>
+            <span>Tus Ejercicios</span>
+          </div>
+
+          <div class="ejercicios-lista">
+            <div 
+              *ngFor="let ejercicio of ejercicios" 
+              class="ejercicio-card-improved"
+              [class.completado]="ejercicio.completado">
+              
+              <div class="ejercicio-header">
+                <div class="ejercicio-icon">
+                  <ion-icon [name]="ejercicio.completado ? 'checkmark-circle' : 'fitness'"></ion-icon>
+                </div>
+                <div class="ejercicio-info">
+                  <h3>{{ejercicio.nombre}}</h3>
+                  <p>{{ejercicio.descripcion}}</p>
+                </div>
+                <div class="ejercicio-badge" [class.completado]="ejercicio.completado">
+                  {{ejercicio.completado ? '✅ Hecho' : '⏱ Pendiente'}}
+                </div>
+              </div>
+
+              <div class="ejercicio-stats">
+                <div class="stat-mini">
+                  <ion-icon name="time"></ion-icon>
+                  <span>{{ejercicio.temporizador.trabajo}}s</span>
+                </div>
+                <div class="stat-mini">
+                  <ion-icon name="bed"></ion-icon>
+                  <span>{{ejercicio.temporizador.descanso}}s</span>
+                </div>
+                <div class="stat-mini">
+                  <ion-icon name="repeat"></ion-icon>
+                  <span>{{ejercicio.temporizador.series}} series</span>
+                </div>
+                <div class="stat-mini">
+                  <ion-icon name="trophy"></ion-icon>
+                  <span>{{ejercicio.vecesCompletado || 0}}x</span>
+                </div>
+              </div>
+
+              <div class="ejercicio-actions">
+                <ion-button 
+                  *ngIf="!ejercicio.completado"
+                  class="primary-button-improved small-btn"
+                  (click)="iniciarEjercicio(ejercicio)">
+                  <ion-icon slot="start" name="play"></ion-icon>
+                  Iniciar
+                </ion-button>
+                
+                <ion-button 
+                  *ngIf="ejercicio.completado"
+                  class="secondary-button-improved small-btn"
+                  (click)="resetearEjercicio(ejercicio)">
+                  <ion-icon slot="start" name="refresh"></ion-icon>
+                  Repetir
+                </ion-button>
+
+                <ion-button 
+                  class="secondary-button-improved small-btn"
+                  (click)="verHistorial(ejercicio)"
+                  *ngIf="ejercicio.vecesCompletado && ejercicio.vecesCompletado > 0">
+                  <ion-icon slot="start" name="stats-chart"></ion-icon>
+                  Historial
+                </ion-button>
+                
+                <ion-button 
+                  class="secondary-button-improved small-btn"
+                  (click)="editarEjercicio(ejercicio)">
+                  <ion-icon slot="start" name="create"></ion-icon>
+                  Editar
+                </ion-button>
+
+                <ion-button 
+                  fill="clear" 
+                  color="danger"
+                  class="small-btn"
+                  (click)="eliminarEjercicio(ejercicio)">
+                  <ion-icon slot="icon-only" name="trash"></ion-icon>
+                </ion-button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SIN EJERCICIOS -->
+        <div *ngIf="ejercicios.length === 0" class="tip-card-improved">
+          <div class="tip-header-improved">
+            <div class="tip-icon-container">
+              <ion-icon name="fitness" class="tip-main-icon"></ion-icon>
+            </div>
+            <div class="tip-card-header">
+              <p class="card-title-small-improved">💪 COMIENZA TU RUTINA</p>
+            </div>
+          </div>
+          <div class="tip-content-improved">
+            <p class="tip-text-improved">
+              "Crea tu primer ejercicio personalizado con temporizador y comienza tu transformación"
+            </p>
+            <div class="tip-decoration">⭐</div>
+          </div>
+        </div>
+
+        <!-- Espaciador -->
+        <div class="bottom-spacer"></div>
+      </div>
+    </div>
+  </div>
+</ion-content>

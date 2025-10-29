@@ -1,0 +1,212 @@
+<!-- src/app/pages/temporizador-ejercicio/temporizador-ejercicio.page.html -->
+<ion-header [translucent]="true">
+  <ion-toolbar [style.--background]="getColorEstado()">
+    <ion-buttons slot="start">
+      <ion-button (click)="salir()">
+        <ion-icon slot="icon-only" name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="logo-title">
+      <div class="title-content">
+        <ion-icon [name]="getIconoEstado()"></ion-icon>
+        <span>{{getTextoEstado()}}</span>
+      </div>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="temporizador-content">
+  <div class="content-wrapper" [style.--color-estado]="getColorEstado()">
+    
+    <!-- INFORMACIÓN DEL EJERCICIO -->
+    <div class="ejercicio-info">
+      <h2 class="ejercicio-nombre">{{ejercicio?.nombre}}</h2>
+      <p class="ejercicio-descripcion" *ngIf="ejercicio?.descripcion">
+        {{ejercicio?.descripcion}}
+      </p>
+    </div>
+
+    <!-- CÍRCULO DEL TEMPORIZADOR -->
+    <div class="timer-container">
+      <svg class="timer-circle" viewBox="0 0 300 300">
+        <!-- Círculo de fondo -->
+        <circle
+          cx="150"
+          cy="150"
+          r="140"
+          fill="none"
+          stroke="rgba(0, 0, 0, 0.1)"
+          stroke-width="12">
+        </circle>
+        
+        <!-- Círculo de progreso -->
+        <circle
+          cx="150"
+          cy="150"
+          r="140"
+          fill="none"
+          [attr.stroke]="getColorEstado()"
+          stroke-width="12"
+          stroke-linecap="round"
+          [style.strokeDasharray]="getCircunferencia()"
+          [style.strokeDashoffset]="getOffsetCirculo()"
+          class="progress-circle">
+        </circle>
+      </svg>
+
+      <!-- TIEMPO RESTANTE -->
+      <div class="timer-content">
+        <div class="time-display" [style.color]="getColorEstado()">
+          {{formatearTiempo(tiempoRestante)}}
+        </div>
+        <div class="estado-label">
+          {{getTextoEstado()}}
+        </div>
+        <div class="mensaje-motivacional" *ngIf="iniciado && !pausado">
+          {{getMensajeMotivacional()}}
+        </div>
+      </div>
+    </div>
+
+    <!-- INFORMACIÓN DE SERIES -->
+    <div class="series-info">
+      <div class="serie-actual">
+        <span class="label">Serie</span>
+        <span class="valor">{{serieActual}} / {{totalSeries}}</span>
+      </div>
+      <div class="serie-actual">
+        <span class="label">Tiempo Total</span>
+        <span class="valor">{{formatearTiempo(tiempoTotalTranscurrido)}}</span>
+      </div>
+    </div>
+
+    <!-- BARRA DE PROGRESO GENERAL -->
+    <div class="progress-general">
+      <div class="progress-label">
+        <span>Progreso General</span>
+        <span>{{getPorcentajeProgreso().toFixed(0)}}%</span>
+      </div>
+      <div class="progress-bar-container">
+        <div 
+          class="progress-bar-fill" 
+          [style.width.%]="getPorcentajeProgreso()"
+          [style.backgroundColor]="getColorEstado()">
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTONES DE CONTROL -->
+    <div class="control-buttons">
+      
+      <!-- Botón Iniciar (solo si no ha iniciado) -->
+      <ion-button 
+        *ngIf="!iniciado"
+        expand="block" 
+        class="control-btn start-btn"
+        (click)="iniciarTemporizador()">
+        <ion-icon slot="start" name="play"></ion-icon>
+        Iniciar Ejercicio
+      </ion-button>
+
+      <!-- Botones cuando está activo -->
+      <ng-container *ngIf="iniciado && estado !== 'completado'">
+        <!-- Pausar/Reanudar -->
+        <ion-button 
+          *ngIf="!pausado"
+          expand="block" 
+          class="control-btn pause-btn"
+          (click)="pausarTemporizador()">
+          <ion-icon slot="start" name="pause"></ion-icon>
+          Pausar
+        </ion-button>
+
+        <ion-button 
+          *ngIf="pausado"
+          expand="block" 
+          class="control-btn resume-btn"
+          (click)="reanudarTemporizador()">
+          <ion-icon slot="start" name="play"></ion-icon>
+          Reanudar
+        </ion-button>
+
+        <!-- Reiniciar -->
+        <ion-button 
+          expand="block" 
+          fill="outline"
+          class="control-btn reset-btn"
+          (click)="reiniciarTemporizador()">
+          <ion-icon slot="start" name="refresh"></ion-icon>
+          Reiniciar
+        </ion-button>
+      </ng-container>
+
+      <!-- Cuando está completado -->
+      <ng-container *ngIf="estado === 'completado'">
+        <ion-button 
+          expand="block" 
+          class="control-btn complete-btn"
+          (click)="salir()">
+          <ion-icon slot="start" name="checkmark-circle"></ion-icon>
+          Finalizar
+        </ion-button>
+
+        <ion-button 
+          expand="block" 
+          fill="outline"
+          class="control-btn reset-btn"
+          (click)="resetearEstado()">
+          <ion-icon slot="start" name="refresh"></ion-icon>
+          Hacer de Nuevo
+        </ion-button>
+      </ng-container>
+    </div>
+
+    <!-- ESTADÍSTICAS DEL EJERCICIO -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <ion-icon name="fitness"></ion-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Trabajo</span>
+          <span class="stat-value">{{tiempoTrabajo}}s</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <ion-icon name="bed"></ion-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Descanso</span>
+          <span class="stat-value">{{tiempoDescanso}}s</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <ion-icon name="repeat"></ion-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Series</span>
+          <span class="stat-value">{{totalSeries}}</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <ion-icon name="hourglass"></ion-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Duración</span>
+          <span class="stat-value">
+            {{formatearTiempo((tiempoTrabajo + tiempoDescanso) * totalSeries)}}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Espaciador -->
+    <div class="bottom-spacer"></div>
+  </div>
+</ion-content>

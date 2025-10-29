@@ -21,25 +21,36 @@ export const routes: Routes = [
   },
   { 
     path: 'planes', 
-    loadComponent: () => import('./pages/planes/planes.page').then((m) => m.PlanesPage) 
+    loadComponent: () => import('./pages/planes/planes.page').then(m => m.PlanesPage) 
+  },
+  // ✅ NUEVA RUTA - Ejercicios
+  {
+    path: 'ejercicios',
+    loadComponent: () => import('./pages/ejercicios/ejercicios.page').then(m => m.EjerciciosPage)
+  },
+  // ✅ NUEVA RUTA - Temporizador de Ejercicio
+  {
+    path: 'temporizador-ejercicio/:id',
+    loadComponent: () => import('./pages/temporizador-ejercicio/temporizador-ejercicio.page').then(m => m.TemporizadorEjercicioPage)
   },
   {
     path: 'indicators',
     loadComponent: () => import('./pages/indicators/indicators.page').then(m => m.IndicatorsPage),
   },
-  // Agrega estas rutas que faltan:
-  // En app.routes.ts - AÑADIR ESTA RUTA
+  {
+    path: 'chat', 
+    loadComponent: () => import('./pages/chat/chat.page').then(m => m.ChatPage) 
+  },
   {
     path: 'receta-detalle/:id',
-    loadComponent: () => import('./pages/planes/receta-detalle.page').then(m => m.RecetaDetallePage)
+    loadComponent: () => import('./pages/receta-detalle/receta-detalle.page').then(m => m.RecetaDetallePage)
   },
-  { 
-    path: 'chat', 
-    loadComponent: () => import('./pages/chat/chat.page').then((m) => m.ChatPage) 
-  },
-
   {
     path: '**',
     redirectTo: 'home'
+  },  {
+    path: 'perfil',
+    loadComponent: () => import('./pages/perfil/perfil.page').then( m => m.PerfilPage)
   }
+
 ];

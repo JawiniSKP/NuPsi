@@ -12,8 +12,8 @@
    =============================== */
 .planes-content {
   --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --padding-top: 0;
-  --padding-bottom: 80px;
+  --padding-top: 20px;  // ✅ CAMBIADO: de 0 a 20px
+  --padding-bottom: 100px;
   
   .inner-scroll {
     overflow-y: auto;
@@ -25,6 +25,14 @@
   padding: 0;
   min-height: 100vh;
   position: relative;
+  padding-top: 0;  // ✅ AGREGADO
+}
+
+/* ✅ NUEVO: Padding superior para evitar overlap con navbar */
+.content-padding-top {
+  height: 10px;
+  width: 100%;
+  flex-shrink: 0;
 }
 
 /* ===============================
@@ -113,11 +121,15 @@ ion-header {
 /* ===============================
    🔄 SEGMENT CONTROL
    =============================== */
+.segment-container {
+  padding: 0 20px;  // ✅ AGREGADO: padding lateral
+  margin-bottom: 20px;  // ✅ AGREGADO: margen inferior
+}
+
 .custom-segment {
   --background: rgba(255, 255, 255, 0.15);
   --border-radius: 20px;
   padding: 6px;
-  margin: 20px;
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   
@@ -189,11 +201,11 @@ ion-header {
 /* ===============================
    💎 PLAN ACTIVO SECTION
    =============================== */
-.plan-activo-section {
+.current-plan-section {
   margin-bottom: 32px;
 }
 
-.plan-activo-card {
+.plan-card {
   background: rgba(255, 255, 255, 0.95);
   border-radius: 24px;
   margin: 0 0 24px 0;
@@ -298,10 +310,29 @@ ion-header {
       }
     }
 
-    .progreso-bar-container {
-      margin-bottom: 24px;
+    .progreso-section {
+      margin-bottom: 20px;
 
-      .progreso-bar {
+      .progreso-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+
+        .progreso-text {
+          font-size: 14px;
+          font-weight: 600;
+          color: #5A6C7D;
+        }
+
+        .progreso-porcentaje {
+          font-size: 18px;
+          font-weight: 800;
+          color: #667eea;
+        }
+      }
+
+      .progreso-bar-container {
         width: 100%;
         height: 8px;
         background: rgba(102, 126, 234, 0.2);
@@ -345,87 +376,87 @@ ion-header {
 }
 
 /* ===============================
-   🍽️ RECOMENDACIONES CARD
+   🍽️ RECOMENDACIONES SECTION
    =============================== */
-.recomendaciones-card {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 24px;
-  margin: 0 0 24px 0;
-  border: none;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(20px);
+.recetas-section {
+  margin-bottom: 32px;
 
-  ion-card-header {
-    padding: 24px 24px 16px;
+  .section-header {
+    margin-bottom: 20px;
 
-    ion-card-title {
-      font-size: 20px;
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: white;
+      font-size: 22px;
       font-weight: 700;
-      color: #2C3E50;
-    }
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 
-    ion-card-subtitle {
-      font-size: 14px;
-      color: #667eea;
-      font-weight: 600;
+      .title-icon {
+        font-size: 28px;
+      }
     }
-  }
-
-  ion-card-content {
-    padding: 0 24px 24px;
   }
 }
 
+.recetas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
 /* ===============================
-   🍳 RECETA CARD (Dentro de recomendaciones)
+   🍳 RECETA CARD
    =============================== */
 .receta-card {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 20px;
-  margin: 0 0 16px 0;
+  margin: 0;
   border: none;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(20px);
   transition: all 0.3s ease;
   cursor: pointer;
+  overflow: hidden;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-    background: rgba(255, 255, 255, 0.95);
+    transform: translateY(-6px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
   }
 
   .receta-image {
     width: 100%;
-    height: 140px;
+    height: 160px;
     background: linear-gradient(135deg, #667eea, #764ba2);
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 20px 20px 0 0;
     
     .meal-time {
       position: absolute;
-      top: 12px;
-      left: 12px;
-      padding: 6px 12px;
-      background: rgba(255, 255, 255, 0.9);
-      border-radius: 12px;
-      font-size: 11px;
+      top: 16px;
+      left: 16px;
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      font-size: 12px;
       font-weight: 700;
       color: #667eea;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
     
     .food-icon {
-      font-size: 48px;
+      font-size: 64px;
       color: white;
+      filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
     }
   }
 
-  ion-card-content {
+  .receta-content {
     padding: 20px;
 
     .receta-title {
@@ -441,12 +472,18 @@ ion-header {
       color: #5A6C7D;
       line-height: 1.5;
       margin: 0 0 16px 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     .receta-meta {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
 
       .meta-item {
         display: flex;
@@ -983,7 +1020,7 @@ ion-header {
         align-items: center;
         gap: 8px;
         padding: 10px;
-        background: rgba(255, 255, 255, 0.8);
+        background: rgba(255, 255, 255,0.8);
         border-radius: 10px;
         border: 1px solid rgba(102, 126, 234, 0.1);
 
@@ -1353,12 +1390,6 @@ ion-header {
   }
 }
 
-.recetas-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
-}
-
 .receta-meta {
   .receta-info {
     display: flex;
@@ -1439,16 +1470,20 @@ ion-header {
     }
   }
 
+  .segment-container {
+    padding: 0 16px;
+    margin-bottom: 16px;
+  }
+
   .custom-segment {
-    margin: 16px;
+    padding: 4px;
   }
 
   .seccion-content {
     padding: 0 16px 16px;
   }
 
-  .plan-activo-card,
-  .recomendaciones-card,
+  .plan-card,
   .bienvenida-card,
   .plantillas-card,
   .crear-ejercicio-card {
@@ -1467,7 +1502,10 @@ ion-header {
   }
 
   .dietas-grid,
-  .plantillas-grid,
+  .plantillas-grid {
+    grid-template-columns: 1fr;
+  }
+
   .recetas-grid {
     grid-template-columns: 1fr;
   }
@@ -1525,16 +1563,742 @@ ion-header {
     }
   }
 
+  .segment-container {
+    padding: 0 12px;
+    margin-bottom: 12px;
+  }
+
   .custom-segment {
-    margin: 12px;
+    padding: 3px;
+    
+    .segment-button {
+      --padding-top: 10px;
+      --padding-bottom: 10px;
+      min-height: 40px;
+      
+      ion-label {
+        font-size: 12px;
+      }
+      
+      ion-icon {
+        font-size: 18px;
+      }
+    }
   }
 
   .seccion-content {
     padding: 0 12px 12px;
   }
+
+  .plan-card {
+    .plan-header {
+      padding: 20px 16px 12px;
+      
+      .plan-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+      }
+      
+      .plan-info {
+        h2 {
+          font-size: 18px;
+        }
+        
+        .plan-nombre {
+          font-size: 14px;
+        }
+      }
+      
+      .plan-badge {
+        font-size: 12px;
+        padding: 6px 12px;
+      }
+    }
+  }
+
+  .receta-card {
+    .receta-image {
+      height: 140px;
+      
+      .food-icon {
+        font-size: 52px;
+      }
+    }
+  }
 }
 
-/* Espaciador para el menú inferior */
+/* ✅ Espaciador para el menú inferior - MEJORADO */
 .bottom-spacer {
-  height: 100px;
+  height: 120px;  // ✅ CAMBIADO: de 100px a 120px
+  flex-shrink: 0;  // ✅ AGREGADO
+  width: 100%;  // ✅ AGREGADO
+}
+/* ===============================
+   💪 TARJETA DE REDIRECCIÓN A EJERCICIOS
+   =============================== */
+.redirect-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 24px;
+  margin: 0 0 24px 0;
+  border: none;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(20px);
+  text-align: center;
+
+  ion-card-header {
+    padding: 32px 24px 16px;
+
+    .redirect-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      animation: bounce 2s ease-in-out infinite;
+    }
+
+    ion-card-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #2C3E50;
+      margin-bottom: 8px;
+    }
+
+    ion-card-subtitle {
+      font-size: 16px;
+      color: #667eea;
+      font-weight: 600;
+    }
+  }
+
+  ion-card-content {
+    padding: 0 24px 32px;
+
+    .redirect-description {
+      font-size: 16px;
+      color: #5A6C7D;
+      line-height: 1.6;
+      margin: 0 0 24px 0;
+    }
+
+    .redirect-features {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+
+      .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        background: rgba(102, 126, 234, 0.05);
+        border-radius: 12px;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+
+        ion-icon {
+          font-size: 24px;
+        }
+
+        span {
+          font-size: 14px;
+          font-weight: 600;
+          color: #5A6C7D;
+        }
+      }
+    }
+
+    .redirect-btn {
+      --border-radius: 16px;
+      height: 56px;
+      font-weight: 700;
+      font-size: 16px;
+      --background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+  }
+}
+
+.quick-stats-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  margin: 0;
+  border: none;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(20px);
+
+  ion-card-header {
+    padding: 20px 20px 12px;
+
+    ion-card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #2C3E50;
+    }
+  }
+
+  ion-card-content {
+    padding: 0 20px 20px;
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+
+      .stat-box {
+        text-align: center;
+        padding: 16px;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 12px;
+
+        .stat-value {
+          font-size: 24px;
+          font-weight: 800;
+          color: #667eea;
+          margin-bottom: 4px;
+        }
+
+        .stat-label {
+          font-size: 11px;
+          font-weight: 700;
+          color: #5A6C7D;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+      }
+    }
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+/* ===============================
+   ⚠️ TARJETAS DE ALERTA
+   =============================== */
+.alert-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  margin: 0 0 20px 0;
+  border-left: 4px solid #FFC107;
+  box-shadow: 0 8px 32px rgba(255, 193, 7, 0.2);
+  
+  &.warning {
+    border-left-color: #FF9800;
+    box-shadow: 0 8px 32px rgba(255, 152, 0, 0.25);
+  }
+  
+  &.danger {
+    border-left-color: #F44336;
+    box-shadow: 0 8px 32px rgba(244, 67, 54, 0.3);
+  }
+
+  ion-card-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+
+    .alert-icon {
+      font-size: 32px;
+      flex-shrink: 0;
+      
+      ion-icon {
+        font-size: 32px;
+      }
+    }
+
+    .alert-messages {
+      flex: 1;
+
+      .alert-item {
+        font-size: 15px;
+        font-weight: 600;
+        color: #2C3E50;
+        margin-bottom: 8px;
+        line-height: 1.5;
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        &.info {
+          color: #2196F3;
+        }
+
+        &.warning {
+          color: #FF9800;
+        }
+
+        &.danger {
+          color: #F44336;
+        }
+      }
+    }
+  }
+}
+
+/* ===============================
+   📊 PROGRESO MEJORADO
+   =============================== */
+.progreso-section-mejorada {
+  margin: 24px 0;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+  border-radius: 20px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+
+  .progreso-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+
+    .progreso-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #2C3E50;
+
+      ion-icon {
+        font-size: 20px;
+        color: #667eea;
+      }
+    }
+
+    .progreso-porcentaje-grande {
+      font-size: 32px;
+      font-weight: 800;
+      color: #667eea;
+      text-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    }
+  }
+
+  .progreso-bar-container-mejorada {
+    width: 100%;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 16px;
+    position: relative;
+
+    .progreso-fill-mejorada {
+      height: 100%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 16px;
+      transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        animation: shimmer 2s infinite;
+      }
+
+      &.completado {
+        background: linear-gradient(135deg, #43e97b, #38f9d7);
+      }
+
+      &.advertencia {
+        background: linear-gradient(135deg, #ff9a9e, #fecfef);
+      }
+
+      .progreso-label-interno {
+        font-size: 14px;
+        font-weight: 800;
+        color: white;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        position: relative;
+        z-index: 2;
+      }
+    }
+  }
+
+  .progreso-detalles {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+
+    .detalle-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #5A6C7D;
+
+      ion-icon {
+        font-size: 16px;
+        color: #667eea;
+      }
+    }
+  }
+
+  .progreso-racha {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(102, 126, 234, 0.2);
+
+    .racha-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 12px;
+
+      ion-icon {
+        font-size: 28px;
+      }
+
+      .racha-info {
+        display: flex;
+        flex-direction: column;
+
+        .racha-valor {
+          font-size: 20px;
+          font-weight: 800;
+          color: #2C3E50;
+        }
+
+        .racha-label {
+          font-size: 11px;
+          font-weight: 700;
+          color: #5A6C7D;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+      }
+    }
+  }
+}
+
+/* ===============================
+   ✅ MARCAR DÍA COMPLETADO
+   =============================== */
+.marcar-dia-section {
+  margin: 20px 0;
+
+  ion-button {
+    --border-radius: 16px;
+    height: 56px;
+    font-weight: 700;
+    font-size: 16px;
+    
+    &[disabled] {
+      opacity: 0.6;
+    }
+  }
+}
+
+/* ===============================
+   📋 DISCLAIMER DE NUTRICIONISTA
+   =============================== */
+.disclaimer-card {
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 152, 0, 0.1));
+  border-radius: 24px;
+  margin: 0 0 24px 0;
+  border: 2px solid rgba(255, 193, 7, 0.3);
+  box-shadow: 0 8px 32px rgba(255, 193, 7, 0.2);
+
+  ion-card-header {
+    padding: 24px 24px 16px;
+    text-align: center;
+
+    .disclaimer-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    ion-card-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #2C3E50;
+    }
+  }
+
+  ion-card-content {
+    padding: 0 24px 24px;
+
+    .disclaimer-text {
+      font-size: 15px;
+      color: #5A6C7D;
+      line-height: 1.6;
+      margin: 0 0 16px 0;
+      text-align: center;
+
+      strong {
+        color: #FF9800;
+      }
+    }
+
+    .disclaimer-points {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+
+      .point-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 12px;
+
+        ion-icon {
+          font-size: 20px;
+          flex-shrink: 0;
+        }
+
+        span {
+          font-size: 14px;
+          font-weight: 600;
+          color: #2C3E50;
+          line-height: 1.4;
+        }
+      }
+    }
+  }
+}
+
+/* ===============================
+   🎪 MODAL DISCLAIMER
+   =============================== */
+.modal-disclaimer {
+  margin-bottom: 20px;
+
+  .disclaimer-box {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(255, 193, 7, 0.1);
+    border-left: 4px solid #FFC107;
+    border-radius: 12px;
+
+    ion-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    p {
+      font-size: 14px;
+      color: #5A6C7D;
+      line-height: 1.5;
+      margin: 0;
+
+      strong {
+        color: #FF9800;
+      }
+    }
+  }
+}
+
+.dieta-duracion-modal {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(102, 126, 234, 0.1);
+
+  h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2C3E50;
+    margin: 0 0 8px 0;
+  }
+
+  p {
+    font-size: 14px;
+    color: #5A6C7D;
+    margin: 0 0 8px 0;
+  }
+
+  .duracion-warning {
+    color: #FF9800;
+    font-weight: 600;
+    font-size: 13px;
+  }
+}
+
+/* ===============================
+   💪 REDIRECT CARD & QUICK STATS
+   =============================== */
+.redirect-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 24px;
+  margin: 0 0 24px 0;
+  border: none;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(20px);
+  text-align: center;
+
+  ion-card-header {
+    padding: 32px 24px 16px;
+
+    .redirect-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      animation: bounce 2s ease-in-out infinite;
+    }
+
+    ion-card-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #2C3E50;
+      margin-bottom: 8px;
+    }
+
+    ion-card-subtitle {
+      font-size: 16px;
+      color: #667eea;
+      font-weight: 600;
+    }
+  }
+
+  ion-card-content {
+    padding: 0 24px 32px;
+
+    .redirect-description {
+      font-size: 16px;
+      color: #5A6C7D;
+      line-height: 1.6;
+      margin: 0 0 24px 0;
+    }
+
+    .redirect-features {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+
+      .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        background: rgba(102, 126, 234, 0.05);
+        border-radius: 12px;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+
+        ion-icon {
+          font-size: 24px;
+        }
+
+        span {
+          font-size: 14px;
+          font-weight: 600;
+          color: #5A6C7D;
+        }
+      }
+    }
+
+    .redirect-btn {
+      --border-radius: 16px;
+      height: 56px;
+      font-weight: 700;
+      font-size: 16px;
+      --background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+  }
+}
+
+.quick-stats-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  margin: 0;
+  border: none;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(20px);
+
+  ion-card-header {
+    padding: 20px 20px 12px;
+
+    ion-card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #2C3E50;
+    }
+  }
+
+  ion-card-content {
+    padding: 0 20px 20px;
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+
+      .stat-box {
+        text-align: center;
+        padding: 16px;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 12px;
+
+        .stat-value {
+          font-size: 24px;
+          font-weight: 800;
+          color: #667eea;
+          margin-bottom: 4px;
+        }
+
+        .stat-label {
+          font-size: 11px;
+          font-weight: 700;
+          color: #5A6C7D;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+      }
+    }
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ===============================
+   📱 RESPONSIVE
+   =============================== */
+@media (max-width: 768px) {
+  .progreso-racha {
+    grid-template-columns: 1fr !important;
+  }
+
+  .redirect-features {
+    grid-template-columns: 1fr !important;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
 }

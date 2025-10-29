@@ -1,4 +1,4 @@
-// planes.page.ts - VERSIÓN COMPLETAMENTE CORREGIDA
+// planes.page.ts - CON SISTEMA DE PROGRESO DE DIETAS
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ToastController, AlertController } from '@ionic/angular';
@@ -6,7 +6,14 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
-import { PlanesService, Dieta, PlanUsuario, EjercicioUsuario, Receta, PlantillaEjercicio } from '../../services/planes.service';
+import { 
+  PlanesService, 
+  Dieta, 
+  PlanUsuario, 
+  Receta, 
+  ProgresoDieta 
+} from '../../services/planes.service';
+import { EjerciciosService, EstadisticasEjercicio } from '../../services/ejercicios.service';
 
 @Component({
   selector: 'app-planes',
@@ -16,49 +23,49 @@ import { PlanesService, Dieta, PlanUsuario, EjercicioUsuario, Receta, PlantillaE
   imports: [CommonModule, IonicModule, FormsModule]
 })
 export class PlanesPage implements OnInit, OnDestroy {
+  // ==========================================
+  // 📊 PROPIEDADES DE ESTADO
+  // ==========================================
   seccionActiva: 'nutricion' | 'ejercicio' = 'nutricion';
   planActual: PlanUsuario | null = null;
+  progresoDieta: ProgresoDieta | null = null;
   cargando: boolean = true;
+  diaYaMarcado: boolean = false;
+  
+  // ==========================================
+  // 🍽️ DATOS DE NUTRICIÓN
+  // ==========================================
   dietas: Dieta[] = [];
   recetasDelDia: Receta[] = [];
-  ejercicios: EjercicioUsuario[] = [];
-  plantillasEjercicio: PlantillaEjercicio[] = [];
   
-  // Para el modal de selección de dieta
+  // ==========================================
+  // 💪 DATOS DE EJERCICIOS
+  // ==========================================
+  estadisticasEjercicios: EstadisticasEjercicio | null = null;
+  
+  // ==========================================
+  // 🎪 ESTADOS DE MODALES
+  // ==========================================
   mostrarModalDieta: boolean = false;
   dietaSeleccionadaModal: Dieta | null = null;
-  
-  // Para edición de ejercicio
-  ejercicioEditando: EjercicioUsuario | null = null;
-  modoEdicion: boolean = false;
-
-  // Para mostrar detalles de dieta
   mostrarDetallesDieta: boolean = false;
   dietaDetallada: Dieta | null = null;
-
-  // Para mostrar recetas de dieta
   mostrarRecetasDieta: boolean = false;
   recetasDietaSeleccionada: Receta[] = [];
-
-  // Nuevo ejercicio con valores por defecto
-  nuevoEjercicio = {
-    nombre: '',
-    descripcion: '',
-    temporizador: {
-      trabajo: 30,
-      descanso: 15,
-      series: 3
-    }
-  };
 
   private subscriptions: Subscription[] = [];
 
   constructor(
     private planesService: PlanesService,
+    private ejerciciosService: EjerciciosService,
     private router: Router,
     private toastController: ToastController,
     private alertController: AlertController
   ) {}
+
+  // ==========================================
+  // 🎬 LIFECYCLE HOOKS
+  // ==========================================
 
   async ngOnInit() {
     await this.cargarDatosIniciales();
@@ -68,6 +75,10 @@ export class PlanesPage implements OnInit, OnDestroy {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
+  // ==========================================
+  // 📥 CARGA DE DATOS
+  // ==========================================
+
   async cargarDatosIniciales() {
     try {
       this.cargando = true;
@@ -76,9 +87,10 @@ export class PlanesPage implements OnInit, OnDestroy {
       const dietasSub = this.planesService.obtenerDietas().subscribe({
         next: (dietas) => {
           this.dietas = dietas;
+          console.log('✅ Dietas cargadas:', dietas.length);
         },
         error: (error: any) => {
-          console.error('Error cargando dietas:', error);
+          console.error('❌ Error cargando dietas:', error);
           this.mostrarToast('Error al cargar las dietas', 'danger');
         }
       });
@@ -86,21 +98,20 @@ export class PlanesPage implements OnInit, OnDestroy {
       // Cargar plan actual
       this.planActual = await this.planesService.obtenerPlanUsuario();
       
-      // Si tiene plan activo, cargar recetas
-      if (this.planActual?.activo && this.planActual.dietaSeleccionada) {
+      // Si tiene plan activo, calcular progreso y cargar recetas
+      if (this.planActual?.activo) {
+        await this.actualizarProgreso();
         await this.cargarRecetasDelDia();
+        this.verificarDiaMarcado();
       }
-      
-      // Cargar ejercicios del usuario
-      this.cargarEjercicios();
 
-      // Cargar plantillas de ejercicio
-      this.cargarPlantillasEjercicio();
+      // Cargar estadísticas de ejercicios
+      await this.cargarEstadisticasEjercicios();
       
       this.subscriptions.push(dietasSub);
       
     } catch (error: any) {
-      console.error('Error cargando datos:', error);
+      console.error('❌ Error cargando datos:', error);
       this.mostrarToast('Error al cargar los datos', 'danger');
     } finally {
       this.cargando = false;
@@ -115,126 +126,168 @@ export class PlanesPage implements OnInit, OnDestroy {
         .obtenerRecetasPorTipoDieta(this.planActual.dietaSeleccionada)
         .subscribe({
           next: (recetas: Receta[]) => {
-            this.recetasDelDia = recetas.slice(0, 3);
+            // Obtener 3 recetas aleatorias para el día
+            this.recetasDelDia = this.obtenerRecetasAleatorias(recetas, 3);
+            console.log('✅ Recetas del día cargadas:', this.recetasDelDia.length);
           },
           error: (error: any) => {
-            console.error('Error cargando recetas:', error);
+            console.error('❌ Error cargando recetas:', error);
           }
         });
       
       this.subscriptions.push(recetasSub);
     } catch (error: any) {
-      console.error('Error cargando recetas:', error);
+      console.error('❌ Error cargando recetas:', error);
     }
   }
 
-  cargarEjercicios() {
+  async cargarEstadisticasEjercicios() {
     try {
-      const ejerciciosSub = this.planesService
-        .obtenerEjerciciosUsuario()
-        .subscribe({
-          next: (ejercicios: EjercicioUsuario[]) => {
-            this.ejercicios = ejercicios;
-          },
-          error: (error: any) => {
-            console.error('Error cargando ejercicios:', error);
-            this.mostrarToast('Error al cargar los ejercicios', 'danger');
-          }
-        });
-      
-      this.subscriptions.push(ejerciciosSub);
+      this.estadisticasEjercicios = await this.ejerciciosService.obtenerEstadisticas();
+      console.log('✅ Estadísticas de ejercicios cargadas:', this.estadisticasEjercicios);
     } catch (error: any) {
-      console.error('Error cargando ejercicios:', error);
+      console.error('❌ Error cargando estadísticas de ejercicios:', error);
     }
   }
 
-  // ✅ NUEVO MÉTODO PARA MANEJAR EL CASO UNDEFINED
-  verRecetasDietaSiExiste() {
-    const dietaActual = this.getDietaActual();
-    if (dietaActual) {
-      this.verRecetasDieta(dietaActual);
-    } else {
-      this.mostrarToast('No se pudo encontrar la dieta actual', 'warning');
-    }
+  private obtenerRecetasAleatorias(recetas: Receta[], cantidad: number): Receta[] {
+    const recetasBarajadas = [...recetas].sort(() => Math.random() - 0.5);
+    return recetasBarajadas.slice(0, cantidad);
   }
 
-  cargarPlantillasEjercicio() {
+  // ==========================================
+  // 📊 SISTEMA DE PROGRESO DE DIETAS
+  // ==========================================
+
+  async actualizarProgreso() {
     try {
-      const plantillasSub = this.planesService
-        .obtenerPlantillasEjercicio()
-        .subscribe({
-          next: (plantillas: PlantillaEjercicio[]) => {
-            this.plantillasEjercicio = plantillas;
-          },
-          error: (error: any) => {
-            console.error('Error cargando plantillas:', error);
-          }
-        });
+      this.progresoDieta = await this.planesService.calcularProgresoDieta();
       
-      this.subscriptions.push(plantillasSub);
+      if (this.progresoDieta) {
+        console.log('✅ Progreso de dieta calculado:', this.progresoDieta);
+        
+        // Mostrar alertas si existen
+        if (this.progresoDieta.alertasTiempo && this.progresoDieta.alertasTiempo.length > 0) {
+          const alertasNoLeidas = this.progresoDieta.alertasTiempo.filter(a => !a.leida);
+          if (alertasNoLeidas.length > 0) {
+            this.mostrarAlertasProgreso(alertasNoLeidas);
+          }
+        }
+      }
     } catch (error: any) {
-      console.error('Error cargando plantillas:', error);
+      console.error('❌ Error actualizando progreso:', error);
     }
   }
 
-  // ✅ MÉTODO PARA OBTENER ICONO DE TIPO DE EJERCICIO - CORREGIDO
-  getIconoTipoEjercicio(tipo: string): string {
-    const iconos: { [key: string]: string } = {
-      'cardio': 'walk',
-      'fuerza': 'barbell',
-      'flexibilidad': 'body',
-      'yoga': 'leaf'
-    };
-    return iconos[tipo] || 'fitness';
+  private async mostrarAlertasProgreso(alertas: any[]) {
+    // Mostrar solo la primera alerta no leída
+    const alerta = alertas[0];
+    
+    const alert = await this.alertController.create({
+      header: alerta.tipo === 'danger' ? '⚠️ Atención' : alerta.tipo === 'warning' ? '⏰ Aviso' : '📢 Información',
+      message: alerta.mensaje,
+      cssClass: 'custom-alert',
+      buttons: ['Entendido']
+    });
+
+    await alert.present();
   }
 
-  // ✅ MÉTODO PARA OBTENER DIETA ACTUAL - NUEVO MÉTODO
-  getDietaActual(): Dieta | undefined {
-    if (!this.planActual?.dietaSeleccionada) return undefined;
-    return this.dietas.find(d => d.id === this.planActual?.dietaSeleccionada);
+  verificarDiaMarcado() {
+    if (!this.progresoDieta?.historialDiario) {
+      this.diaYaMarcado = false;
+      return;
+    }
+
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    this.diaYaMarcado = this.progresoDieta.historialDiario.some(h => {
+      const fecha = h.fecha instanceof Date ? h.fecha : (h.fecha as any).toDate();
+      fecha.setHours(0, 0, 0, 0);
+      return fecha.getTime() === hoy.getTime() && h.completado;
+    });
   }
+
+  async marcarDiaCompletado() {
+    if (this.diaYaMarcado) {
+      this.mostrarToast('El día de hoy ya está marcado como completado', 'warning');
+      return;
+    }
+
+    const alert = await this.alertController.create({
+      header: 'Marcar Día Completado',
+      message: '¿Seguiste tu plan alimenticio hoy?',
+      cssClass: 'custom-alert',
+      inputs: [
+        {
+          name: 'calorias',
+          type: 'number',
+          placeholder: 'Calorías consumidas (opcional)',
+          min: 0,
+          max: 10000
+        },
+        {
+          name: 'notas',
+          type: 'textarea',
+          placeholder: 'Notas adicionales (opcional)'
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Marcar como Completado',
+          handler: async (data) => {
+            try {
+              this.cargando = true;
+              
+              const calorias = data.calorias ? parseInt(data.calorias) : undefined;
+              const notas = data.notas || undefined;
+              
+              await this.planesService.marcarDiaCompletado(calorias, notas);
+              
+              // Actualizar progreso
+              await this.actualizarProgreso();
+              this.verificarDiaMarcado();
+              
+              this.mostrarToast('¡Día marcado como completado! 🎉', 'success');
+            } catch (error: any) {
+              console.error('❌ Error marcando día:', error);
+              this.mostrarToast('Error al marcar el día', 'danger');
+            } finally {
+              this.cargando = false;
+            }
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  // ==========================================
+  // 🔄 CAMBIO DE SECCIÓN
+  // ==========================================
 
   cambiarSeccion(event: any) {
     const seccion = event.detail.value;
     
     if (seccion === 'nutricion' || seccion === 'ejercicio') {
       this.seccionActiva = seccion;
+      console.log('📍 Sección cambiada a:', seccion);
     }
   }
+
+  // ==========================================
+  // 🍽️ GESTIÓN DE DIETAS
+  // ==========================================
 
   seleccionarDieta(dieta: Dieta) {
     this.dietaSeleccionadaModal = dieta;
     this.mostrarModalDieta = true;
-  }
-
-  verDetallesDieta(dieta: Dieta) {
-    this.dietaDetallada = dieta;
-    this.mostrarDetallesDieta = true;
-  }
-
-  async verRecetasDieta(dieta: Dieta) {
-    try {
-      this.cargando = true;
-      const recetasSub = this.planesService
-        .obtenerRecetasPorTipoDieta(dieta.id)
-        .subscribe({
-          next: (recetas: Receta[]) => {
-            this.recetasDietaSeleccionada = recetas;
-            this.mostrarRecetasDieta = true;
-            this.cargando = false;
-          },
-          error: (error: any) => {
-            console.error('Error cargando recetas:', error);
-            this.mostrarToast('Error al cargar las recetas', 'danger');
-            this.cargando = false;
-          }
-        });
-      
-      this.subscriptions.push(recetasSub);
-    } catch (error: any) {
-      console.error('Error:', error);
-      this.cargando = false;
-    }
   }
 
   async confirmarSeleccionDieta() {
@@ -248,28 +301,53 @@ export class PlanesPage implements OnInit, OnDestroy {
          this.dietaSeleccionadaModal.caloriasRecomendadas.max) / 2
       );
 
+      // Extraer duración en días
+      const duracionStr = this.dietaSeleccionadaModal.duracionRecomendada || '30 días';
+      const duracion = this.extraerDuracionDias(duracionStr);
+
       await this.planesService.guardarSeleccionDieta(
         this.dietaSeleccionadaModal.id,
         caloriasPromedio,
-        this.dietaSeleccionadaModal.duracionRecomendada || '30'
+        duracion.toString()
       );
 
+      // Recargar plan actual y calcular progreso
       this.planActual = await this.planesService.obtenerPlanUsuario();
+      
       if (this.planActual?.activo) {
+        await this.actualizarProgreso();
         await this.cargarRecetasDelDia();
+        this.verificarDiaMarcado();
       }
 
       this.mostrarModalDieta = false;
       this.dietaSeleccionadaModal = null;
       
-      this.mostrarToast('¡Dieta seleccionada exitosamente!', 'success');
+      this.mostrarToast('¡Dieta seleccionada exitosamente! 🎉', 'success');
 
     } catch (error: any) {
-      console.error('Error guardando dieta:', error);
+      console.error('❌ Error guardando dieta:', error);
       this.mostrarToast('Error al guardar la dieta', 'danger');
     } finally {
       this.cargando = false;
     }
+  }
+
+  private extraerDuracionDias(duracionStr: string): number {
+    if (duracionStr.includes('semanas')) {
+      const match = duracionStr.match(/(\d+)-(\d+)/);
+      if (match) {
+        const min = parseInt(match[1]);
+        const max = parseInt(match[2]);
+        const promedio = Math.round((min + max) / 2);
+        return promedio * 7;
+      }
+      return 30;
+    } else if (duracionStr.includes('días')) {
+      const match = duracionStr.match(/(\d+)/);
+      return match ? parseInt(match[1]) : 30;
+    }
+    return 30;
   }
 
   cancelarSeleccionDieta() {
@@ -280,7 +358,8 @@ export class PlanesPage implements OnInit, OnDestroy {
   async cambiarPlan() {
     const alert = await this.alertController.create({
       header: 'Cambiar Plan',
-      message: '¿Estás seguro de que quieres cambiar tu plan actual?',
+      message: '¿Estás seguro de que quieres cambiar tu plan actual? Se perderá tu progreso.',
+      cssClass: 'custom-alert',
       buttons: [
         {
           text: 'Cancelar',
@@ -292,10 +371,12 @@ export class PlanesPage implements OnInit, OnDestroy {
             try {
               await this.planesService.desactivarPlan();
               this.planActual = await this.planesService.obtenerPlanUsuario();
+              this.progresoDieta = null;
               this.recetasDelDia = [];
-              this.mostrarToast('Plan cambiado exitosamente', 'success');
+              this.diaYaMarcado = false;
+              this.mostrarToast('Plan desactivado. Selecciona una nueva dieta.', 'success');
             } catch (error: any) {
-              console.error('Error cambiando plan:', error);
+              console.error('❌ Error cambiando plan:', error);
               this.mostrarToast('Error al cambiar el plan', 'danger');
             }
           }
@@ -306,139 +387,83 @@ export class PlanesPage implements OnInit, OnDestroy {
     await alert.present();
   }
 
-  async crearEjercicio() {
-    if (!this.nuevoEjercicio.nombre.trim()) {
-      this.mostrarToast('Por favor ingresa un nombre para el ejercicio', 'warning');
-      return;
-    }
+  verDetallesDieta(dieta: Dieta) {
+    this.dietaDetallada = dieta;
+    this.mostrarDetallesDieta = true;
+  }
 
+  async verRecetasDieta(dieta: Dieta) {
     try {
       this.cargando = true;
+      this.dietaDetallada = dieta;
       
-      await this.planesService.crearEjercicio({
-        nombre: this.nuevoEjercicio.nombre,
-        descripcion: this.nuevoEjercicio.descripcion,
-        temporizador: this.nuevoEjercicio.temporizador,
-        categoria: 'personalizado'
-      });
-
-      this.resetFormEjercicio();
-      this.mostrarToast('Ejercicio creado exitosamente', 'success');
-
-    } catch (error: any) {
-      console.error('Error creando ejercicio:', error);
-      this.mostrarToast('Error al crear el ejercicio', 'danger');
-    } finally {
-      this.cargando = false;
-    }
-  }
-
-  usarPlantillaEjercicio(plantilla: PlantillaEjercicio) {
-    this.nuevoEjercicio = {
-      nombre: plantilla.nombre,
-      descripcion: plantilla.descripcion,
-      temporizador: {
-        trabajo: 30,
-        descanso: 15,
-        series: 3
-      }
-    };
-    this.mostrarToast('Plantilla cargada. Personaliza los tiempos si lo deseas.', 'success');
-  }
-
-  editarEjercicio(ejercicio: EjercicioUsuario) {
-    this.ejercicioEditando = { ...ejercicio };
-    this.nuevoEjercicio = {
-      nombre: ejercicio.nombre,
-      descripcion: ejercicio.descripcion,
-      temporizador: { ...ejercicio.temporizador }
-    };
-    this.modoEdicion = true;
-  }
-
-  async actualizarEjercicio() {
-    if (!this.ejercicioEditando?.id || !this.nuevoEjercicio.nombre.trim()) {
-      this.mostrarToast('Error al actualizar el ejercicio', 'danger');
-      return;
-    }
-
-    try {
-      this.cargando = true;
-      
-      await this.planesService.actualizarEjercicio(this.ejercicioEditando.id, {
-        nombre: this.nuevoEjercicio.nombre,
-        descripcion: this.nuevoEjercicio.descripcion,
-        temporizador: this.nuevoEjercicio.temporizador
-      });
-
-      this.mostrarToast('Ejercicio actualizado exitosamente', 'success');
-      this.cancelarEdicion();
-
-    } catch (error: any) {
-      console.error('Error actualizando ejercicio:', error);
-      this.mostrarToast('Error al actualizar el ejercicio', 'danger');
-    } finally {
-      this.cargando = false;
-    }
-  }
-
-  async eliminarEjercicio(ejercicio: EjercicioUsuario) {
-    if (!ejercicio.id) return;
-
-    const alert = await this.alertController.create({
-      header: 'Eliminar Ejercicio',
-      message: `¿Estás seguro de que quieres eliminar "${ejercicio.nombre}"?`,
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel'
-        },
-        {
-          text: 'Eliminar',
-          handler: async () => {
-            try {
-              await this.planesService.eliminarEjercicio(ejercicio.id!);
-              this.mostrarToast('Ejercicio eliminado', 'success');
-            } catch (error: any) {
-              console.error('Error eliminando ejercicio:', error);
-              this.mostrarToast('Error al eliminar el ejercicio', 'danger');
-            }
+      const recetasSub = this.planesService
+        .obtenerRecetasPorTipoDieta(dieta.id)
+        .subscribe({
+          next: (recetas: Receta[]) => {
+            this.recetasDietaSeleccionada = recetas;
+            this.mostrarRecetasDieta = true;
+            this.cargando = false;
+          },
+          error: (error: any) => {
+            console.error('❌ Error cargando recetas:', error);
+            this.mostrarToast('Error al cargar las recetas', 'danger');
+            this.cargando = false;
           }
-        }
-      ]
-    });
-
-    await alert.present();
-  }
-
-  cancelarEdicion() {
-    this.modoEdicion = false;
-    this.ejercicioEditando = null;
-    this.resetFormEjercicio();
-  }
-
-  resetFormEjercicio() {
-    this.nuevoEjercicio = {
-      nombre: '',
-      descripcion: '',
-      temporizador: {
-        trabajo: 30,
-        descanso: 15,
-        series: 3
-      }
-    };
-  }
-
-  async iniciarEjercicio(ejercicio: EjercicioUsuario) {
-    if (ejercicio.id) {
-      // Navegar a la página del temporizador
-      this.router.navigate(['/temporizador-ejercicio'], {
-        state: { ejercicio }
-      });
+        });
+      
+      this.subscriptions.push(recetasSub);
+    } catch (error: any) {
+      console.error('❌ Error:', error);
+      this.cargando = false;
     }
   }
 
-  // ✅ MÉTODOS AUXILIARES
+  verRecetasDietaSiExiste() {
+    const dietaActual = this.getDietaActual();
+    if (dietaActual) {
+      this.verRecetasDieta(dietaActual);
+    } else {
+      this.mostrarToast('No se pudo encontrar la dieta actual', 'warning');
+    }
+  }
+
+  // ==========================================
+  // 🍳 GESTIÓN DE RECETAS
+  // ==========================================
+
+  seleccionarComida(receta: Receta, index: number) {
+    const tiempoComida = this.getTiempoComida(index);
+    
+    this.router.navigate(['/receta-detalle', receta.id], {
+      state: { 
+        receta: receta,
+        tiempoComida: tiempoComida
+      }
+    });
+  }
+
+  verReceta(recetaId: string) {
+    this.router.navigate(['/receta-detalle', recetaId]);
+  }
+
+  // ==========================================
+  // 💪 NAVEGACIÓN A EJERCICIOS
+  // ==========================================
+
+  irAEjercicios() {
+    this.router.navigate(['/ejercicios']);
+  }
+
+  // ==========================================
+  // 🛠️ MÉTODOS AUXILIARES
+  // ==========================================
+
+  getDietaActual(): Dieta | undefined {
+    if (!this.planActual?.dietaSeleccionada) return undefined;
+    return this.dietas.find(d => d.id === this.planActual?.dietaSeleccionada);
+  }
+
   getDietaIcon(dietaId: string | undefined): string {
     if (!dietaId) return '🍽';
     const dieta = this.dietas.find(d => d.id === dietaId);
@@ -452,8 +477,12 @@ export class PlanesPage implements OnInit, OnDestroy {
   }
 
   getProgresoClase(): string {
-    if (!this.planActual?.progreso?.diasCompletados) return 'neutral';
-    const porcentaje = this.getProgresoPorcentaje();
+    if (!this.progresoDieta) return 'neutral';
+    
+    if (this.progresoDieta.estaVencida) return 'danger';
+    if (this.progresoDieta.excedeTiempoRecomendado) return 'warning';
+    
+    const porcentaje = this.progresoDieta.porcentajeCompletado || 0;
     if (porcentaje >= 75) return 'excelente';
     if (porcentaje >= 50) return 'bueno';
     if (porcentaje >= 25) return 'regular';
@@ -461,12 +490,19 @@ export class PlanesPage implements OnInit, OnDestroy {
   }
 
   getProgresoPorcentaje(): number {
-    if (!this.planActual?.duracionPlan || !this.planActual.progreso?.diasCompletados) return 0;
+    return this.progresoDieta?.porcentajeCompletado || 0;
+  }
+
+  formatearFecha(fecha: Date | undefined): string {
+    if (!fecha) return 'N/A';
     
-    const duracion = parseInt(this.planActual.duracionPlan) || 30;
-    const diasCompletados = this.planActual.progreso.diasCompletados;
+    const fechaObj = fecha instanceof Date ? fecha : (fecha as any).toDate();
     
-    return Math.min((diasCompletados / duracion) * 100, 100);
+    return fechaObj.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
   }
 
   getTiempoComida(index: number): string {
@@ -474,38 +510,36 @@ export class PlanesPage implements OnInit, OnDestroy {
     return tiempos[index] || 'Comida';
   }
 
-  // ✅ MÉTODO PARA SELECCIONAR COMIDA - NUEVO MÉTODO
-  seleccionarComida(receta: Receta, index: number) {
-  const tiempoComida = this.getTiempoComida(index);
-  
-  // Navegar a la página de detalle de receta
-  this.router.navigate(['/receta-detalle', receta.id], {
-    state: { 
-      receta: receta,
-      tiempoComida: tiempoComida
-    }
-  });
-}
-
-  // ✅ MÉTODO PARA OBTENER ICONO DE COMIDA - NUEVO MÉTODO
   getComidaIcon(index: number): string {
-    const iconos = ['☕', '🍳', '🍲', '🥗'];
+    const iconos = ['☕', '🍳', '🍲'];
     return iconos[index] || '🍽️';
   }
 
+  // ==========================================
+  // 🧭 NAVEGACIÓN
+  // ==========================================
+
   verPlanCompleto() {
     if (this.planActual?.dietaSeleccionada) {
-      this.router.navigate(['/plan-detalle'], {
-        state: { dietaId: this.planActual.dietaSeleccionada }
-      });
+      this.mostrarToast('Función de planificación completa en desarrollo', 'warning');
     }
   }
 
-  verReceta(recetaId: string) {
-    this.router.navigate(['/receta-detalle', recetaId]);
+  goBack() {
+    this.router.navigate(['/home']);
   }
 
-  // ✅ MOSTRAR TOAST
+  cerrarModales() {
+    this.mostrarDetallesDieta = false;
+    this.dietaDetallada = null;
+    this.mostrarRecetasDieta = false;
+    this.recetasDietaSeleccionada = [];
+  }
+
+  // ==========================================
+  // 💬 TOAST
+  // ==========================================
+
   private async mostrarToast(mensaje: string, color: 'success' | 'danger' | 'warning' = 'success') {
     const toast = await this.toastController.create({
       message: mensaje,
@@ -514,18 +548,5 @@ export class PlanesPage implements OnInit, OnDestroy {
       position: 'bottom'
     });
     await toast.present();
-  }
-
-  // Navegación
-  goBack() {
-    this.router.navigate(['/home']);
-  }
-
-  // Cerrar modales
-  cerrarModales() {
-    this.mostrarDetallesDieta = false;
-    this.dietaDetallada = null;
-    this.mostrarRecetasDieta = false;
-    this.recetasDietaSeleccionada = [];
   }
 }

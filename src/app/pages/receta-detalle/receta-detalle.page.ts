@@ -1,8 +1,9 @@
-// receta-detalle.page.ts - VERSIÓN CORREGIDA
+// receta-detalle.page.ts - VERSIÓN CORREGIDA CON RUTA CORRECTA
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { ActivatedRoute, Router } from '@angular/router';
+// ✅ CORREGIR ESTA LÍNEA - La ruta ahora es diferente
 import { PlanesService, Receta } from '../../services/planes.service';
 
 @Component({
