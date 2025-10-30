@@ -12,8 +12,8 @@
    =============================== */
 .receta-detalle-content {
   --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --padding-top: 20px;  // ✅ Espacio para navbar
-  --padding-bottom: 120px;  // ✅ Espacio para menú inferior
+  --padding-top: 20px;
+  --padding-bottom: 120px;
   
   .inner-scroll {
     overflow-y: auto;
@@ -25,7 +25,7 @@
   padding: 0;
   min-height: 100vh;
   position: relative;
-  padding-top: 10px;  // ✅ Padding adicional
+  padding-top: 10px;
 }
 
 /* ===============================
@@ -79,8 +79,8 @@ ion-header {
   position: relative;
   height: 280px;
   overflow: hidden;
-  margin: 0 20px 20px;  // ✅ Margen lateral
-  border-radius: 24px;  // ✅ Bordes redondeados
+  margin: 0 20px 20px;
+  border-radius: 24px;
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
   
   .hero-background {
@@ -138,10 +138,150 @@ ion-header {
   }
 }
 
+/* ===============================
+   🚨 ALERTA DE ALIMENTOS - ESTILO HOME
+   =============================== */
+.alerta-container {
+  padding: 0 20px 20px;
+  animation: slideInDown 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.alerta-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(255, 193, 7, 0.2);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(255, 193, 7, 0.25);
+  }
+
+  .alerta-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+
+    .alerta-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ffc107, #ffb300);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 16px rgba(255, 193, 7, 0.3);
+
+      .warning-icon {
+        font-size: 24px;
+        color: white;
+      }
+    }
+
+    .alerta-title {
+      flex: 1;
+
+      h3 {
+        margin: 0 0 4px 0;
+        font-size: 20px;
+        font-weight: 700;
+        color: #2C3E50;
+      }
+
+      p {
+        margin: 0;
+        font-size: 14px;
+        color: #5A6C7D;
+        opacity: 0.8;
+      }
+    }
+  }
+
+  .alerta-content {
+    margin-bottom: 20px;
+
+    .ingredientes-problema {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+
+      .ingrediente-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        background: rgba(255, 193, 7, 0.1);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 193, 7, 0.2);
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: rgba(255, 193, 7, 0.15);
+          transform: translateX(4px);
+        }
+
+        .ingrediente-icon {
+          font-size: 20px;
+          color: #ffc107;
+        }
+
+        .ingrediente-nombre {
+          font-size: 16px;
+          font-weight: 600;
+          color: #2C3E50;
+        }
+      }
+    }
+
+    .alerta-message {
+      p {
+        margin: 0;
+        font-size: 14px;
+        color: #5A6C7D;
+        line-height: 1.5;
+        padding: 12px 16px;
+        background: rgba(102, 126, 234, 0.05);
+        border-radius: 12px;
+        border-left: 4px solid #667eea;
+      }
+    }
+  }
+
+  .alerta-actions {
+    display: flex;
+    gap: 12px;
+
+    .action-btn {
+      flex: 1;
+      --border-radius: 16px;
+      --padding-top: 16px;
+      --padding-bottom: 16px;
+      font-weight: 600;
+    }
+  }
+}
+
 /* ✅ ANIMACIÓN FLOTANTE */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 /* ===============================
@@ -162,7 +302,7 @@ ion-header {
 
 .info-item {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 20px;  // ✅ Más redondeado
+  border-radius: 20px;
   padding: 20px;
   display: flex;
   align-items: center;
@@ -178,7 +318,7 @@ ion-header {
   }
 
   ion-icon {
-    font-size: 28px;  // ✅ Más grande
+    font-size: 28px;
     color: #667eea;
     flex-shrink: 0;
   }
@@ -213,7 +353,7 @@ ion-header {
 .instrucciones-card,
 .etiquetas-card {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 24px;  // ✅ Más redondeado
+  border-radius: 24px;
   margin: 0 20px 20px;
   border: none;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -473,6 +613,18 @@ ion-header {
     }
   }
 
+  .alerta-container {
+    padding: 0 16px 16px;
+  }
+
+  .alerta-card {
+    padding: 20px;
+
+    .alerta-actions {
+      flex-direction: column;
+    }
+  }
+
   .info-grid {
     grid-template-columns: 1fr;
     gap: 10px;
@@ -505,6 +657,16 @@ ion-header {
       .receta-title {
         font-size: 22px;
       }
+    }
+  }
+
+  .alerta-card {
+    padding: 16px;
+
+    .alerta-header {
+      flex-direction: column;
+      text-align: center;
+      gap: 12px;
     }
   }
 

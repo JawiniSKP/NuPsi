@@ -1,13 +1,289 @@
+<!-- AGREGAR ESTO AL INICIO del archivo perfil.page.html -->
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>perfil</ion-title>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="logo-title">
+      <div class="title-content">
+        <span>Mi Perfil</span>
+      </div>
+    </ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">perfil</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" class="perfil-content">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner-container">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando perfil...</p>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!isLoading" class="content-wrapper">
+    
+    <!-- Hero Section -->
+    <div class="perfil-hero">
+      <div class="hero-background"></div>
+      <div class="hero-content">
+        <div class="avatar-container">
+          <img [src]="user.fotoURL || 'assets/icon/avatar-default.png'" 
+               alt="Avatar" 
+               class="user-avatar"
+               (click)="changePhoto()">
+          <div class="avatar-overlay" (click)="changePhoto()">
+            <ion-icon name="camera"></ion-icon>
+          </div>
+        </div>
+        
+        <h1 class="user-name">{{ user.nombreUsuario }}</h1>
+        <p class="user-email">{{ user.correo }}</p>
+        
+        <div class="edit-button-container">
+          <ion-button *ngIf="!isEditing" 
+                     fill="outline" 
+                     color="light" 
+                     (click)="isEditing = true">
+            <ion-icon slot="start" name="create"></ion-icon>
+            Editar Perfil
+          </ion-button>
+          
+          <div *ngIf="isEditing" class="edit-actions">
+            <ion-button fill="solid" color="success" (click)="saveProfile()">
+              <ion-icon slot="start" name="save"></ion-icon>
+              Guardar
+            </ion-button>
+            <ion-button fill="outline" color="light" (click)="cancelEdit()">
+              <ion-icon slot="start" name="close"></ion-icon>
+              Cancelar
+            </ion-button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Información Básica -->
+    <ion-card class="info-card">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="person-circle" color="primary"></ion-icon>
+          Información Personal
+        </ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <ion-item lines="none" class="info-item">
+          <ion-label position="stacked">Nombre de Usuario</ion-label>
+          <ion-input *ngIf="isEditing" 
+                    [(ngModel)]="user.nombreUsuario"
+                    placeholder="Tu nombre de usuario"></ion-input>
+          <ion-text *ngIf="!isEditing">{{ user.nombreUsuario }}</ion-text>
+        </ion-item>
+
+        <ion-item lines="none" class="info-item">
+          <ion-label position="stacked">Correo Electrónico</ion-label>
+          <ion-text>{{ user.correo }}</ion-text>
+          <ion-note slot="end">No editable</ion-note>
+        </ion-item>
+
+        <ion-item lines="none" class="info-item">
+          <ion-label position="stacked">Proveedor de Autenticación</ion-label>
+          <ion-text>{{ user.proveedorAuth === 'google' ? 'Google' : 'Email' }}</ion-text>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Configuración de Planes -->
+    <ion-card class="config-card">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="fitness" color="primary"></ion-icon>
+          Configuración de Planes
+        </ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <div class="config-grid">
+          <!-- Nivel de Actividad -->
+          <div class="config-item">
+            <ion-label position="stacked">Nivel de Actividad</ion-label>
+            <ion-select *ngIf="isEditing" 
+                       [(ngModel)]="user.configuracionPlanes.nivelActividad"
+                       interface="action-sheet">
+              <ion-select-option *ngFor="let nivel of nivelesActividad" 
+                                [value]="nivel.value">
+                {{ nivel.label }}
+              </ion-select-option>
+            </ion-select>
+            <ion-text *ngIf="!isEditing">
+              {{ getNivelActividadLabel(user.configuracionPlanes.nivelActividad) }}
+            </ion-text>
+          </div>
+
+          <!-- Objetivo Calórico -->
+          <div class="config-item">
+            <ion-label position="stacked">Calorías Diarias</ion-label>
+            <ion-input *ngIf="isEditing" 
+                      type="number"
+                      [(ngModel)]="user.configuracionPlanes.objetivoCaloricoPersonalizado"
+                      placeholder="2000"></ion-input>
+            <ion-text *ngIf="!isEditing">
+              {{ user.configuracionPlanes.objetivoCaloricoPersonalizado }} kcal
+            </ion-text>
+          </div>
+
+          <!-- Dificultad de Ejercicio -->
+          <div class="config-item">
+            <ion-label position="stacked">Nivel de Ejercicio</ion-label>
+            <ion-select *ngIf="isEditing" 
+                       [(ngModel)]="user.configuracionPlanes.dificultadEjercicio"
+                       interface="action-sheet">
+              <ion-select-option *ngFor="let dificultad of dificultadesEjercicio" 
+                                [value]="dificultad.value">
+                {{ dificultad.label }}
+              </ion-select-option>
+            </ion-select>
+            <ion-text *ngIf="!isEditing">
+              {{ getDificultadLabel(user.configuracionPlanes.dificultadEjercicio) }}
+            </ion-text>
+          </div>
+
+          <!-- Meta Ejercicio Semanal -->
+          <div class="config-item">
+            <ion-label position="stacked">Meta Semanal (min)</ion-label>
+            <ion-input *ngIf="isEditing" 
+                      type="number"
+                      [(ngModel)]="user.configuracionPlanes.metaEjercicioSemanal"
+                      placeholder="150"></ion-input>
+            <ion-text *ngIf="!isEditing">
+              {{ user.configuracionPlanes.metaEjercicioSemanal }} minutos
+            </ion-text>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- ✅ ALIMENTOS FAVORITOS - CORREGIDO -->
+    <ion-card class="alimentos-card">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="heart" color="primary"></ion-icon>
+          Alimentos Favoritos
+        </ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <div *ngIf="isEditing" class="add-item-form">
+          <ion-item>
+            <ion-input [(ngModel)]="nuevoAlimentoFavorito"
+                      placeholder="Agregar alimento favorito"
+                      (keyup.enter)="agregarAlimentoFavorito()">
+            </ion-input>
+            <ion-button slot="end" 
+                       fill="clear"
+                       (click)="agregarAlimentoFavorito()">
+              <ion-icon name="add"></ion-icon>
+            </ion-button>
+          </ion-item>
+        </div>
+
+        <div class="chips-container">
+          <ion-chip *ngFor="let alimento of user.configuracionPlanes.alimentosFavoritos; let i = index"
+                   [color]="isEditing ? 'warning' : 'primary'">
+            {{ alimento }}
+            <ion-icon *ngIf="isEditing" 
+                     name="close" 
+                     (click)="removeAlimentoFavorito(i)"></ion-icon>
+          </ion-chip>
+          
+          <ion-text *ngIf="user.configuracionPlanes.alimentosFavoritos.length === 0" 
+                   color="medium" class="empty-state">
+            No hay alimentos favoritos agregados
+          </ion-text>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- ✅ ALIMENTOS A EVITAR - CORREGIDO -->
+    <ion-card class="alimentos-card">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="ban" color="primary"></ion-icon>
+          Alimentos a Evitar
+        </ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <div *ngIf="isEditing" class="add-item-form">
+          <ion-item>
+            <ion-input [(ngModel)]="nuevoAlimentoEvitar"
+                      placeholder="Agregar alimento a evitar"
+                      (keyup.enter)="agregarAlimentoEvitar()">
+            </ion-input>
+            <ion-button slot="end" 
+                       fill="clear"
+                       (click)="agregarAlimentoEvitar()">
+              <ion-icon name="add"></ion-icon>
+            </ion-button>
+          </ion-item>
+        </div>
+
+        <div class="chips-container">
+          <ion-chip *ngFor="let alimento of user.configuracionPlanes.alimentosEvitar; let i = index"
+                   [color]="isEditing ? 'danger' : 'medium'">
+            {{ alimento }}
+            <ion-icon *ngIf="isEditing" 
+                     name="close" 
+                     (click)="removeAlimentoEvitar(i)"></ion-icon>
+          </ion-chip>
+          
+          <ion-text *ngIf="user.configuracionPlanes.alimentosEvitar.length === 0" 
+                   color="medium" class="empty-state">
+            No hay alimentos a evitar agregados
+          </ion-text>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Acciones de Seguridad -->
+    <ion-card class="security-card">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="shield-checkmark" color="primary"></ion-icon>
+          Seguridad
+        </ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <ion-list lines="none">
+          <ion-item *ngIf="authService.isEmailProvider()" 
+                   button (click)="changePassword()" 
+                   class="security-item">
+            <ion-icon slot="start" name="key" color="warning"></ion-icon>
+            <ion-label>
+              <h3>Cambiar Contraseña</h3>
+              <p>Actualiza tu contraseña de acceso</p>
+            </ion-label>
+            <ion-icon slot="end" name="chevron-forward"></ion-icon>
+          </ion-item>
+
+          <ion-item button (click)="deleteAccount()" class="security-item delete-item">
+            <ion-icon slot="start" name="trash" color="danger"></ion-icon>
+            <ion-label>
+              <h3>Eliminar Cuenta</h3>
+              <p>Elimina permanentemente tu cuenta y datos</p>
+            </ion-label>
+            <ion-icon slot="end" name="chevron-forward"></ion-icon>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Espaciador para el menú inferior -->
+    <div class="bottom-spacer"></div>
+  </div>
 </ion-content>

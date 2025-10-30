@@ -1,11 +1,11 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Auth } from '@angular/fire/auth';
 import { User } from 'firebase/auth';
 import { AuthService } from '../../services/auth.service';
 import { HomeService, Indicador, Usuario } from '../../services/home.service';
 import { MenuComponent } from '../../components/menu/menu.component';
-import { doc, getDoc, Firestore } from '@angular/fire/firestore';
+import { Firestore } from '@angular/fire/firestore';
 import {
   IonContent,
   IonHeader,
@@ -22,6 +22,8 @@ import {
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { addIcons } from 'ionicons';
 import {
   locationOutline,
@@ -49,9 +51,9 @@ import {
   rocketOutline,
   sparkles,
   gridOutline,
-  water, // Agregar este icono
-  addCircle, // Agregar este icono
-  trendingUp // Agregar este icono
+  water,
+  addCircle,
+  trendingUp
 } from 'ionicons/icons';
 
 // Registrar todos los iconos necesarios
@@ -81,9 +83,9 @@ addIcons({
   rocketOutline,
   sparkles,
   gridOutline,
-  water, // Agregado
-  addCircle, // Agregado
-  trendingUp // Agregado
+  water,
+  addCircle,
+  trendingUp
 });
 
 @Component({
@@ -109,7 +111,7 @@ addIcons({
     MenuComponent
   ]
 })
-export class HomePage implements OnInit {
+export class HomePage implements OnInit, OnDestroy {
   // Usuario actual
   user: User | null = null;
   userName: string = 'Usuario';
@@ -148,38 +150,26 @@ export class HomePage implements OnInit {
 
   private auth = inject(Auth);
   private homeService = inject(HomeService);
+  private destroy$ = new Subject<void>();
 
   constructor(
     private authService: AuthService,
     private router: Router,
     private firestore: Firestore = inject(Firestore)
   ) {
-    // Función para manejar error del logo
     this.onLogoError = this.onLogoError.bind(this);
   }
 
-  // Función para manejar error del logo
-  onLogoError() {
-    console.log('Error cargando el logo');
-    // Puedes agregar aquí un fallback visual si lo necesitas
-  }
-
-  async ngOnInit() {
+  ngOnInit() {
     console.log('🚀 HomePage initialized');
 
-    try {
-      const currentUser = this.auth.currentUser;
-      console.log('Current user:', currentUser);
-
-      if (currentUser) {
-        this.user = currentUser;
-        await this.loadAllUserData(currentUser.uid);
-      }
-
-      // Suscribirse a cambios de autenticación
-      this.authService.user.subscribe(async (user) => {
+    // ✅ CORREGIDO: Suscribirse una sola vez al usuario
+    this.authService.user
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(async (user) => {
         console.log('Auth state changed:', user);
         this.user = user;
+        
         if (user) {
           await this.loadAllUserData(user.uid);
         } else {
@@ -187,47 +177,48 @@ export class HomePage implements OnInit {
         }
       });
 
-      // Cargar frase motivacional
-      this.loadFraseMotivacional();
+    // Cargar frase motivacional
+    this.loadFraseMotivacional();
+  }
 
-    } catch (error) {
-      console.error('Error in ngOnInit:', error);
-    }
+  ngOnDestroy() {
+    // ✅ CORREGIDO: Limpiar suscripciones
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  // Función para manejar error del logo
+  onLogoError() {
+    console.log('Error cargando el logo');
   }
 
   /**
-   * Cargar todos los datos del usuario desde Firebase
+   * ✅ CORREGIDO: Cargar todos los datos del usuario
    */
   async loadAllUserData(uid: string) {
     console.log('📊 Cargando datos del usuario:', uid);
 
     try {
-      // 1. Cargar datos del usuario UNA SOLA VEZ (no observable continuo)
-      const userDocRef = doc(this.firestore, `usuarios/${uid}`);
-      const userDoc = await getDoc(userDocRef);
+      // ✅ CORREGIDO: Usar el servicio en lugar de getDoc directo
+      const usuario = await this.homeService.getUsuarioDataOnce(uid);
       
-      if (userDoc.exists()) {
-        const usuario = userDoc.data() as Usuario;
+      if (usuario) {
         this.usuarioData = usuario;
         this.userName = usuario.nombreUsuario || 'Usuario';
         
         console.log('✅ Usuario cargado:', usuario);
         console.log('📋 haCompletadoConfiguracionInicial:', usuario.haCompletadoConfiguracionInicial);
 
-        // 🎯 VALIDACIÓN CRÍTICA: Verificar configuración inicial
+        // Validar configuración inicial
         if (!usuario.haCompletadoConfiguracionInicial) {
-          console.log('⚠️ Usuario necesita completar configuración inicial');
           console.log('🔄 Redirigiendo a configuración inicial...');
-          
-          // Pequeña espera antes de redirigir
           setTimeout(() => {
             this.router.navigate(['/indicators'], { 
               queryParams: { setupInicial: 'true' },
               replaceUrl: true
             });
           }, 300);
-          
-          return; // Detener carga
+          return;
         }
 
         console.log('✅ Usuario ya completó configuración inicial, continuando...');
@@ -242,52 +233,61 @@ export class HomePage implements OnInit {
       return;
     }
 
-    // 2. Cargar indicador de hoy (emociones y vasos de agua)
-    this.homeService.getIndicadorHoy(uid).subscribe({
-      next: (indicador) => {
-        if (indicador) {
-          this.indicadorHoy = indicador;
-          this.selectedEmotions = indicador.emociones || [];
-          this.vasosAgua = indicador.vasosAgua || 0;
+    // ✅ CORREGIDO: Suscribirse al indicador de hoy
+    this.subscribeToTodayIndicator(uid);
 
-          // Actualizar botones de emociones
-          this.updateEmotionButtons();
-
-          console.log('✅ Indicador de hoy cargado:', indicador);
-        } else {
-          console.log('ℹ️ No hay indicador para hoy');
-          this.resetDailyData();
+    // Actualizar último acceso
+    this.homeService.actualizarUltimoAcceso(uid)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (success) => {
+          if (success) {
+            console.log('✅ Último acceso actualizado');
+          }
         }
-      },
-      error: (error) => {
-        console.error('❌ Error cargando indicador:', error);
-      }
-    });
+      });
+  }
 
-    // 3. Actualizar último acceso
-    this.homeService.actualizarUltimoAcceso(uid).subscribe({
-      next: (success) => {
-        if (success) {
-          console.log('✅ Último acceso actualizado');
+  /**
+   * ✅ NUEVO: Suscribirse al indicador de hoy
+   */
+  subscribeToTodayIndicator(uid: string) {
+    this.homeService.getIndicadorHoy(uid)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (indicador) => {
+          if (indicador) {
+            this.indicadorHoy = indicador;
+            this.selectedEmotions = indicador.emociones || [];
+            this.vasosAgua = indicador.vasosAgua || 0;
+            this.updateEmotionButtons();
+            console.log('✅ Indicador de hoy cargado:', indicador);
+          } else {
+            console.log('ℹ️ No hay indicador para hoy');
+            this.resetDailyData();
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error cargando indicador:', error);
         }
-      }
-    });
+      });
   }
 
   /**
    * Cargar frase motivacional desde Firebase
    */
   loadFraseMotivacional() {
-    this.homeService.getFraseMotivacional().subscribe({
-      next: (frase) => {
-        this.fraseMotivacional = frase;
-        console.log('💡 Frase motivacional:', frase);
-      },
-      error: (error) => {
-        console.error('Error cargando frase:', error);
-        // Mantener frase por defecto
-      }
-    });
+    this.homeService.getFraseMotivacional()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (frase) => {
+          this.fraseMotivacional = frase;
+          console.log('💡 Frase motivacional:', frase);
+        },
+        error: (error) => {
+          console.error('Error cargando frase:', error);
+        }
+      });
   }
 
   /**
@@ -379,21 +379,13 @@ export class HomePage implements OnInit {
       estadoAnimo,
       this.vasosAgua,
       this.indicadorHoy?.id
-    ).subscribe({
+    )
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
       next: (success) => {
         if (success) {
           console.log('✅ Emociones guardadas');
           this.showToast('Emociones guardadas correctamente', 'success');
-          
-          // Recargar indicador para obtener el ID actualizado
-          this.homeService.getIndicadorHoy(this.user!.uid).subscribe({
-            next: (indicador) => {
-              if (indicador) {
-                this.indicadorHoy = indicador;
-                console.log('✅ Indicador actualizado:', indicador);
-              }
-            }
-          });
         }
       },
       error: (error) => {
@@ -421,31 +413,21 @@ export class HomePage implements OnInit {
         this.user.uid, 
         this.vasosAgua, 
         this.indicadorHoy?.id
-      ).subscribe({
+      )
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
         next: (success) => {
           if (success) {
             console.log('✅ Vasos de agua actualizados:', this.vasosAgua);
             
-            // Felicitación al alcanzar la meta
             if (this.vasosAgua === this.metaVasosAgua) {
               this.showToast('¡Felicitaciones! Alcanzaste tu meta de agua 🎉', 'success');
-            }
-
-            // Recargar indicador para obtener el ID si es necesario
-            if (!this.indicadorHoy?.id) {
-              this.homeService.getIndicadorHoy(this.user!.uid).subscribe({
-                next: (indicador) => {
-                  if (indicador) {
-                    this.indicadorHoy = indicador;
-                  }
-                }
-              });
             }
           }
         },
         error: (error) => {
           console.error('❌ Error actualizando vasos de agua:', error);
-          this.vasosAgua--; // Revertir en caso de error
+          this.vasosAgua--;
           this.showToast('Error al actualizar el agua', 'danger');
         }
       });
@@ -467,10 +449,12 @@ export class HomePage implements OnInit {
         this.user.uid, 
         this.vasosAgua, 
         this.indicadorHoy?.id
-      ).subscribe({
+      )
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
         error: (error) => {
           console.error('❌ Error actualizando vasos de agua:', error);
-          this.vasosAgua++; // Revertir en caso de error
+          this.vasosAgua++;
         }
       });
     }
@@ -595,10 +579,7 @@ export class HomePage implements OnInit {
       await loading.dismiss();
       await this.showToast('Sesión cerrada correctamente', 'success');
       
-      // Resetear datos locales
       this.resetUserData();
-      
-      // Navegar al login
       this.router.navigate(['/login']);
       
     } catch (error) {
@@ -617,7 +598,6 @@ export class HomePage implements OnInit {
    * Abrir perfil del usuario
    */
   openProfile() {
-    // TODO: Implementar página de perfil
     this.showComingSoon('Perfil');
   }
 
@@ -626,11 +606,9 @@ export class HomePage implements OnInit {
    */
   openDailyRegister() {
     if (this.usuarioData && !this.usuarioData.haCompletadoConfiguracionInicial) {
-      // Si no ha completado configuración inicial, llevar a indicadores
       console.log('📝 Redirigiendo a configuración inicial');
       this.router.navigate(['/indicators']);
     } else {
-      // Si ya completó, llevar a registro diario normal
       console.log('📝 Redirigiendo a registro diario');
       this.router.navigate(['/indicators']);
     }
@@ -638,10 +616,6 @@ export class HomePage implements OnInit {
 
   /**
    * UTILIDADES PARA MOSTRAR MENSAJES
-   */
-
-  /**
-   * Mostrar toast (notificación pequeña)
    */
   private async showToast(message: string, color: string = 'success') {
     const toast = document.createElement('ion-toast');
@@ -654,9 +628,6 @@ export class HomePage implements OnInit {
     await toast.present();
   }
 
-  /**
-   * Mostrar alerta
-   */
   private async showAlert(header: string, message: string) {
     const alert = document.createElement('ion-alert');
     alert.header = header;
@@ -667,9 +638,6 @@ export class HomePage implements OnInit {
     await alert.present();
   }
 
-  /**
-   * Mostrar mensaje de "Próximamente"
-   */
   private async showComingSoon(feature: string) {
     await this.showAlert(
       'Próximamente', 

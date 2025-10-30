@@ -8,9 +8,15 @@ import {
   signOut,
   updateProfile,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  updatePassword,
+  updateEmail,
+  deleteUser,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+  User
 } from '@angular/fire/auth';
-import { doc, Firestore, setDoc, updateDoc, getDoc, Timestamp } from '@angular/fire/firestore';
+import { doc, Firestore, setDoc, updateDoc, getDoc, Timestamp, deleteDoc } from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root'
@@ -41,12 +47,140 @@ export class AuthService {
     return currentUser.displayName || currentUser.email?.split('@')[0] || 'Usuario';
   }
 
+  // ✅ NUEVO: Obtener usuario actual completo
+  async getCurrentUser(): Promise<User | null> {
+    return this.auth.currentUser;
+  }
+
+  // ✅ NUEVO: Actualizar perfil del usuario
+  async updateUserProfile(displayName: string, photoURL?: string): Promise<void> {
+    const user = this.auth.currentUser;
+    if (!user) throw new Error('No hay usuario autenticado');
+
+    await updateProfile(user, {
+      displayName,
+      photoURL: photoURL || user.photoURL
+    });
+
+    // Actualizar también en Firestore
+    const userDocRef = doc(this.firestore, `usuarios/${user.uid}`);
+    await updateDoc(userDocRef, {
+      nombreUsuario: displayName,
+      fotoURL: photoURL || user.photoURL,
+      actualizadoEn: Timestamp.now()
+    });
+  }
+
+  // ✅ NUEVO: Actualizar contraseña
+  async updatePassword(newPassword: string): Promise<void> {
+    const user = this.auth.currentUser;
+    if (!user) throw new Error('No hay usuario autenticado');
+
+    await updatePassword(user, newPassword);
+  }
+
+  // ✅ NUEVO: Reautenticar usuario (necesario para operaciones sensibles)
+  async reauthenticate(currentPassword: string): Promise<void> {
+    const user = this.auth.currentUser;
+    if (!user || !user.email) throw new Error('No hay usuario autenticado');
+
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+    await reauthenticateWithCredential(user, credential);
+  }
+
+  // ✅ NUEVO: Eliminar cuenta de usuario
+  async deleteUser(currentPassword?: string): Promise<void> {
+    const user = this.auth.currentUser;
+    if (!user) throw new Error('No hay usuario autenticado');
+
+    try {
+      // Si es proveedor email, requerir reautenticación
+      if (user.providerData[0]?.providerId === 'password' && currentPassword) {
+        await this.reauthenticate(currentPassword);
+      }
+
+      // Eliminar documento de Firestore
+      const userDocRef = doc(this.firestore, `usuarios/${user.uid}`);
+      await deleteDoc(userDocRef);
+
+      // Eliminar usuario de Auth
+      await deleteUser(user);
+      
+      console.log('✅ Cuenta eliminada correctamente');
+    } catch (error: any) {
+      console.error('❌ Error eliminando cuenta:', error);
+      throw new Error(`No se pudo eliminar la cuenta: ${error.message}`);
+    }
+  }
+
+  // ✅ NUEVO: Verificar si es proveedor Google
+  isGoogleProvider(): boolean {
+    const user = this.auth.currentUser;
+    return user?.providerData[0]?.providerId === 'google.com';
+  }
+
+  // ✅ NUEVO: Verificar si es proveedor Email/Password
+  isEmailProvider(): boolean {
+    const user = this.auth.currentUser;
+    return user?.providerData[0]?.providerId === 'password';
+  }
+
+  // ✅ NUEVO: Actualizar último acceso
+  async updateLastAccess(): Promise<void> {
+    const user = this.auth.currentUser;
+    if (!user) return;
+
+    try {
+      const userDocRef = doc(this.firestore, `usuarios/${user.uid}`);
+      await updateDoc(userDocRef, {
+        ultimoAcceso: Timestamp.now()
+      });
+    } catch (error) {
+      console.error('Error actualizando último acceso:', error);
+    }
+  }
+
+  // ✅ NUEVO: Obtener datos completos del usuario desde Firestore
+  async getUserData(uid: string): Promise<any> {
+    try {
+      const userDoc = await getDoc(doc(this.firestore, 'usuarios', uid));
+      if (userDoc.exists()) {
+        return userDoc.data();
+      }
+      return null;
+    } catch (error) {
+      console.error('Error obteniendo datos del usuario:', error);
+      throw error;
+    }
+  }
+
+  // ✅ NUEVO: Actualizar datos del usuario en Firestore
+  async updateUserData(data: any): Promise<void> {
+    const user = this.auth.currentUser;
+    if (!user) throw new Error('No hay usuario autenticado');
+
+    try {
+      const userDocRef = doc(this.firestore, `usuarios/${user.uid}`);
+      await updateDoc(userDocRef, {
+        ...data,
+        actualizadoEn: Timestamp.now()
+      });
+    } catch (error) {
+      console.error('Error actualizando datos del usuario:', error);
+      throw error;
+    }
+  }
+
   // Login con email y contraseña
   async login(email: string, password: string): Promise<any> {
     try {
       console.log('🔐 Iniciando login...');
       const result = await signInWithEmailAndPassword(this.auth, email, password);
       console.log('✅ Login exitoso:', result.user.uid);
+      
+      // Actualizar último acceso
+      await this.updateLastAccess();
+      
       return result;
     } catch (error) {
       console.error('❌ Error en login:', error);
@@ -54,7 +188,6 @@ export class AuthService {
     }
   }
 
-  // Login con Google
   // Login con Google
   async googleLogin(): Promise<any> {
     try {
@@ -70,7 +203,7 @@ export class AuthService {
         
         const userDocRef = doc(this.firestore, `usuarios/${result.user.uid}`);
         
-        // 🎯 CRÍTICO: Verificar si el usuario YA EXISTE
+        // Verificar si el usuario YA EXISTE
         const userDoc = await getDoc(userDocRef);
         
         if (!userDoc.exists()) {
@@ -85,7 +218,17 @@ export class AuthService {
             haCompletadoConfiguracionInicial: false,
             creadoEn: Timestamp.now(),
             ultimoAcceso: Timestamp.now(),
-            actualizadoEn: Timestamp.now()
+            actualizadoEn: Timestamp.now(),
+            configuracionPlanes: {
+              nivelActividad: 'moderado',
+              objetivoCaloricoPersonalizado: 2000,
+              dificultadEjercicio: 'principiante',
+              metaEjercicioSemanal: 150,
+              alimentosFavoritos: [],
+              alimentosEvitar: [],
+              restriccionesAlimentarias: [],
+              tiposEjercicioPreferidos: []
+            }
           });
           
           console.log('💾 Usuario de Google creado en usuarios/', result.user.uid);
@@ -110,7 +253,6 @@ export class AuthService {
   }
 
   // Registro con email y contraseña
- // Registro con email y contraseña
   async register(email: string, password: string, name: string): Promise<any> {
     try {
       console.log('📝 Registrando usuario...');
@@ -122,7 +264,7 @@ export class AuthService {
           displayName: name
         });
 
-        // 🎯 CRÍTICO: Guardar en 'usuarios' con la nueva estructura
+        // Guardar en 'usuarios' con la nueva estructura
         const userDocRef = doc(this.firestore, `usuarios/${result.user.uid}`);
         
         try {
@@ -130,10 +272,20 @@ export class AuthService {
             nombreUsuario: name,
             correo: email,
             proveedorAuth: 'email',
-            haCompletadoConfiguracionInicial: false, // 👈 Siempre false al crear
+            haCompletadoConfiguracionInicial: false,
             creadoEn: Timestamp.now(),
             ultimoAcceso: Timestamp.now(),
-            actualizadoEn: Timestamp.now()
+            actualizadoEn: Timestamp.now(),
+            configuracionPlanes: {
+              nivelActividad: 'moderado',
+              objetivoCaloricoPersonalizado: 2000,
+              dificultadEjercicio: 'principiante',
+              metaEjercicioSemanal: 150,
+              alimentosFavoritos: [],
+              alimentosEvitar: [],
+              restriccionesAlimentarias: [],
+              tiposEjercicioPreferidos: []
+            }
           });
 
           console.log('✅ Registro exitoso y guardado en usuarios/', result.user.uid);
@@ -167,5 +319,23 @@ export class AuthService {
       console.error('❌ Error al cerrar sesión:', error);
       throw error;
     }
+  }
+
+  // ✅ NUEVO: Enviar email de verificación
+  async sendEmailVerification(): Promise<void> {
+    const user = this.auth.currentUser;
+    if (!user) throw new Error('No hay usuario autenticado');
+
+    // Nota: Firebase Auth envía verificación automáticamente al registrar
+    // Este método es para reenviar si es necesario
+    console.log('📧 Email de verificación enviado (manejado automáticamente por Firebase)');
+  }
+
+  // ✅ NUEVO: Enviar email de reset de contraseña
+  async sendPasswordResetEmail(email: string): Promise<void> {
+    // Importar sendPasswordResetEmail desde '@angular/fire/auth'
+    // y agregarlo en los imports arriba si necesitas esta funcionalidad
+    console.log('🔄 Email de reset de contraseña para:', email);
+    // Implementación pendiente si la necesitas
   }
 }

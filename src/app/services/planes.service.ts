@@ -468,6 +468,7 @@ export class PlanesService {
     }
   }
 
+  // En planes.service.ts - VERIFICAR ESTE MÉTODO
   async guardarSeleccionDieta(dietaId: string, objetivoCalorico: number, duracion: string): Promise<void> {
     const user = this.auth.currentUser;
     if (!user) throw new Error('❌ Usuario no autenticado');
@@ -504,6 +505,7 @@ export class PlanesService {
       const userSnap = await getDoc(userDoc);
       
       if (userSnap.exists()) {
+        // ✅ IMPORTANTE: Actualizar solo configuracionPlanes, no sobrescribir todo
         await updateDoc(userDoc, {
           'configuracionPlanes': plan,
           'ultimaActualizacion': new Date()
@@ -516,7 +518,7 @@ export class PlanesService {
         });
       }
       
-      console.log('✅ Selección de dieta guardada correctamente');
+      console.log('✅ Selección de dieta guardada correctamente en configuracionPlanes');
     } catch (error) {
       console.error('❌ Error guardando selección de dieta:', error);
       throw error;

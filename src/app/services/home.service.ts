@@ -1,4 +1,4 @@
-// src/app/services/home.service.ts - VERSIÓN CORREGIDA
+// src/app/services/home.service.ts - VERSIÓN COMPLETAMENTE CORREGIDA
 import { Injectable, inject } from '@angular/core';
 import {
   Firestore,
@@ -15,9 +15,9 @@ import {
   Timestamp,
   onSnapshot,
   addDoc,
-  collectionData // ✅ AÑADIDO
+  collectionData
 } from '@angular/fire/firestore';
-import { Auth } from '@angular/fire/auth'; // ✅ AÑADIDO
+import { Auth } from '@angular/fire/auth';
 import { Observable, from, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 
@@ -72,36 +72,34 @@ export interface UltimosValoresFisicos {
 })
 export class HomeService {
   private firestore = inject(Firestore);
-  private auth = inject(Auth); // ✅ INYECTADO CORRECTAMENTE
+  private auth = inject(Auth);
 
-  // ✅ MÉTODO CORREGIDO - Usar inject() correctamente
-  obtenerIndicadoresHoy(): Observable<Indicador[]> {
-    const user = this.auth.currentUser;
-    if (!user) throw new Error('Usuario no autenticado');
-
+  // ============================================
+  // ✅ CORREGIDO: Obtener usuario una sola vez
+  // ============================================
+  async getUsuarioDataOnce(uid: string): Promise<Usuario | null> {
     try {
-      const indicadoresRef = collection(this.firestore, `usuarios/${user.uid}/indicadores`);
-      const hoy = new Date().toISOString().split('T')[0];
-      const q = query(
-        indicadoresRef,
-        where('fecha', '==', hoy)
-      );
+      const userDocRef = doc(this.firestore, `usuarios/${uid}`);
+      const userDoc = await getDoc(userDocRef);
       
-      // ✅ CORREGIDO: Usar collectionData en lugar de onSnapshot directamente
-      return collectionData(q, { idField: 'id' }) as Observable<Indicador[]>;
+      if (userDoc.exists()) {
+        return userDoc.data() as Usuario;
+      }
+      return null;
     } catch (error) {
-      console.error('Error obteniendo indicadores:', error);
+      console.error('Error obteniendo datos del usuario:', error);
       throw error;
     }
   }
 
   // ============================================
-  // OBTENER USUARIO
+  // ✅ CORREGIDO: Obtener usuario con observable
   // ============================================
   getUsuario(uid: string): Observable<Usuario | null> {
     const userDocRef = doc(this.firestore, `usuarios/${uid}`);
     
     return new Observable<Usuario | null>(observer => {
+      // ✅ Usar onSnapshot dentro del observable está bien
       const unsubscribe = onSnapshot(
         userDocRef,
         (docSnap) => {
@@ -122,22 +120,64 @@ export class HomeService {
   }
 
   // ============================================
-  // 🎯 OBTENER ÚLTIMOS VALORES FÍSICOS (QUERY SIMPLIFICADA)
+  // ✅ CORREGIDO: Obtener indicador de hoy usando collectionData
+  // ============================================
+  getIndicadorHoy(uid: string): Observable<Indicador | null> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayTimestamp = Timestamp.fromDate(today);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowTimestamp = Timestamp.fromDate(tomorrow);
+
+    const indicadoresRef = collection(this.firestore, `usuarios/${uid}/indicadores`);
+    
+    const q = query(
+      indicadoresRef,
+      where('fecha', '>=', todayTimestamp),
+      where('fecha', '<', tomorrowTimestamp),
+      limit(1)
+    );
+
+    // ✅ CORREGIDO: Usar collectionData en lugar de onSnapshot directo
+    return collectionData(q, { idField: 'id' }).pipe(
+      map(docs => {
+        if (docs.length > 0) {
+          const doc = docs[0] as any;
+          const data = doc as Indicador;
+          
+          if (!data.esConfiguracionInicial) {
+            return {
+              id: doc.id,
+              ...data
+            };
+          }
+        }
+        return null;
+      }),
+      catchError(error => {
+        console.error('Error obteniendo indicador hoy:', error);
+        return of(null);
+      })
+    );
+  }
+
+  // ============================================
+  // 🎯 OBTENER ÚLTIMOS VALORES FÍSICOS
   // ============================================
   async obtenerUltimosValoresFisicos(uid: string): Promise<UltimosValoresFisicos> {
     try {
       const indicadoresRef = collection(this.firestore, `usuarios/${uid}/indicadores`);
       
-      // Query SIMPLE: Solo ordenar por fecha descendente
       const q = query(
         indicadoresRef,
         orderBy('creadoEn', 'desc'),
-        limit(10) // Tomar los últimos 10 para buscar peso
+        limit(10)
       );
 
       const querySnapshot = await getDocs(q);
       
-      // Buscar el primer indicador con peso
       for (const docSnap of querySnapshot.docs) {
         const indicador = docSnap.data() as Indicador;
         
@@ -163,57 +203,6 @@ export class HomeService {
       console.error('❌ Error obteniendo últimos valores físicos:', error);
       return {};
     }
-  }
-
-  // ============================================
-  // OBTENER INDICADOR DE HOY
-  // ============================================
-  getIndicadorHoy(uid: string): Observable<Indicador | null> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayTimestamp = Timestamp.fromDate(today);
-
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowTimestamp = Timestamp.fromDate(tomorrow);
-
-    const indicadoresRef = collection(this.firestore, `usuarios/${uid}/indicadores`);
-    
-    const q = query(
-      indicadoresRef,
-      where('fecha', '>=', todayTimestamp),
-      where('fecha', '<', tomorrowTimestamp),
-      limit(1)
-    );
-
-    return new Observable<Indicador | null>(observer => {
-      const unsubscribe = onSnapshot(
-        q,
-        (querySnapshot) => {
-          if (!querySnapshot.empty) {
-            const doc = querySnapshot.docs[0];
-            const data = doc.data() as Indicador;
-            
-            if (!data.esConfiguracionInicial) {
-              observer.next({
-                id: doc.id,
-                ...data
-              });
-            } else {
-              observer.next(null);
-            }
-          } else {
-            observer.next(null);
-          }
-        },
-        (error) => {
-          console.error('Error observing indicador hoy:', error);
-          observer.next(null);
-        }
-      );
-
-      return () => unsubscribe();
-    });
   }
 
   // ============================================
@@ -322,7 +311,7 @@ export class HomeService {
   }
 
   // ============================================
-  // 🎯 OBTENER HISTORIAL (QUERY SIMPLE)
+  // OBTENER HISTORIAL
   // ============================================
   getHistorialIndicadores(uid: string, dias: number = 30): Observable<Indicador[]> {
     const indicadoresRef = collection(this.firestore, `usuarios/${uid}/indicadores`);
@@ -369,7 +358,7 @@ export class HomeService {
   }
 
   // ============================================
-  // 🎯 VERIFICAR CONFIGURACIÓN INICIAL (CORREGIDO)
+  // VERIFICAR CONFIGURACIÓN INICIAL
   // ============================================
   async necesitaConfiguracionInicial(uid: string): Promise<boolean> {
     try {
@@ -441,8 +430,6 @@ export class HomeService {
         console.error('❌ Error marcando configuración:', error);
         console.error('Código de error:', error?.code);
         console.error('Mensaje:', error?.message);
-        
-        // Re-lanzar el error para que el componente lo maneje
         throw error;
       })
     );

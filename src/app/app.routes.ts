@@ -46,11 +46,13 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/receta-detalle/receta-detalle.page').then(m => m.RecetaDetallePage)
   },
   {
-    path: '**',
-    redirectTo: 'home'
-  },  {
     path: 'perfil',
     loadComponent: () => import('./pages/perfil/perfil.page').then( m => m.PerfilPage)
+  },
+  {
+    path: '**',
+    redirectTo: 'home'
   }
+  
 
 ];
