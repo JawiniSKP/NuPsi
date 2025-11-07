@@ -1,0 +1,101 @@
+# domain.yml
+
+intents:
+  - greet                  # Saludos iniciales (ej. hola, buenos días)
+  - goodbye                # Despedidas (ej. adiós, hasta luego)
+  - affirm                 # Afirmación (sí, correcto)
+  - deny                   # Negación (no, incorrecto)
+  - bot_challenge          # Preguntar si es un bot
+  - thanks                 # Agradecimientos (gracias, muy amable)
+
+  # --- INTENTOS DE BIENVENIDA Y GENERALES ---
+  - introduce_bot          # Pedir que el bot se presente
+  - ask_capabilities       # Preguntar qué puede hacer el bot
+
+  # --- INTENTOS DE NUTRICIÓN ---
+  - ask_diet_general       # Pregunta general sobre dieta/alimentación (ej. ¿qué es una dieta saludable?)
+  - ask_specific_food      # Preguntar sobre un alimento específico (ej. ¿es buena la avena?, calorías de la manzana)
+  - ask_meal_planning      # Preguntar sobre planificación de comidas (ej. ¿cómo planificar mis comidas?)
+  - ask_recipe_suggestion  # Pedir sugerencias de recetas
+  - ask_hydration          # Preguntar sobre hidratación (ej. ¿cuánta agua debo beber?)
+  - ask_macronutrients     # Preguntar sobre proteínas, carbohidratos, grasas
+  - ask_micronutrients     # Preguntar sobre vitaminas, minerales
+  - ask_food_restrictions  # Consultar sobre alergias o intolerancias
+  - ask_weight_gain        # Consultar sobre ganar peso de forma saludable
+  - ask_weight_loss        # Consultar sobre perder peso de forma saludable
+  - ask_healthy_snack      # Preguntar por snacks saludables
+
+  # --- INTENTOS DE SALUD FÍSICA Y EJERCICIO ---
+  - ask_exercise_general   # Pregunta general sobre ejercicio (ej. ¿qué ejercicio es bueno para mí?)
+  - ask_workout_plan       # Pedir un plan de entrenamiento
+  - ask_muscle_group       # Preguntar sobre ejercicios para un grupo muscular (ej. abdominales, brazos)
+  - ask_cardio_benefits    # Preguntar sobre los beneficios del cardio
+  - ask_strength_training  # Preguntar sobre entrenamiento de fuerza
+  - ask_flexibility        # Preguntar sobre flexibilidad/estiramientos
+  - ask_injury_prevention  # Preguntar cómo prevenir lesiones
+  - ask_rest_recovery      # Preguntar sobre descanso y recuperación
+  - ask_physical_activity_recommendations # Recomendaciones de actividad física
+  - ask_warm_up_cool_down  # Preguntar sobre calentamiento y enfriamiento
+
+  # --- INTENTOS DE CAMBIOS FÍSICOS Y SEGUIMIENTO ---
+  - ask_body_composition   # Preguntar sobre composición corporal (grasa, músculo)
+  - ask_progress_tracking  # Preguntar cómo seguir el progreso (peso, medidas)
+  - ask_motivation_support # Pedir apoyo o motivación
+  - ask_goal_setting       # Preguntar cómo establecer metas
+
+  # --- INTENTOS DE FALLBACK Y MANEJO DE ERRORES ---
+  - out_of_scope           # Cuando el usuario pregunta algo totalmente fuera de tema
+  - nlu_fallback           # Para cuando el NLU no entiende el intent (verás esto en rules.yml)
+
+
+responses:
+  utter_greet:
+    - text: "¡Hola! Soy tu asistente de bienestar. ¿En qué puedo ayudarte hoy?"
+    - text: "¡Saludos! Estoy aquí para apoyarte en nutrición, salud física y cambios. ¿Qué necesitas saber?"
+  utter_goodbye:
+    - text: "¡Adiós! Que tengas un excelente día. Recuerda que cuidar tu bienestar es clave."
+    - text: "¡Hasta luego! Si tienes más preguntas, no dudes en volver."
+  utter_iamabot:
+    - text: "Soy un asistente de IA, diseñado para ayudarte con información sobre bienestar, nutrición y salud física."
+  utter_thanks:
+    - text: "De nada, es un placer ayudarte."
+    - text: "Para eso estoy. ¡Me alegra poder ser útil!"
+
+  utter_introduce_bot:
+    - text: "Soy un asistente de bienestar especializado en nutrición, ejercicio y apoyo para tus metas físicas. Mi objetivo es proporcionarte información y consejos para un estilo de vida más saludable."
+  utter_ask_capabilities:
+    - text: "Puedo ofrecerte información sobre dietas saludables, beneficios de alimentos, planificación de comidas, rutinas de ejercicio, consejos para grupos musculares específicos, prevención de lesiones, cómo monitorear tu progreso y mucho más. ¿Sobre qué te gustaría hablar?"
+
+  # --- RESPUESTAS DE NUTRICIÓN (Ejemplos iniciales) ---
+  utter_ask_diet_general:
+    - text: "Una dieta saludable se basa en el equilibrio: consume una variedad de frutas, verduras, proteínas magras, granos integrales y grasas saludables. Limita los alimentos procesados, azúcares añadidos y grasas saturadas. ¿Te gustaría saber más sobre algún grupo de alimentos?"
+  utter_ask_hydration:
+    - text: "La hidratación es fundamental. Generalmente, se recomienda beber alrededor de 8 vasos (2 litros) de agua al día, pero esto puede variar según tu actividad física y el clima. ¡Mantente hidratado!"
+  utter_ask_weight_loss:
+    - text: "Para la pérdida de peso saludable, un déficit calórico moderado es clave, combinado con una dieta equilibrada y ejercicio regular. Es importante ser paciente y buscar un enfoque sostenible. ¿Quieres que te dé algunos consejos para empezar?"
+
+  # --- RESPUESTAS DE SALUD FÍSICA (Ejemplos iniciales) ---
+  utter_ask_exercise_general:
+    - text: "El ejercicio regular tiene muchos beneficios, desde mejorar la salud cardiovascular hasta fortalecer músculos y huesos. Lo ideal es combinar entrenamiento de fuerza, cardio y flexibilidad. ¿Hay algún tipo de ejercicio que te interese en particular?"
+  utter_ask_cardio_benefits:
+    - text: "El ejercicio cardiovascular fortalece tu corazón y pulmones, mejora la resistencia, ayuda a quemar calorías y reduce el riesgo de enfermedades crónicas. Caminar, correr, nadar o andar en bicicleta son excelentes opciones."
+  utter_ask_strength_training:
+    - text: "El entrenamiento de fuerza ayuda a construir masa muscular, fortalecer huesos, mejorar el metabolismo y prevenir lesiones. Puedes usar pesas, bandas de resistencia o tu propio peso corporal. ¿Te gustaría saber más sobre cómo empezar?"
+
+  # --- RESPUESTAS DE CAMBIOS FÍSICOS Y SEGUIMIENTO (Ejemplos iniciales) ---
+  utter_ask_progress_tracking:
+    - text: "Puedes rastrear tu progreso de varias maneras: pesándote regularmente (pero no obsesivamente), tomando medidas corporales, haciendo fotos de progreso, o registrando tus entrenamientos. Recuerda que el progreso no siempre es lineal."
+  utter_ask_motivation_support:
+    - text: "¡Entiendo! Mantener la motivación puede ser un desafío. Recuerda tus metas, celebra los pequeños logros, busca un compañero de entrenamiento o enfócate en cómo te sientes, no solo en cómo te ves. ¡Tú puedes!"
+
+  # --- RESPUESTAS DE FALLBACK Y MANEJO DE ERRORES ---
+  utter_out_of_scope:
+    - text: "Lo siento, mi especialidad es el bienestar, nutrición y salud física. No puedo ayudarte con eso. ¿Hay algo relacionado con estos temas en lo que pueda asistirte?"
+    - text: "Esa pregunta está fuera de mi área de conocimiento. Por favor, pregúntame algo sobre alimentación, ejercicio o tus metas de bienestar."
+  utter_default: # Esta respuesta se usará como fallback si NLU no entiende (ver rules.yml)
+    - text: "Lo siento, no te he entendido muy bien. ¿Podrías reformular tu pregunta o ser más específico sobre lo que necesitas en relación con el bienestar, nutrición o salud física?"
+    - text: "Uhm, no estoy seguro de cómo responder a eso. Recuerda que soy tu asistente de bienestar. ¿Quizás podrías preguntar de otra manera?"
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true

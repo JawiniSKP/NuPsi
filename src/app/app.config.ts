@@ -7,6 +7,9 @@ import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { environment } from '../environments/environment';
 import { addIcons } from 'ionicons';
+import { provideHttpClient } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
+
 import { 
   personCircle, 
   home, 
@@ -40,6 +43,9 @@ export const appConfig: ApplicationConfig = {
     provideIonicAngular({}),
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideAuth(() => getAuth()),
-    provideFirestore(() => getFirestore())
+    provideFirestore(() => getFirestore()),
+    provideHttpClient(), // 👈 habilita HttpClient
+    importProvidersFrom(FormsModule) // 👈 habilita FormsModule
   ]
 };
+

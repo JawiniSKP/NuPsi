@@ -1,0 +1,52 @@
+# data/stories.yml
+
+version: "3.1"
+stories:
+  - story: happy path
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: ask_capabilities
+      - action: utter_ask_capabilities
+      - intent: thanks
+      - action: utter_thanks
+      - intent: goodbye
+      - action: utter_goodbye
+
+  - story: motivation support
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: ask_motivation_support
+      - action: utter_ask_motivation_support
+      - intent: affirm
+      - action: utter_thanks # O una acción más elaborada aquí
+
+  - story: user asks about hydration
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: ask_hydration
+      - action: utter_ask_hydration
+      - intent: thanks
+      - action: utter_thanks
+
+  - story: user asks about exercise
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: ask_exercise_general
+      - action: utter_ask_exercise_general
+      - intent: ask_cardio_benefits
+      - action: utter_ask_cardio_benefits
+      - intent: goodbye
+      - action: utter_goodbye
+
+  - story: out of scope conversation
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: out_of_scope
+      - action: utter_out_of_scope
+      - intent: ask_diet_general
+      - action: utter_ask_diet_general

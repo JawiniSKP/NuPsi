@@ -1,0 +1,9 @@
+{
+  "lookup": {
+    "eJyLrq6NBQAEOAGx": "action_listen",
+    "eJyLrq7VUaguKEoti09MLsnMz7NSqIYw4vMSc1OtFKCcnMziktQ8oNrS4tQioJrMPCC3xEqhODGnNCWxqLY2FgAiGxxa": "utter_saludar",
+    "eJyLrq7VUaguKEoti09MLsnMz7NSqIYw4vMSc1OtFKCcnMziktQ8oNrS4tQioJrMPCC3xEqhODGnNCWxqJaAKaUlJalF8TDFuE2JBQCOKTcW": "action_listen",
+    "eJyLrq7VUaguKEoti09MLsnMz7NSqIYw4vMSc1OtFKCcnMziktQ8oNrS4tQioJrMPCC3xEqhODGnNCWxqJaAKaUlJalF8TDF5JpCwC0FqSmZRfGJlUCjamtjAZDXU1o=": "utter_ask_mas",
+    "eJydjlEKgCAQBa/iATqBV4lYltwPSU121yDEuydU30Z/b2AY3lzbZGpmOgBX9Xuypt4DEkay5oHgRSl1twhxd3zqqNYIhuKQ26BSVInhlf9WBl8yOc+AZ099+4OyQUQZlJYLwYpvpA==": "action_listen"
+  }
+}

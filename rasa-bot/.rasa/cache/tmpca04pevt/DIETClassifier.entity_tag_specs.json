@@ -1,0 +1,36 @@
+[
+  {
+    "tag_name": "entity",
+    "ids_to_tags": {
+      "1": "B-goal",
+      "2": "I-goal",
+      "3": "L-goal",
+      "4": "U-goal",
+      "5": "B-macronutrient",
+      "6": "I-macronutrient",
+      "7": "L-macronutrient",
+      "8": "U-macronutrient",
+      "9": "B-muscle_group",
+      "10": "I-muscle_group",
+      "11": "L-muscle_group",
+      "12": "U-muscle_group",
+      "0": "O"
+    },
+    "tags_to_ids": {
+      "B-goal": 1,
+      "I-goal": 2,
+      "L-goal": 3,
+      "U-goal": 4,
+      "B-macronutrient": 5,
+      "I-macronutrient": 6,
+      "L-macronutrient": 7,
+      "U-macronutrient": 8,
+      "B-muscle_group": 9,
+      "I-muscle_group": 10,
+      "L-muscle_group": 11,
+      "U-muscle_group": 12,
+      "O": 0
+    },
+    "num_tags": 13
+  }
+]

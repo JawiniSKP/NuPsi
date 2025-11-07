@@ -1,0 +1,23 @@
+{
+  "0": "affirm",
+  "1": "ask_capabilities",
+  "2": "ask_cardio_benefits",
+  "3": "ask_diet_general",
+  "4": "ask_exercise_general",
+  "5": "ask_hydration",
+  "6": "ask_meal_planning",
+  "7": "ask_motivation_support",
+  "8": "ask_muscle_group",
+  "9": "ask_progress_tracking",
+  "10": "ask_specific_food",
+  "11": "ask_strength_training",
+  "12": "ask_weight_loss",
+  "13": "ask_workout_plan",
+  "14": "bot_challenge",
+  "15": "deny",
+  "16": "goodbye",
+  "17": "greet",
+  "18": "introduce_bot",
+  "19": "out_of_scope",
+  "20": "thanks"
+}

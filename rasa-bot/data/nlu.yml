@@ -1,0 +1,193 @@
+# data/nlu.yml
+
+version: "3.1"
+nlu:
+  - intent: greet
+    examples: |
+      - hola
+      - buenos días
+      - buenas tardes
+      - buenas noches
+      - que tal
+      - hola bot
+      - hey
+      - holi
+
+  - intent: goodbye
+    examples: |
+      - adiós
+      - hasta luego
+      - nos vemos
+      - chao
+      - me despido
+      - adiosito
+
+  - intent: affirm
+    examples: |
+      - sí
+      - claro
+      - por supuesto
+      - exacto
+      - correcto
+      - así es
+      - vale
+
+  - intent: deny
+    examples: |
+      - no
+      - para nada
+      - incorrecto
+      - no es eso
+      - no quiero
+
+  - intent: bot_challenge
+    examples: |
+      - eres un bot
+      - eres humano
+      - quien eres
+      - eres real
+      - eres una persona
+      - eres inteligencia artificial
+
+  - intent: thanks
+    examples: |
+      - gracias
+      - muchas gracias
+      - te lo agradezco
+      - mil gracias
+      - muy amable
+
+  - intent: introduce_bot
+    examples: |
+      - preséntate
+      - dime quién eres
+      - cuál es tu propósito
+      - a qué te dedicas
+      - qué haces
+
+  - intent: ask_capabilities
+    examples: |
+      - qué puedes hacer
+      - en qué me puedes ayudar
+      - cuáles son tus funciones
+      - qué temas cubres
+      - qué sabes hacer
+
+  # --- EJEMPLOS DE NUTRICIÓN ---
+  - intent: ask_diet_general
+    examples: |
+      - qué es una dieta saludable
+      - cómo comer sano
+      - consejos para una buena alimentación
+      - qué debo comer
+      - pautas de alimentación
+      - dime sobre nutrición
+      - cómo mejorar mi dieta
+
+  - intent: ask_specific_food
+    examples: |
+      - calorías de la manzana
+      - es bueno el brócoli
+      - el aguacate engorda
+      - propiedades del salmón
+      - qué beneficios tiene la avena
+      - el pan es bueno o malo
+      - qué contiene el arroz
+      - información sobre [proteínas](macronutrient)
+      - datos de [carbohidratos](macronutrient)
+
+  - intent: ask_meal_planning
+    examples: |
+      - cómo planificar mis comidas
+      - ideas para el meal prep
+      - cómo organizar mi dieta semanal
+      - consejos para planificar mis alimentos
+      - necesito ayuda con mi menú semanal
+
+  - intent: ask_hydration
+    examples: |
+      - cuánta agua debo beber
+      - es importante beber agua
+      - beneficios del agua
+      - cómo me hidrato
+      - tengo que beber más agua
+      - recomendaciones de agua
+
+  - intent: ask_weight_loss
+    examples: |
+      - cómo puedo bajar de peso
+      - quiero adelgazar
+      - consejos para perder grasa
+      - dieta para adelgazar
+      - quiero perder peso
+      - cómo quemar calorías
+      - cómo [perder peso](goal)
+
+  # --- EJEMPLOS DE SALUD FÍSICA Y EJERCICIO ---
+  - intent: ask_exercise_general
+    examples: |
+      - qué ejercicio es bueno para mí
+      - consejos para hacer ejercicio
+      - qué tipo de ejercicio debo hacer
+      - importancia del ejercicio
+      - cómo empezar a entrenar
+      - qué es el ejercicio físico
+
+  - intent: ask_workout_plan
+    examples: |
+      - necesito un plan de entrenamiento
+      - cómo crear una rutina de gimnasio
+      - plan de ejercicio semanal
+      - ideas para mi rutina
+
+  - intent: ask_muscle_group
+    examples: |
+      - ejercicios para abdominales
+      - cómo entrenar los brazos
+      - quiero fortalecer mis piernas
+      - ejercicios para glúteos
+      - rutina de espalda
+      - cómo trabajar el [pecho](muscle_group)
+
+  - intent: ask_cardio_benefits
+    examples: |
+      - para qué sirve el cardio
+      - beneficios de correr
+      - es bueno hacer cardio
+      - ventajas del ejercicio aeróbico
+
+  - intent: ask_strength_training
+    examples: |
+      - qué es el entrenamiento de fuerza
+      - cómo ganar músculo
+      - importancia del levantamiento de pesas
+      - quiero ser más fuerte
+      - beneficios de las pesas
+
+  # --- EJEMPLOS DE CAMBIOS FÍSICOS Y SEGUIMIENTO ---
+  - intent: ask_progress_tracking
+    examples: |
+      - cómo saber si estoy progresando
+      - cómo medir mis cambios físicos
+      - cómo llevar un registro de mi peso
+      - es bueno pesarse cada día
+      - cómo seguir mi evolución
+
+  - intent: ask_motivation_support
+    examples: |
+      - necesito motivación
+      - estoy perdiendo la motivación
+      - cómo me mantengo motivado
+      - consejos para no rendirse
+      - ayúdame a seguir adelante
+
+  - intent: out_of_scope
+    examples: |
+      - cuál es la capital de Francia
+      - qué tiempo hace hoy
+      - háblame de política
+      - cuál es la mejor serie
+      - dame el número de la suerte
+      - cuéntame un chiste
+      - cuánto es 2 + 2
+      - dónde puedo comprar ropa

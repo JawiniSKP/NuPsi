@@ -1,0 +1,151 @@
+/* src/app/pages/chat/chat.page.scss */
+
+ion-header {
+  ion-toolbar {
+    --background: var(--ion-color-primary); // O un color que elijas para tu app
+    color: white;
+    ion-title {
+      color: white;
+      text-align: center;
+      padding-right: 48px; // Para centrar el título si hay un botón a la derecha
+    }
+    ion-buttons {
+      ion-button {
+        color: white;
+      }
+    }
+  }
+}
+
+ion-content {
+  --background: #f0f0f0; // Un fondo claro para el área de chat
+  display: flex;
+  flex-direction: column; // Para que los mensajes se apilen verticalmente
+  padding-bottom: env(safe-area-inset-bottom); // Soporte para notch/áreas seguras
+
+  .message-container {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow-y: auto; // Para que el contenido de los mensajes se desplace si es muy largo
+    flex-grow: 1; // Para que ocupe todo el espacio disponible
+  }
+
+  // Estilos base para las burbujas de mensaje
+  .bot-message-bubble,
+  .user-message-bubble {
+    display: flex;
+    margin-bottom: 10px;
+    max-width: 80%; // Para que las burbujas no ocupen todo el ancho
+    position: relative; // Para los triángulos de la burbuja
+
+    .message-content {
+      padding: 10px 15px;
+      border-radius: 18px;
+      line-height: 1.4;
+      font-size: 15px;
+    }
+  }
+
+  // Estilos para mensajes del bot
+  .bot-message-bubble {
+    align-self: flex-start; // Alinear a la izquierda
+    background: var(--ion-color-light); // Color claro para el bot
+    color: var(--ion-color-dark); // Texto oscuro para el bot
+    margin-right: auto;
+    border-bottom-left-radius: 0; // Esquina para el pico de la burbuja
+    background-color: #e2e2e2; // Un gris claro para el bot
+    color: #333;
+
+    .message-content {
+      background-color: #e2e2e2;
+    }
+  }
+
+  // Estilos para mensajes del usuario
+  .user-message-bubble {
+    align-self: flex-end; // Alinear a la derecha
+    background: var(--ion-color-primary); // Color primario de tu app para el usuario
+    color: white; // Texto blanco para el usuario
+    margin-left: auto;
+    border-bottom-right-radius: 0; // Esquina para el pico de la burbuja
+    background-color: var(--ion-color-primary, #3880ff); // El color primary de Ionic o un azul
+    color: white;
+
+    .message-content {
+      background-color: var(--ion-color-primary, #3880ff);
+    }
+  }
+
+  // Indicador de "escribiendo..."
+  .typing-indicator {
+    .message-content {
+      background-color: #e2e2e2;
+      display: flex;
+      gap: 3px;
+      span {
+        display: block;
+        width: 8px;
+        height: 8px;
+        background-color: #999;
+        border-radius: 50%;
+        animation: typing 1s infinite ease-in-out;
+      }
+      span:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      span:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+    }
+  }
+
+  @keyframes typing {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+}
+
+ion-footer {
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); // Sombra sutil
+  ion-toolbar {
+    --background: white; // Fondo blanco para el input
+    padding: 5px 10px;
+
+    .message-input-item {
+      --padding-start: 0;
+      --inner-padding-end: 0;
+      width: 100%;
+
+      ion-input {
+        --padding-start: 15px;
+        --padding-end: 15px;
+        --padding-top: 10px;
+        --padding-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 25px;
+        background: #f9f9f9;
+        font-size: 16px;
+        height: auto; // Ajuste automático de altura
+      }
+
+      ion-button {
+        --padding-start: 15px;
+        --padding-end: 15px;
+        margin-left: 8px;
+        height: 48px;
+        border-radius: 50%; // Botón redondo
+        --box-shadow: none;
+        ion-icon {
+          font-size: 24px;
+        }
+      }
+    }
+  }
+}
