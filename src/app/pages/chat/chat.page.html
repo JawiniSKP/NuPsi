@@ -1,30 +1,53 @@
-<ion-header translucent="true">
+<!-- src/app/pages/chat/chat.page.html -->
+
+<ion-header [translucent]="true">
   <ion-toolbar color="primary">
-    <ion-title>Aura Asistente</ion-title>
+    <ion-buttons slot="start">
+      <!-- Un botón de retroceso si la página de chat no es la raíz -->
+      <!-- Puedes cambiar 'back' por una ruta específica si es necesario -->
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Aura, tu asistente de bienestar</ion-title>
+    <ion-buttons slot="end">
+      <!-- Puedes añadir un botón para más opciones, ajustes, etc. -->
+      <ion-button><ion-icon slot="icon-only" name="ellipsis-vertical"></ion-icon></ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content #chatContent [fullscreen]="true">
-  <div class="chat-container">
-    <div *ngFor="let message of messages"
-         class="message-wrapper"
-         [ngClass]="{ 'user-message': message.sender === 'user', 'bot-message': message.sender === 'bot' }">
-
-      <ion-avatar *ngIf="message.sender === 'bot'">
-        <img src="https://ionicframework.com/docs/img/demos/avatar.svg" alt="Bot Avatar"/>
+<ion-content [fullscreen]="true" class="ion-padding custom-background">
+  <!-- Contenedor principal de mensajes para aplicar estilos de burbuja y espaciado -->
+  <div class="message-container">
+    <div
+      *ngFor="let msg of messages"
+      [class.user-message]="msg.sender === 'user'"
+      [class.bot-message]="msg.sender === 'bot'"
+      class="chat-bubble"
+    >
+      <ion-avatar *ngIf="msg.sender === 'bot'" class="bot-avatar">
+        <!-- Ícono o imagen para el avatar del bot -->
+        <img alt="Bot Avatar" src="assets/icon/bot-icon.png" />
       </ion-avatar>
-
-      <div class="message-bubble">
-        <p>{{ message.text }}</p>
+      <div class="message-content">
+        <p [innerHTML]="msg.text"></p>
+        <!-- Puedes añadir un timestamp aquí si lo deseas -->
+        <!-- <span class="message-time">{{ 'Ahora' }}</span> -->
       </div>
+      <ion-avatar *ngIf="msg.sender === 'user'" class="user-avatar">
+        <!-- Ícono o imagen para el avatar del usuario -->
+        <img alt="User Avatar" src="assets/icon/user-icon.png" />
+      </ion-avatar>
     </div>
 
-    <div *ngIf="botIsTyping" class="message-wrapper bot-message">
-       <ion-avatar>
-        <img src="https://ionicframework.com/docs/img/demos/avatar.svg" alt="Bot Avatar"/>
+    <!-- Indicador de "escribiendo..." del bot -->
+    <div *ngIf="botIsTyping" class="bot-message chat-bubble typing-indicator">
+      <ion-avatar class="bot-avatar">
+        <img alt="Bot Avatar" src="assets/icon/bot-icon.png" />
       </ion-avatar>
-      <div class="message-bubble typing-indicator">
-        <span></span><span></span><span></span>
+      <div class="message-content">
+        <div class="typing-dots">
+          <span>.</span><span>.</span><span>.</span>
+        </div>
       </div>
     </div>
   </div>
@@ -32,17 +55,17 @@
 
 <ion-footer>
   <ion-toolbar class="input-toolbar">
-    <ion-item lines="none">
-      
+    <ion-item lines="none" class="message-input-item">
       <ion-input
         [(ngModel)]="newMessage"
-        placeholder="Escríbele a Aura"
-        (keyup.enter)="sendMessage()">
-      </ion-input>
-
-      <ion-button fill="clear" (click)="sendMessage()" [disabled]="!newMessage.trim()">
-  <ion-icon name="paper-plane" slot="icon-only"></ion-icon>
-</ion-button>
+        placeholder="Escribe tu mensaje..."
+        (keyup.enter)="sendMessage()"
+        [clearOnEdit]="false"
+        class="message-input"
+      ></ion-input>
+      <ion-button slot="end" (click)="sendMessage()" [disabled]="!newMessage.trim()" class="send-button">
+        <ion-icon slot="icon-only" name="paper-plane"></ion-icon>
+      </ion-button>
     </ion-item>
   </ion-toolbar>
 </ion-footer>

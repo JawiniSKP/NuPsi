@@ -1,151 +1,193 @@
-/* src/app/pages/chat/chat.page.scss */
+/* ==============================================
+   src/app/pages/chat/chat.page.scss
+   Estilos para la interfaz de chat del asistente de bienestar.
+   ============================================== */
 
-ion-header {
-  ion-toolbar {
-    --background: var(--ion-color-primary); // O un color que elijas para tu app
-    color: white;
-    ion-title {
-      color: white;
-      text-align: center;
-      padding-right: 48px; // Para centrar el título si hay un botón a la derecha
-    }
-    ion-buttons {
-      ion-button {
-        color: white;
-      }
-    }
-  }
-}
+// Variables y configuraciones globales para facilitar el mantenimiento.
+// Puedes ajustar estos valores para que coincidan con la paleta de colores de tu app.
+$chat-background: #1c1c1e; // Fondo oscuro principal
+$user-bubble-bg: var(--ion-color-primary, #4CAF50); // Verde para el usuario
+$bot-bubble-bg: #3a3a3c; // Gris oscuro para el bot
+$text-color: #ffffff; // Texto blanco general
+$input-bg: #2c2c2e; // Fondo del área de input
+$input-border-radius: 25px;
+$avatar-size: 36px; // Tamaño para los avatares
+$message-spacing: 12px; // Espacio entre burbujas
+$message-max-width: 80%; // Ancho máximo de la burbuja
 
+// ==============================
+// ion-content (Fondo y Contenedor Principal)
+// ==============================
 ion-content {
-  --background: #f0f0f0; // Un fondo claro para el área de chat
+  --background: #{$chat-background}; // Usar la variable de fondo
   display: flex;
-  flex-direction: column; // Para que los mensajes se apilen verticalmente
-  padding-bottom: env(safe-area-inset-bottom); // Soporte para notch/áreas seguras
+  flex-direction: column;
 
   .message-container {
-    padding: 10px;
+    flex-grow: 1; // Permite que el contenedor de mensajes ocupe el espacio disponible
+    padding: $message-spacing;
     display: flex;
     flex-direction: column;
-    width: 100%;
-    overflow-y: auto; // Para que el contenido de los mensajes se desplace si es muy largo
-    flex-grow: 1; // Para que ocupe todo el espacio disponible
-  }
-
-  // Estilos base para las burbujas de mensaje
-  .bot-message-bubble,
-  .user-message-bubble {
-    display: flex;
-    margin-bottom: 10px;
-    max-width: 80%; // Para que las burbujas no ocupen todo el ancho
-    position: relative; // Para los triángulos de la burbuja
-
-    .message-content {
-      padding: 10px 15px;
-      border-radius: 18px;
-      line-height: 1.4;
-      font-size: 15px;
-    }
-  }
-
-  // Estilos para mensajes del bot
-  .bot-message-bubble {
-    align-self: flex-start; // Alinear a la izquierda
-    background: var(--ion-color-light); // Color claro para el bot
-    color: var(--ion-color-dark); // Texto oscuro para el bot
-    margin-right: auto;
-    border-bottom-left-radius: 0; // Esquina para el pico de la burbuja
-    background-color: #e2e2e2; // Un gris claro para el bot
-    color: #333;
-
-    .message-content {
-      background-color: #e2e2e2;
-    }
-  }
-
-  // Estilos para mensajes del usuario
-  .user-message-bubble {
-    align-self: flex-end; // Alinear a la derecha
-    background: var(--ion-color-primary); // Color primario de tu app para el usuario
-    color: white; // Texto blanco para el usuario
-    margin-left: auto;
-    border-bottom-right-radius: 0; // Esquina para el pico de la burbuja
-    background-color: var(--ion-color-primary, #3880ff); // El color primary de Ionic o un azul
-    color: white;
-
-    .message-content {
-      background-color: var(--ion-color-primary, #3880ff);
-    }
-  }
-
-  // Indicador de "escribiendo..."
-  .typing-indicator {
-    .message-content {
-      background-color: #e2e2e2;
-      display: flex;
-      gap: 3px;
-      span {
-        display: block;
-        width: 8px;
-        height: 8px;
-        background-color: #999;
-        border-radius: 50%;
-        animation: typing 1s infinite ease-in-out;
-      }
-      span:nth-child(2) {
-        animation-delay: 0.2s;
-      }
-      span:nth-child(3) {
-        animation-delay: 0.4s;
-      }
-    }
-  }
-
-  @keyframes typing {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-5px);
-    }
+    justify-content: flex-end; // Los mensajes nuevos aparecen desde abajo
   }
 }
 
-ion-footer {
-  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); // Sombra sutil
-  ion-toolbar {
-    --background: white; // Fondo blanco para el input
-    padding: 5px 10px;
+// ==============================
+// Burbujas de Chat (user-message, bot-message)
+// ==============================
+.chat-bubble {
+  display: flex;
+  align-items: flex-end; // Alinea los avatares con la parte inferior del mensaje
+  margin-bottom: $message-spacing;
+  max-width: $message-max-width;
+}
 
-    .message-input-item {
-      --padding-start: 0;
-      --inner-padding-end: 0;
-      width: 100%;
+.message-content {
+  padding: 10px 15px;
+  border-radius: 18px; // Bordes redondeados para un aspecto suave
+  font-size: 0.95em;
+  line-height: 1.4;
+  word-wrap: break-word; // Asegura que el texto largo se rompa correctamente
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  min-width: 40px; // Evita burbujas demasiado pequeñas para mensajes cortos
+  color: $text-color; // Color de texto general
+}
 
-      ion-input {
-        --padding-start: 15px;
-        --padding-end: 15px;
-        --padding-top: 10px;
-        --padding-bottom: 10px;
-        border: 1px solid #ddd;
-        border-radius: 25px;
-        background: #f9f9f9;
-        font-size: 16px;
-        height: auto; // Ajuste automático de altura
-      }
+// Estilos específicos para mensajes del usuario
+.user-message {
+  align-self: flex-end; // Alinea a la derecha
+  flex-direction: row-reverse; // Pone el avatar a la derecha del mensaje
 
-      ion-button {
-        --padding-start: 15px;
-        --padding-end: 15px;
-        margin-left: 8px;
-        height: 48px;
-        border-radius: 50%; // Botón redondo
-        --box-shadow: none;
-        ion-icon {
-          font-size: 24px;
-        }
-      }
-    }
+  .message-content {
+    background-color: $user-bubble-bg;
+    border-bottom-right-radius: 5px; // Ajuste para la esquina que "apunta" al avatar
   }
+
+  .user-avatar {
+    margin-left: 8px;
+    margin-right: 0;
+  }
+}
+
+// Estilos específicos para mensajes del bot
+.bot-message {
+  align-self: flex-start; // Alinea a la izquierda
+
+  .message-content {
+    background-color: $bot-bubble-bg;
+    border-bottom-left-radius: 5px; // Ajuste para la esquina que "apunta" al avatar
+  }
+
+  .bot-avatar {
+    margin-right: 8px;
+    margin-left: 0;
+  }
+}
+
+// Eliminar margen predeterminado de los párrafos dentro de las burbujas
+.chat-bubble p {
+  margin: 0;
+}
+
+// ==============================
+// Avatares
+// ==============================
+ion-avatar {
+  width: $avatar-size;
+  height: $avatar-size;
+  min-width: $avatar-size;
+  min-height: $avatar-size;
+  border-radius: 50%;
+  overflow: hidden; // Asegura que la imagen no se salga del círculo
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; // Cubre el área del avatar sin distorsionar
+  }
+}
+
+// ==============================
+// ion-footer (Área de entrada de mensaje)
+// ==============================
+ion-footer {
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2); // Sombra sutil en la parte superior del footer
+  background: $input-bg; // Fondo oscuro para el footer
+}
+
+.input-toolbar {
+  --background: #{$input-bg}; // Asegura que la toolbar también use el fondo oscuro
+  padding: 5px 10px;
+}
+
+.message-input-item {
+  --background: #{$input-bg};
+  border-radius: $input-border-radius;
+  padding-left: 10px;
+  padding-right: 5px; // Espacio para el botón de enviar
+  margin: 0; // Elimina los márgenes por defecto del ion-item
+}
+
+.message-input {
+  --padding-start: 10px;
+  --padding-end: 10px;
+  color: $text-color;
+  --placeholder-color: #888; // Color del texto del placeholder
+  --placeholder-opacity: 0.8;
+  font-size: 1em;
+}
+
+.send-button {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --border-radius: 50%; // Botón de enviar redondo
+  height: 44px; // Altura y ancho para un botón cuadrado y luego redondo
+  width: 44px;
+  margin-left: 8px;
+  --background: var(--ion-color-primary, #4CAF50); // Color del botón de enviar
+  --background-activated: var(--ion-color-primary-tint, #68d86f); // Color al presionar
+}
+
+ion-icon[name="paper-plane"] {
+  font-size: 1.4em; // Tamaño del ícono de enviar
+  color: $text-color;
+}
+
+// ==============================
+// Indicador de "Escribiendo..."
+// ==============================
+.typing-indicator {
+  .message-content {
+    background-color: lighten($bot-bubble-bg, 10%); // Un tono ligeramente más claro para el indicador
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 20px;
+  }
+
+  .typing-dots span {
+    animation: typing-blink 1s infinite steps(1, start);
+    color: $text-color;
+    font-size: 1.5em;
+    opacity: 0; // Inicialmente oculto
+    margin: 0 1px; // Espacio entre los puntos
+  }
+
+  .typing-dots span:nth-child(1) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(2) { animation-delay: 0.4s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.6s; }
+}
+
+@keyframes typing-blink {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+// ==============================
+// Ajustes para iOS (Safe Area)
+// ==============================
+.ios ion-footer {
+  // Ajuste para la zona segura inferior en dispositivos iOS con notch
+  padding-bottom: env(safe-area-inset-bottom);
 }

@@ -1,9 +1,7 @@
-// src/app/pages/chat/chat.page.ts
-
 import { Component, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonHeader, IonToolbar, IonTitle, IonAvatar, IonButton, IonIcon, IonFooter, IonItem, IonInput } from '@ionic/angular/standalone';
+import { IonContent, IonHeader, IonToolbar, IonTitle, IonAvatar, IonButton, IonIcon, IonFooter, IonItem, IonInput, IonButtons, IonBackButton } from '@ionic/angular/standalone';
 import { ChatService } from './chat.service';
 
 // 👇 1. IMPORTA addIcons Y LOS ÍCONOS QUE NECESITAS
@@ -15,7 +13,7 @@ import { paperPlaneOutline, paperPlaneSharp } from 'ionicons/icons';
   templateUrl: './chat.page.html',
   styleUrls: ['./chat.page.scss'],
   standalone: true,
-  imports: [
+  imports: [IonBackButton, IonButtons, 
     CommonModule,
     FormsModule,
     IonHeader,
