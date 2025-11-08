@@ -50,3 +50,66 @@ stories:
       - action: utter_out_of_scope
       - intent: ask_diet_general
       - action: utter_ask_diet_general
+
+  - story: user feels sad
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: express_sadness
+      - action: utter_express_sadness
+      - intent: ask_emotional_support
+      - action: utter_ask_emotional_support
+      - intent: thanks
+      - action: utter_thanks
+
+  - story: user manages anxiety with nutrition
+    steps:
+      - intent: express_anxiety
+      - action: utter_express_anxiety
+      - intent: ask_emotional_eating
+      - action: utter_ask_emotional_eating
+      - intent: ask_healthy_snacks
+      - action: utter_ask_healthy_snacks
+      - intent: affirm
+      - action: utter_thanks
+
+  - story: stress management flow
+    steps:
+      - intent: express_anxiety
+      - action: utter_express_anxiety
+      - intent: ask_stress_management
+      - action: utter_ask_stress_management
+      - intent: thanks
+      - action: utter_thanks
+
+  - story: consulta alimento con macronutriente
+    steps:
+      - intent: ask_specific_food
+        entities:
+          - macronutrient: proteínas
+      - slot_was_set:
+          - macronutrient: "proteínas"
+      - action: action_answer_specific_food
+
+  - story: rutina por grupo muscular
+    steps:
+      - intent: ask_muscle_group
+        entities:
+          - muscle_group: pecho
+      - slot_was_set:
+          - muscle_group: "pecho"
+      - action: action_propose_workout
+
+  - story: planificación con formulario
+    steps:
+      - intent: ask_meal_planning
+      - action: nutrition_profile_form
+      - active_loop: nutrition_profile_form
+
+
+  - story: seguimiento de progreso
+    steps:
+      - intent: ask_progress_tracking
+      - action: action_track_progress_tip
+      - intent: thanks
+      - action: utter_thanks

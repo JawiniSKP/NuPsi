@@ -191,3 +191,116 @@ nlu:
       - cuéntame un chiste
       - cuánto es 2 + 2
       - dónde puedo comprar ropa
+
+# --- APOYO EMOCIONAL ---
+  - intent: express_sadness
+    examples: |
+      - me siento triste
+      - estoy deprimido
+      - no me siento bien
+      - me siento mal
+      - estoy muy triste
+      - tengo ganas de llorar
+      - me siento solo
+      - estoy decaído
+
+  - intent: express_anxiety
+    examples: |
+      - estoy ansioso
+      - tengo ansiedad
+      - me siento estresado
+      - estoy muy nervioso
+      - tengo mucha tensión
+      - no puedo relajarme
+      - estoy preocupado
+      - me siento agobiado
+
+  - intent: express_anger
+    examples: |
+      - estoy enojado
+      - me siento frustrado
+      - tengo rabia
+      - estoy molesto
+      - me da mucha ira
+      - estoy furioso
+
+  - intent: express_happiness
+    examples: |
+      - estoy feliz
+      - me siento bien
+      - estoy contento
+      - hoy fue un buen día
+      - me siento genial
+      - estoy de buen humor
+
+  - intent: ask_emotional_support
+    examples: |
+      - necesito apoyo
+      - ayúdame a sentirme mejor
+      - qué hago cuando me siento mal
+      - cómo manejo mis emociones
+      - necesito hablar con alguien
+
+  - intent: ask_stress_management
+    examples: |
+      - cómo manejo el estrés
+      - técnicas para relajarme
+      - qué hago cuando estoy estresado
+      - ejercicios de respiración
+      - necesito calmarme
+
+  # --- NUTRICIÓN EMOCIONAL ---
+  - intent: ask_emotional_eating
+    examples: |
+      - como cuando estoy triste
+      - cómo controlar la ansiedad por comer
+      - como por estrés
+      - no puedo parar de comer
+      - tengo atracones
+      - como por ansiedad
+
+  - intent: ask_healthy_snacks
+    examples: |
+      - qué puedo comer entre comidas
+      - snacks saludables
+      - tengo hambre qué como
+      - opciones de colaciones
+      - qué es un snack sano
+
+  - synonym: proteínas
+    examples: |
+      - proteinas
+      - proteína
+      - protein
+      - protes
+
+  - synonym: carbohidratos
+    examples: |
+      - carbos
+      - hidratos
+      - carbo
+      - carbohidrato
+
+  - synonym: grasas
+    examples: |
+      - lípidos
+      - grasas saludables
+
+  - lookup: macronutrient
+    examples: |
+      - proteínas
+      - carbohidratos
+      - grasas
+      - fibra
+
+  - lookup: muscle_group
+    examples: |
+      - pecho
+      - espalda
+      - piernas
+      - glúteos
+      - hombros
+      - bíceps
+      - tríceps
+      - abdomen
+

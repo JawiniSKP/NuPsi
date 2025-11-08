@@ -1,100 +1,187 @@
-# domain.yml
+version: "3.1"
 
 intents:
-  - greet                  # Saludos iniciales (ej. hola, buenos días)
-  - goodbye                # Despedidas (ej. adiós, hasta luego)
-  - affirm                 # Afirmación (sí, correcto)
-  - deny                   # Negación (no, incorrecto)
-  - bot_challenge          # Preguntar si es un bot
-  - thanks                 # Agradecimientos (gracias, muy amable)
+  - greet
+  - goodbye
+  - affirm
+  - deny
+  - thanks
+  - bot_challenge
+  - introduce_bot
+  - ask_capabilities
+  - ask_diet_general
+  - ask_specific_food
+  - ask_meal_planning
+  - ask_hydration
+  - ask_weight_loss
+  - ask_exercise_general
+  - ask_workout_plan
+  - ask_muscle_group
+  - ask_cardio_benefits
+  - ask_strength_training
+  - ask_progress_tracking
+  - ask_motivation_support
+  - out_of_scope
+  - express_sadness
+  - express_anxiety
+  - express_anger
+  - express_happiness
+  - ask_emotional_support
+  - ask_stress_management
+  - ask_emotional_eating
+  - ask_healthy_snacks
+  - nlu_fallback
 
-  # --- INTENTOS DE BIENVENIDA Y GENERALES ---
-  - introduce_bot          # Pedir que el bot se presente
-  - ask_capabilities       # Preguntar qué puede hacer el bot
+entities:
+  - macronutrient
+  - muscle_group
+  - goal
 
-  # --- INTENTOS DE NUTRICIÓN ---
-  - ask_diet_general       # Pregunta general sobre dieta/alimentación (ej. ¿qué es una dieta saludable?)
-  - ask_specific_food      # Preguntar sobre un alimento específico (ej. ¿es buena la avena?, calorías de la manzana)
-  - ask_meal_planning      # Preguntar sobre planificación de comidas (ej. ¿cómo planificar mis comidas?)
-  - ask_recipe_suggestion  # Pedir sugerencias de recetas
-  - ask_hydration          # Preguntar sobre hidratación (ej. ¿cuánta agua debo beber?)
-  - ask_macronutrients     # Preguntar sobre proteínas, carbohidratos, grasas
-  - ask_micronutrients     # Preguntar sobre vitaminas, minerales
-  - ask_food_restrictions  # Consultar sobre alergias o intolerancias
-  - ask_weight_gain        # Consultar sobre ganar peso de forma saludable
-  - ask_weight_loss        # Consultar sobre perder peso de forma saludable
-  - ask_healthy_snack      # Preguntar por snacks saludables
+slots:
+  macronutrient:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: macronutrient
 
-  # --- INTENTOS DE SALUD FÍSICA Y EJERCICIO ---
-  - ask_exercise_general   # Pregunta general sobre ejercicio (ej. ¿qué ejercicio es bueno para mí?)
-  - ask_workout_plan       # Pedir un plan de entrenamiento
-  - ask_muscle_group       # Preguntar sobre ejercicios para un grupo muscular (ej. abdominales, brazos)
-  - ask_cardio_benefits    # Preguntar sobre los beneficios del cardio
-  - ask_strength_training  # Preguntar sobre entrenamiento de fuerza
-  - ask_flexibility        # Preguntar sobre flexibilidad/estiramientos
-  - ask_injury_prevention  # Preguntar cómo prevenir lesiones
-  - ask_rest_recovery      # Preguntar sobre descanso y recuperación
-  - ask_physical_activity_recommendations # Recomendaciones de actividad física
-  - ask_warm_up_cool_down  # Preguntar sobre calentamiento y enfriamiento
+  muscle_group:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: muscle_group
 
-  # --- INTENTOS DE CAMBIOS FÍSICOS Y SEGUIMIENTO ---
-  - ask_body_composition   # Preguntar sobre composición corporal (grasa, músculo)
-  - ask_progress_tracking  # Preguntar cómo seguir el progreso (peso, medidas)
-  - ask_motivation_support # Pedir apoyo o motivación
-  - ask_goal_setting       # Preguntar cómo establecer metas
+  goal:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: goal
 
-  # --- INTENTOS DE FALLBACK Y MANEJO DE ERRORES ---
-  - out_of_scope           # Cuando el usuario pregunta algo totalmente fuera de tema
-  - nlu_fallback           # Para cuando el NLU no entiende el intent (verás esto en rules.yml)
+  # —— Slots del formulario de perfil ——
+  user_goal:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: nutrition_profile_form
+            requested_slot: user_goal
 
+  dietary_restrictions:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: nutrition_profile_form
+            requested_slot: dietary_restrictions
+
+  activity_level:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: nutrition_profile_form
+            requested_slot: activity_level
+
+  # —— BMI y recetas ——
+  weight_kg:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: custom
+
+  height_m:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: custom
+
+  recipe_type:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_text
+        intent:
+          - ask_meal_planning
+
+forms:
+  nutrition_profile_form:
+    required_slots:
+      - user_goal
+      - dietary_restrictions
+      - activity_level
 
 responses:
   utter_greet:
-    - text: "¡Hola! Soy tu asistente de bienestar. ¿En qué puedo ayudarte hoy?"
-    - text: "¡Saludos! Estoy aquí para apoyarte en nutrición, salud física y cambios. ¿Qué necesitas saber?"
+    - text: "¡Hola! Soy tu asistente de nutrición y cambios físicos. ¿En qué te ayudo hoy?"
   utter_goodbye:
-    - text: "¡Adiós! Que tengas un excelente día. Recuerda que cuidar tu bienestar es clave."
-    - text: "¡Hasta luego! Si tienes más preguntas, no dudes en volver."
-  utter_iamabot:
-    - text: "Soy un asistente de IA, diseñado para ayudarte con información sobre bienestar, nutrición y salud física."
+    - text: "¡Gracias por conversar! ¡Ánimo con tus objetivos! 👋"
   utter_thanks:
-    - text: "De nada, es un placer ayudarte."
-    - text: "Para eso estoy. ¡Me alegra poder ser útil!"
-
-  utter_introduce_bot:
-    - text: "Soy un asistente de bienestar especializado en nutrición, ejercicio y apoyo para tus metas físicas. Mi objetivo es proporcionarte información y consejos para un estilo de vida más saludable."
-  utter_ask_capabilities:
-    - text: "Puedo ofrecerte información sobre dietas saludables, beneficios de alimentos, planificación de comidas, rutinas de ejercicio, consejos para grupos musculares específicos, prevención de lesiones, cómo monitorear tu progreso y mucho más. ¿Sobre qué te gustaría hablar?"
-
-  # --- RESPUESTAS DE NUTRICIÓN (Ejemplos iniciales) ---
-  utter_ask_diet_general:
-    - text: "Una dieta saludable se basa en el equilibrio: consume una variedad de frutas, verduras, proteínas magras, granos integrales y grasas saludables. Limita los alimentos procesados, azúcares añadidos y grasas saturadas. ¿Te gustaría saber más sobre algún grupo de alimentos?"
-  utter_ask_hydration:
-    - text: "La hidratación es fundamental. Generalmente, se recomienda beber alrededor de 8 vasos (2 litros) de agua al día, pero esto puede variar según tu actividad física y el clima. ¡Mantente hidratado!"
-  utter_ask_weight_loss:
-    - text: "Para la pérdida de peso saludable, un déficit calórico moderado es clave, combinado con una dieta equilibrada y ejercicio regular. Es importante ser paciente y buscar un enfoque sostenible. ¿Quieres que te dé algunos consejos para empezar?"
-
-  # --- RESPUESTAS DE SALUD FÍSICA (Ejemplos iniciales) ---
-  utter_ask_exercise_general:
-    - text: "El ejercicio regular tiene muchos beneficios, desde mejorar la salud cardiovascular hasta fortalecer músculos y huesos. Lo ideal es combinar entrenamiento de fuerza, cardio y flexibilidad. ¿Hay algún tipo de ejercicio que te interese en particular?"
-  utter_ask_cardio_benefits:
-    - text: "El ejercicio cardiovascular fortalece tu corazón y pulmones, mejora la resistencia, ayuda a quemar calorías y reduce el riesgo de enfermedades crónicas. Caminar, correr, nadar o andar en bicicleta son excelentes opciones."
-  utter_ask_strength_training:
-    - text: "El entrenamiento de fuerza ayuda a construir masa muscular, fortalecer huesos, mejorar el metabolismo y prevenir lesiones. Puedes usar pesas, bandas de resistencia o tu propio peso corporal. ¿Te gustaría saber más sobre cómo empezar?"
-
-  # --- RESPUESTAS DE CAMBIOS FÍSICOS Y SEGUIMIENTO (Ejemplos iniciales) ---
-  utter_ask_progress_tracking:
-    - text: "Puedes rastrear tu progreso de varias maneras: pesándote regularmente (pero no obsesivamente), tomando medidas corporales, haciendo fotos de progreso, o registrando tus entrenamientos. Recuerda que el progreso no siempre es lineal."
-  utter_ask_motivation_support:
-    - text: "¡Entiendo! Mantener la motivación puede ser un desafío. Recuerda tus metas, celebra los pequeños logros, busca un compañero de entrenamiento o enfócate en cómo te sientes, no solo en cómo te ves. ¡Tú puedes!"
-
-  # --- RESPUESTAS DE FALLBACK Y MANEJO DE ERRORES ---
+    - text: "¡Con gusto! ¿Algo más en lo que te pueda apoyar?"
+  utter_iamabot:
+    - text: "Soy un asistente virtual diseñado para ayudarte con nutrición, ejercicio y bienestar."
+  utter_default:
+    - text: "Perdón, no entendí bien. ¿Puedes reformular tu pregunta con más detalles?"
   utter_out_of_scope:
-    - text: "Lo siento, mi especialidad es el bienestar, nutrición y salud física. No puedo ayudarte con eso. ¿Hay algo relacionado con estos temas en lo que pueda asistirte?"
-    - text: "Esa pregunta está fuera de mi área de conocimiento. Por favor, pregúntame algo sobre alimentación, ejercicio o tus metas de bienestar."
-  utter_default: # Esta respuesta se usará como fallback si NLU no entiende (ver rules.yml)
-    - text: "Lo siento, no te he entendido muy bien. ¿Podrías reformular tu pregunta o ser más específico sobre lo que necesitas en relación con el bienestar, nutrición o salud física?"
-    - text: "Uhm, no estoy seguro de cómo responder a eso. Recuerda que soy tu asistente de bienestar. ¿Quizás podrías preguntar de otra manera?"
+    - text: "Ese tema está fuera de mi alcance por ahora. Puedo ayudarte con nutrición, ejercicio y gestión emocional."
+  utter_ask_capabilities:
+    - text: "Puedo darte pautas de alimentación saludable, ideas de plan de comidas, rutinas de ejercicio, seguimiento de progreso y apoyo motivacional."
+  utter_ask_diet_general:
+    - text: "Una dieta saludable prioriza alimentos mínimamente procesados, verduras, frutas, legumbres, granos integrales, proteínas de calidad y grasas saludables. ¿Tienes algún objetivo específico?"
+  utter_ask_specific_food:
+    - text: "¿Qué alimento te interesa? Si quieres, dime si lo consultas por calorías, proteínas o beneficios."
+  utter_ask_meal_planning:
+    - text: "Para planificar: define objetivo, calorías aproximadas, 3-4 comidas + 1-2 snacks, lista de compras y batch cooking semanal."
+  utter_ask_hydration:
+    - text: "Una recomendación general es ~30–35 ml/kg/día, ajustando por clima y actividad. ¿Haces ejercicio frecuente?"
+  utter_ask_weight_loss:
+    - text: "Para perder grasa: déficit calórico moderado, proteína adecuada, fuerza + cardio, y sueño. ¿Quieres calcular un menú base?"
+  utter_ask_exercise_general:
+    - text: "Empieza con 2–3 días de fuerza + 2 de cardio suave. Progresión gradual. ¿Entrenas en casa o gimnasio?"
+  utter_ask_cardio_benefits:
+    - text: "El cardio mejora salud cardiovascular, quema calorías y ayuda a la recuperación. 90–150 min/semana es un buen rango para empezar."
+  utter_ask_strength_training:
+    - text: "La fuerza ayuda a ganar/retener músculo, mejorar metabolismo y postura. 2–4 sesiones/semana por grupos musculares."
+  utter_ask_motivation_support:
+    - text: "Piensa en objetivos SMART y registra tus avances (mediciones, fotos). ¿Qué te cuesta más mantener?"
+  utter_express_sadness:
+    - text: "Siento que te sientas así. Podemos avanzar con pasos pequeños y realistas. Estoy aquí para ayudarte."
+  utter_express_anxiety:
+    - text: "La ansiedad es difícil. Respiremos 4-4-8 y enfoquémonos en acciones pequeñas que controlas hoy."
+  utter_express_anger:
+    - text: "Entiendo la frustración. Canalizar en movimiento suave o una pausa breve puede ayudar."
+  utter_express_happiness:
+    - text: "¡Qué bueno! Aprovechemos esa energía para consolidar hábitos."
+  utter_ask_emotional_support:
+    - text: "Estoy contigo. ¿Quieres que revisemos gatillantes y hagamos un plan breve para hoy?"
+  utter_ask_stress_management:
+    - text: "Prueba respiración diafragmática 5 min, pausa activa y límites de horarios. ¿Te dejo una rutina breve?"
+  utter_ask_emotional_eating:
+    - text: "Identifiquemos si es hambre física o emocional. Propón una alternativa: té, paseo corto, snack rico en proteína."
+  utter_ask_healthy_snacks:
+    - text: "Ideas: yogur + fruta, frutos secos + pasas, huevo cocido, hummus + zanahoria, avena con leche, sándwich integral de pavo."
+  # Form messages
+  utter_ask_nutrition_profile_form_user_goal:
+    - text: "¿Cuál es tu objetivo principal? (p. ej., perder grasa, ganar músculo, rendimiento)"
+  utter_ask_nutrition_profile_form_dietary_restrictions:
+    - text: "¿Tienes restricciones o preferencias? (p. ej., vegetariano, sin lactosa, alergias)"
+  utter_ask_nutrition_profile_form_activity_level:
+    - text: "¿Cuál es tu nivel de actividad? (sedentario, ligero, moderado, alto)"
+  utter_submit_nutrition_profile_form:
+    - text: "¡Genial! Con eso puedo proponerte pautas personalizadas. ¿Quieres un plan semanal base?"
+
+actions:
+  - action_answer_specific_food
+  - action_propose_meal_plan
+  - action_propose_workout
+  - action_track_progress_tip
+  - action_calculate_bmi
+  - action_provide_recipe
+  - action_fallback_to_gemini
 
 session_config:
   session_expiration_time: 60

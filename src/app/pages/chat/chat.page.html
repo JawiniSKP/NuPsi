@@ -1,52 +1,74 @@
-<!-- src/app/pages/chat/chat.page.html -->
-
 <ion-header [translucent]="true">
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
-      <!-- Un botón de retroceso si la página de chat no es la raíz -->
-      <!-- Puedes cambiar 'back' por una ruta específica si es necesario -->
       <ion-back-button defaultHref="/home"></ion-back-button>
     </ion-buttons>
-    <ion-title>Aura, tu asistente de bienestar</ion-title>
+    <ion-title>
+      <div class="header-info">
+        <span class="header-name">Aura</span>
+        <span class="header-status">Tu asistente de bienestar</span>
+      </div>
+    </ion-title>
     <ion-buttons slot="end">
-      <!-- Puedes añadir un botón para más opciones, ajustes, etc. -->
-      <ion-button><ion-icon slot="icon-only" name="ellipsis-vertical"></ion-icon></ion-button>
+      <ion-button>
+        <ion-icon slot="icon-only" name="ellipsis-vertical"></ion-icon>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="ion-padding custom-background">
-  <!-- Contenedor principal de mensajes para aplicar estilos de burbuja y espaciado -->
-  <div class="message-container">
-    <div
-      *ngFor="let msg of messages"
-      [class.user-message]="msg.sender === 'user'"
-      [class.bot-message]="msg.sender === 'bot'"
-      class="chat-bubble"
-    >
-      <ion-avatar *ngIf="msg.sender === 'bot'" class="bot-avatar">
-        <!-- Ícono o imagen para el avatar del bot -->
-        <img alt="Bot Avatar" src="assets/icon/bot-icon.png" />
-      </ion-avatar>
-      <div class="message-content">
-        <p [innerHTML]="msg.text"></p>
-        <!-- Puedes añadir un timestamp aquí si lo deseas -->
-        <!-- <span class="message-time">{{ 'Ahora' }}</span> -->
+<ion-content [fullscreen]="true" #content>
+  <div class="messages-container">
+    <!-- Agrupar mensajes por día -->
+    <div *ngFor="let group of groupedMessages" class="message-date-group">
+      <!-- Separador de fecha -->
+      <div class="date-separator" *ngIf="group.date">
+        <span>{{ group.date }}</span>
       </div>
-      <ion-avatar *ngIf="msg.sender === 'user'" class="user-avatar">
-        <!-- Ícono o imagen para el avatar del usuario -->
-        <img alt="User Avatar" src="assets/icon/user-icon.png" />
-      </ion-avatar>
+
+      <!-- Mensajes del día -->
+      <div *ngFor="let cluster of group.clusters" class="message-cluster">
+        <div class="message-row" 
+             [class.user-row]="cluster.sender === 'user'"
+             [class.bot-row]="cluster.sender === 'bot'">
+          
+          <!-- Avatar (solo en el primer mensaje del cluster) -->
+          <ion-avatar *ngIf="cluster.sender === 'bot'" class="message-avatar">
+            <img src="assets/icon/bot_aura.png" alt="Aura" />
+          </ion-avatar>
+          
+          <!-- Burbujas del cluster -->
+          <div class="bubble-group">
+            <div *ngFor="let msg of cluster.messages; let last = last" 
+                 class="message-bubble"
+                 [class.bubble-first]="msg.isFirst"
+                 [class.bubble-last]="last"
+                 [class.user-bubble]="cluster.sender === 'user'"
+                 [class.bot-bubble]="cluster.sender === 'bot'">
+              <p class="message-text">{{ msg.text }}</p>
+            </div>
+            <!-- Timestamp (solo en el último mensaje) -->
+            <span class="message-timestamp">{{ cluster.timestamp }}</span>
+          </div>
+
+          <!-- Avatar usuario (invisible pero mantiene espacio) -->
+          <div *ngIf="cluster.sender === 'user'" class="message-avatar-spacer"></div>
+        </div>
+      </div>
     </div>
 
-    <!-- Indicador de "escribiendo..." del bot -->
-    <div *ngIf="botIsTyping" class="bot-message chat-bubble typing-indicator">
-      <ion-avatar class="bot-avatar">
-        <img alt="Bot Avatar" src="assets/icon/bot-icon.png" />
-      </ion-avatar>
-      <div class="message-content">
-        <div class="typing-dots">
-          <span>.</span><span>.</span><span>.</span>
+    <!-- Indicador de escritura -->
+    <div *ngIf="botIsTyping" class="typing-indicator-container">
+      <div class="message-row bot-row">
+        <ion-avatar class="message-avatar">
+          <img src="assets/icon/bot_aura.png" alt="Aura" />
+        </ion-avatar>
+        <div class="typing-bubble">
+          <div class="typing-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
         </div>
       </div>
     </div>
@@ -55,17 +77,25 @@
 
 <ion-footer>
   <ion-toolbar class="input-toolbar">
-    <ion-item lines="none" class="message-input-item">
-      <ion-input
+    <div class="input-container">
+      <ion-textarea
         [(ngModel)]="newMessage"
-        placeholder="Escribe tu mensaje..."
-        (keyup.enter)="sendMessage()"
-        [clearOnEdit]="false"
+        placeholder="¡Escribe tu pregunta aqui!"
+        [autoGrow]="true"
+        [rows]="1"
+        [maxlength]="1000"
         class="message-input"
-      ></ion-input>
-      <ion-button slot="end" (click)="sendMessage()" [disabled]="!newMessage.trim()" class="send-button">
-        <ion-icon slot="icon-only" name="paper-plane"></ion-icon>
+        (keyup.enter)="handleEnter($event)">
+      </ion-textarea>
+      
+      <ion-button 
+        (click)="sendMessage()" 
+        [disabled]="!newMessage.trim()"
+        class="send-button"
+        shape="round"
+        fill="clear">
+        <ion-icon name="arrow-up-circle" slot="icon-only"></ion-icon>
       </ion-button>
-    </ion-item>
+    </div>
   </ion-toolbar>
 </ion-footer>
