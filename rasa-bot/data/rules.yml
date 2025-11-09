@@ -1,43 +1,37 @@
-version: "3.1"
+language: es
+# recipe: default.v1 # Puedes descomentar esto cuando actualices a Rasa 4.x
 
-rules:
-  # ——— Reglas básicas ———
-  - rule: despedida
-    steps:
-      - intent: goodbye
-      - action: utter_goodbye
+pipeline:
+  - name: WhitespaceTokenizer
+  - name: RegexFeaturizer
+  - name: LexicalSyntacticFeaturizer
+  - name: CountVectorsFeaturizer
+  - name: CountVectorsFeaturizer
+    analyzer: "char_wb"
+    min_ngram: 1
+    max_ngram: 4
+  - name: DIETClassifier
+    epochs: 100
+    constrain_similarities: true
+  - name: EntitySynonymMapper
+  - name: ResponseSelector # Mantenido si quieres intents de recuperación (FAQ)
+    epochs: 100
+    retrieval_intent: "faq" # Asegúrate de tener ejemplos para un intent 'faq' si lo usas
+    constrain_similarities: true
+  # FallbackClassifier ya no es necesario si RulePolicy con nlu_fallback_threshold lo gestiona
+  # - name: FallbackClassifier
+  #   threshold: 0.3
+  #   ambiguity_threshold: 0.1
 
-  - rule: identidad del bot
-    steps:
-      - intent: bot_challenge
-      - action: utter_iamabot
+policies:
+  - name: MemoizationPolicy
+  - name: TEDPolicy
+    epochs: 50
+    constrain_similarities: true
+  - name: RulePolicy
+    core_fallback_threshold: 0.3
+    nlu_fallback_threshold: 0.3 # Umbral para activar el fallback cuando NLU no entiende
+    fallback_action_name: "action_fallback_to_gemini" # La acción que se ejecuta como fallback NLU
 
-  # ——— Formulario de perfil de nutrición ———
-  - rule: activar formulario perfil nutrición
-    steps:
-      - intent: ask_meal_planning
-      - action: nutrition_profile_form
-      - active_loop: nutrition_profile_form
-
-  - rule: enviar formulario perfil nutrición
-    condition:
-    - active_loop: nutrition_profile_form
-    steps:
-    - action: nutrition_profile_form
-    - active_loop: null
-    - action: utter_submit_nutrition_profile_form
-    - action: action_propose_meal_plan
-
-
-  # ——— Fallback (elige UNA estrategia) ———
-  # Opción A: Fallback con Gemini (si tienes action_fallback_to_gemini en actions.py y declarada en domain.yml)
-  - rule: fallback con gemini
-    steps:
-      - intent: nlu_fallback
-      - action: action_fallback_to_gemini
-
-  # Opción B: Fallback simple (si NO usarás Gemini, comenta la regla de arriba y descomenta esta)
-  # - rule: fallback simple
-  #   steps:
-  #     - intent: nlu_fallback
-  #     - action: utter_default
+  # UnexpecTednessEnforcer fue eliminado o comentado previamente.
+  # assistant_id: 20251108-210837-national-cockatoo # Asegúrate de que solo haya uno

@@ -3,36 +3,28 @@
 language: es
 
 pipeline:
-  - name: WhitespaceTokenizer
-  - name: RegexFeaturizer
-  - name: LexicalSyntacticFeaturizer
-  - name: CountVectorsFeaturizer
-  - name: CountVectorsFeaturizer
-    analyzer: "char_wb"
-    min_ngram: 1
-    max_ngram: 4
-  - name: DIETClassifier
-    epochs: 100
-    constrain_similarities: true
-  - name: EntitySynonymMapper
+- name: WhitespaceTokenizer
+- name: RegexFeaturizer
+- name: LexicalSyntacticFeaturizer
+- name: CountVectorsFeaturizer
+- name: CountVectorsFeaturizer
+  analyzer: "char_wb"
+  min_ngram: 1
+  max_ngram: 4
+- name: DIETClassifier
+  epochs: 100
+  constrain_similarities: true
+- name: EntitySynonymMapper
 
 policies:
-  - name: MemoizationPolicy
-  - name: TEDPolicy
-    epochs: 50
-    constrain_similarities: true
-  - name: RulePolicy
-    core_fallback_threshold: 0.3
-    nlu_fallback_threshold: 0.3
-    # ¡IMPORTANTE! Hemos cambiado la acción de fallback aquí
-    # para usar la acción personalizada que llama a Gemini.
-    # Asegúrate de que el nombre "action_fallback_to_gemini" coincida
-    # exactamente con el nombre de la clase 'name' en tu actions.py
-    fallback_action_name: "action_fallback_to_gemini"
+- name: MemoizationPolicy
+- name: TEDPolicy
+  epochs: 50
+  constrain_similarities: true
+- name: RulePolicy
+  core_fallback_threshold: 0.3
+  nlu_fallback_threshold: 0.3
+  fallback_action_name: "action_fallback_to_gemini"
 
-# Si tienes un assistant_id, déjalo aquí
-# Rasa 3.x no usa assistant_id en config.yml por defecto,
-# pero si es parte de una configuración específica tuya, lo mantengo.
-# Por lo general, este ID se genera al entrenar y se almacena en los metadatos del modelo.
-# Si te da problemas, podrías intentar eliminar esta línea, ya que no es un parámetro estándar de config.yml.
-assistant_id: 20251106-194911-radial-download
+  assistant_id: 20251106-194911-radial-download
+assistant_id: 20251108-210837-national-cockatoo

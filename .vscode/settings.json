@@ -1,8 +1,17 @@
 {
+  // --- TypeScript / Ionic (esto está bien) ---
   "typescript.preferences.autoImportFileExcludePatterns": [
     "@ionic/angular/common",
     "@ionic/angular"
   ],
-  "python-envs.defaultEnvManager": "ms-python.python:system",
-  "python-envs.pythonProjects": []
+
+  // --- Python: usa SIEMPRE el venv local del workspace ---
+  "python.defaultInterpreterPath": ".venv/Scripts/python.exe",
+
+  // Limpio / opcional
+  "python.analysis.extraPaths": [],
+  "python-envs.pythonProjects": [],
+
+  // Asegúrate de que ESTE NO exista o esté en "workspace"
+  // "python-envs.defaultEnvManager": "workspace"
 }

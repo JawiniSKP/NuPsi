@@ -1,7 +1,59 @@
-# data/nlu.yml
-
 version: "3.1"
+
 nlu:
+
+  # --- Intent para activar Gemini ---
+  - intent: open_chat
+    examples: |
+      - quiero hablar con gemini
+      - activar gemini
+      - chatear con la ia
+      - preguntarle algo a gemini
+      - necesito una respuesta avanzada
+      - hablar con tu cerebro avanzado
+      - iniciar chat avanzado
+      - quiero usar la inteligencia artificial
+      - cambia a modo avanzado
+      - puedes responder esto?
+      - quiero que me ayudes con algo complejo
+      - háblame de algo que no sepa
+      - cerebro avanzado
+
+  # --- Intent para salir del chat con Gemini ---
+  - intent: stop_chat
+    examples: |
+      - salir del chat
+      - terminar chat
+      - basta de gemini
+      - volver a lo normal
+      - no más ia
+      - cancelar gemini
+      - volver a mis funciones
+      - desconectar ia
+      - desactiva gemini
+      - quiero mi bot normal
+      - modo normal
+
+  # --- Intent para preguntar directamente a Gemini (cuando ya está activo o con una pregunta específica) ---
+  - intent: ask_gemini
+    examples: |
+      - ¿Qué es la inteligencia artificial?
+      - Cuéntame un chiste
+      - Explica el teorema de Pitágoras
+      - Hazme una pregunta
+      - Necesito información sobre el universo
+      - Cuál es la capital de Francia
+      - dame el número de la suerte
+      - cuánto es 2 + 2
+
+  # --- Este intent capturará cualquier texto cuando Gemini esté activo, si no coincide con otro intent ---
+  - intent: free_text
+    examples: |
+      - cualquier cosa que el usuario escriba
+      - texto libre
+      - algo mas
+      - blah blah blah
+
   - intent: greet
     examples: |
       - hola
@@ -189,8 +241,8 @@ nlu:
       - cuál es la mejor serie
       - dame el número de la suerte
       - cuéntame un chiste
-      - cuánto es 2 + 2
       - dónde puedo comprar ropa
+      - esto no es para ti
 
 # --- APOYO EMOCIONAL ---
   - intent: express_sadness
@@ -303,4 +355,3 @@ nlu:
       - bíceps
       - tríceps
       - abdomen
-

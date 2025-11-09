@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 /**
@@ -10,6 +10,9 @@ import { Observable } from 'rxjs';
 export interface RasaResponse {
   recipient_id: string;
   text?: string;
+  image?: string; // Si Rasa envía imágenes
+  buttons?: any[]; // Si Rasa envía botones
+  custom?: any; // Para respuestas personalizadas
   // Aquí podrías agregar otras propiedades como buttons, image, etc.
   // buttons?: { title: string; payload: string; }[];
 }
@@ -34,7 +37,7 @@ export class ChatService {
    * @param message El mensaje de texto del usuario.
    * @returns Un Observable que emite un array de respuestas de Rasa.
    */
-  public sendMessage(message: string): Observable<RasaResponse[]> {
+  public sendMessage(message: string, sender: string = 'user'): Observable<RasaResponse[]> {
     
     // El cuerpo de la petición (payload) que Rasa espera.
     const body = {

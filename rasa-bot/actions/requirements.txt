@@ -1,1 +1,6 @@
-rasa-sdk~=3.6.0
+rasa-sdk~=3.6.0c
+openai>=1.0.0
+google-generativeai # <--- ¡Añade esta línea!
+python-dotenv # Si aún no la tienes para cargar .env
+
+  

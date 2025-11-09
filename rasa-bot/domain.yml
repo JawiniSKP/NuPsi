@@ -31,6 +31,10 @@ intents:
   - ask_emotional_eating
   - ask_healthy_snacks
   - nlu_fallback
+  - ask_gemini  # Cambiado de ask_chatgpt a un nombre más genérico para Gemini
+  - open_chat # Intent para activar el modo Gemini
+  - stop_chat # Intent para salir del modo Gemini
+  - free_text # Un intent genérico para cuando Gemini está activo y no es un intent estándar
 
 entities:
   - macronutrient
@@ -58,6 +62,13 @@ slots:
     mappings:
       - type: from_entity
         entity: goal
+
+  gemini_active: # Nuevo slot para controlar el estado de Gemini
+    type: bool
+    initial_value: false
+    influence_conversation: false
+    mappings:
+      - type: custom
 
   # —— Slots del formulario de perfil ——
   user_goal:
@@ -164,6 +175,8 @@ responses:
     - text: "Identifiquemos si es hambre física o emocional. Propón una alternativa: té, paseo corto, snack rico en proteína."
   utter_ask_healthy_snacks:
     - text: "Ideas: yogur + fruta, frutos secos + pasas, huevo cocido, hummus + zanahoria, avena con leche, sándwich integral de pavo."
+  utter_ask_workout_plan:
+    - text: "¿Buscas entrenar en casa o gimnasio? ¿Cuántos días por semana puedes entrenar?"
   # Form messages
   utter_ask_nutrition_profile_form_user_goal:
     - text: "¿Cuál es tu objetivo principal? (p. ej., perder grasa, ganar músculo, rendimiento)"
@@ -173,6 +186,10 @@ responses:
     - text: "¿Cuál es tu nivel de actividad? (sedentario, ligero, moderado, alto)"
   utter_submit_nutrition_profile_form:
     - text: "¡Genial! Con eso puedo proponerte pautas personalizadas. ¿Quieres un plan semanal base?"
+  utter_activate_gemini_mode:
+    - text: "¡Has activado el modo avanzado con Gemini! Pregúntame lo que quieras."
+  utter_deactivate_gemini_mode:
+    - text: "Volviendo al modo normal del asistente."
 
 actions:
   - action_answer_specific_food
@@ -182,6 +199,9 @@ actions:
   - action_calculate_bmi
   - action_provide_recipe
   - action_fallback_to_gemini
+  - action_call_gemini_chat
+  - action_toggle_gemini_mode # Nueva acción para activar el slot
+  - action_stop_gemini_mode # Nueva acción para desactivar el slot
 
 session_config:
   session_expiration_time: 60
