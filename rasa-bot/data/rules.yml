@@ -1,37 +1,32 @@
-language: es
-# recipe: default.v1 # Puedes descomentar esto cuando actualices a Rasa 4.x
+version: "3.1"
 
-pipeline:
-  - name: WhitespaceTokenizer
-  - name: RegexFeaturizer
-  - name: LexicalSyntacticFeaturizer
-  - name: CountVectorsFeaturizer
-  - name: CountVectorsFeaturizer
-    analyzer: "char_wb"
-    min_ngram: 1
-    max_ngram: 4
-  - name: DIETClassifier
-    epochs: 100
-    constrain_similarities: true
-  - name: EntitySynonymMapper
-  - name: ResponseSelector # Mantenido si quieres intents de recuperación (FAQ)
-    epochs: 100
-    retrieval_intent: "faq" # Asegúrate de tener ejemplos para un intent 'faq' si lo usas
-    constrain_similarities: true
-  # FallbackClassifier ya no es necesario si RulePolicy con nlu_fallback_threshold lo gestiona
-  # - name: FallbackClassifier
-  #   threshold: 0.3
-  #   ambiguity_threshold: 0.1
+rules:
 
-policies:
-  - name: MemoizationPolicy
-  - name: TEDPolicy
-    epochs: 50
-    constrain_similarities: true
-  - name: RulePolicy
-    core_fallback_threshold: 0.3
-    nlu_fallback_threshold: 0.3 # Umbral para activar el fallback cuando NLU no entiende
-    fallback_action_name: "action_fallback_to_gemini" # La acción que se ejecuta como fallback NLU
+- rule: Responder pregunta directa con Gemini
+  steps:
+  - intent: ask_gemini
+  - action: action_call_gemini_chat
 
-  # UnexpecTednessEnforcer fue eliminado o comentado previamente.
-  # assistant_id: 20251108-210837-national-cockatoo # Asegúrate de que solo haya uno
+- rule: Activar modo Gemini
+  steps:
+  - intent: open_chat
+  - action: action_toggle_gemini_mode
+  - action: utter_activate_gemini_mode    # CORREGIDO
+
+- rule: Desactivar modo Gemini
+  steps:
+  - intent: stop_chat
+  - action: action_stop_gemini_mode
+  - action: utter_deactivate_gemini_mode    # CORREGIDO
+
+# La regla de fallback ya no es necesaria aquí, se maneja en config.yml
+
+- rule: Decir adiós cuando el usuario se despide
+  steps:
+  - intent: goodbye
+  - action: utter_goodbye
+
+- rule: Responder al desafío de ser un bot
+  steps:
+  - intent: bot_challenge
+  - action: utter_iamabot

@@ -34,7 +34,7 @@ nlu:
       - quiero mi bot normal
       - modo normal
 
-  # --- Intent para preguntar directamente a Gemini (cuando ya está activo o con una pregunta específica) ---
+  # --- Intent para preguntar directamente a Gemini ---
   - intent: ask_gemini
     examples: |
       - ¿Qué es la inteligencia artificial?
@@ -45,14 +45,10 @@ nlu:
       - Cuál es la capital de Francia
       - dame el número de la suerte
       - cuánto es 2 + 2
-
-  # --- Este intent capturará cualquier texto cuando Gemini esté activo, si no coincide con otro intent ---
-  - intent: free_text
-    examples: |
-      - cualquier cosa que el usuario escriba
-      - texto libre
-      - algo mas
-      - blah blah blah
+      - qué tiempo hace hoy
+      - háblame de política
+      - cuál es la mejor serie
+      - dónde puedo comprar ropa
 
   - intent: greet
     examples: |
@@ -235,16 +231,13 @@ nlu:
 
   - intent: out_of_scope
     examples: |
-      - cuál es la capital de Francia
-      - qué tiempo hace hoy
-      - háblame de política
-      - cuál es la mejor serie
-      - dame el número de la suerte
-      - cuéntame un chiste
-      - dónde puedo comprar ropa
-      - esto no es para ti
+      - puedes reservarme un vuelo?
+      - haz mis deberes de la universidad
+      - cuál es tu opinión sobre temas controvertidos
+      - dame un diagnóstico médico
+      - esto no tiene que ver contigo
 
-# --- APOYO EMOCIONAL ---
+  # --- APOYO EMOCIONAL ---
   - intent: express_sadness
     examples: |
       - me siento triste
