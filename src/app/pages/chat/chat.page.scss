@@ -1,0 +1,383 @@
+// Burbujas
+$bubble-padding: 12px 16px;
+$bubble-border-radius: 20px;
+$bubble-tail-radius: 4px;
+$bubble-max-width: 75%;
+$bubble-min-width: 60px;
+
+// Avatares
+$avatar-size: 32px;
+$avatar-margin: 8px;
+
+// Espaciado
+$message-gap: 4px;              // Entre mensajes del mismo remitente
+$sender-group-gap: 16px;        // Entre grupos de diferentes remitentes
+$content-padding: 12px;
+
+// Input
+$input-height: 44px;
+$input-padding: 8px 12px;
+$send-button-size: 36px;
+
+// ============================================
+// VARIABLES
+// ============================================
+
+$chat-bg: #E0F7FA;
+$user-bubble: #0288D1;
+$bot-bubble:  #FFFFFF;
+$bot-bubble-border: #0288D1;
+$text-white: #263238;
+$text-light: #607D8B;         
+$input-bg: #FFFFFF;
+$border-color: #B3E5FC;         // Bordes celestes
+$primary-color: #0288D1;        // Color primario (azul)
+
+// ============================================
+// HEADER
+// ============================================
+
+ion-header {
+  ion-toolbar {
+    --background: var(--ion-color-primary);
+    
+    .header-info {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.2;
+      
+      .header-name {
+        font-size: 16px;
+        font-weight: 600;
+      }
+      
+      .header-status {
+        font-size: 11px;
+        opacity: 0.8;
+      }
+    }
+  }
+}
+
+// ============================================
+// CONTENT
+// ============================================
+
+ion-content {
+  --background: #{$chat-bg};
+  
+  .messages-container {
+    padding: 16px 12px 80px 12px;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+// ============================================
+// SEPARADOR DE FECHA
+// ============================================
+
+.date-separator {
+  text-align: center;
+  margin: 24px 0 16px 0;
+  
+  span {
+    background: rgba(255, 255, 255, 0.1);
+    color: $text-light;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+//.bot-emoji {
+//  width: 32px;
+//  height: 32px;
+/// align-items: center;
+ // justify-content: center;
+ // font-size: 20px;
+ // background: #E3F2FD;
+ // border-radius: 50%;
+
+
+// ============================================
+// CLUSTERS DE MENSAJES
+// ============================================
+
+.message-date-group {
+  margin-bottom: 8px;
+}
+
+.message-cluster {
+  margin-bottom: 16px;
+}
+
+.message-row {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 2px;
+  
+  &.user-row {
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+  }
+  
+  &.bot-row {
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+}
+
+// ============================================
+// AVATARES
+// ============================================
+
+.message-avatar {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  margin: 0 8px 4px 8px;
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.message-avatar-spacer {
+  width: 32px;
+  min-width: 32px;
+  margin: 0 8px;
+}
+
+// ============================================
+// BURBUJAS DE MENSAJES
+// ============================================
+
+.bubble-group {
+  display: flex;
+  flex-direction: column;
+  max-width: 75%;
+  gap: 2px;
+}
+
+.message-bubble {
+  padding: 10px 14px;
+  word-wrap: break-word;
+  word-break: break-word;
+  animation: bubbleIn 0.2s ease-out;
+  position: relative;
+  
+  .message-text {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.4;
+    color: $text-white;
+  }
+}
+
+// Burbujas de usuario (azul, derecha)
+.user-bubble {
+  background: $user-bubble;
+  border-radius: 20px;
+  align-self: flex-end;
+  
+  &.bubble-first {
+    border-top-right-radius: 20px;
+  }
+  
+  &.bubble-last {
+    border-bottom-right-radius: 4px;
+  }
+  
+  &:not(.bubble-first):not(.bubble-last) {
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+  }
+}
+
+// Burbujas del bot 
+.bot-bubble {
+  background: $bot-bubble;
+  border: 1px solid $bot-bubble-border;
+  border-radius: 20px;
+
+  align-self: flex-start;
+  
+  &.bubble-first {
+    border-top-left-radius: 20px;
+  }
+  
+  &.bubble-last {
+    border-bottom-left-radius: 4px;
+  }
+  
+  &:not(.bubble-first):not(.bubble-last) {
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+  }
+}
+
+// ============================================
+// TIMESTAMP
+// ============================================
+
+.message-timestamp {
+  font-size: 11px;
+  color: $text-light;
+  margin-top: 4px;
+  padding: 0 12px;
+  display: block;
+  
+  .user-row & {
+    text-align: right;
+  }
+  
+  .bot-row & {
+    text-align: left;
+  }
+}
+
+// ============================================
+// INDICADOR DE ESCRITURA
+// ============================================
+
+.typing-indicator-container {
+  margin-bottom: 16px;
+}
+
+.typing-bubble {
+  background: $bot-bubble;
+  border-radius: 20px;
+  padding: 10px 16px;
+  display: inline-block;
+}
+
+.typing-dots {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 20px;
+  
+  span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: $text-light;
+    animation: typingDot 1.4s infinite ease-in-out;
+    
+    &:nth-child(1) { animation-delay: 0s; }
+    &:nth-child(2) { animation-delay: 0.2s; }
+    &:nth-child(3) { animation-delay: 0.4s; }
+  }
+}
+
+@keyframes typingDot {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
+}
+
+// ============================================
+// FOOTER E INPUT
+// ============================================
+
+ion-footer {
+  box-shadow: 0 -1px 0 $border-color;
+  
+  .input-toolbar {
+    --background: #{$chat-bg};
+    --padding-top: 8px;
+    --padding-bottom: 8px;
+    --padding-start: 8px;
+    --padding-end: 8px;
+    --min-height: auto;
+  }
+  
+  .input-container {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    background: $input-bg;
+    border-radius: 24px;
+    padding: 6px 6px 6px 16px;
+    border: 1px solid $border-color;
+  }
+  
+  .message-input {
+    flex: 1;
+    --background: transparent;
+    --color: #{$text-white};
+    --placeholder-color: #{$text-light};
+    --placeholder-opacity: 1;
+    --padding-start: 0;
+    --padding-end: 0;
+    --padding-top: 8px;
+    --padding-bottom: 8px;
+    font-size: 16px;
+    max-height: 100px;
+  }
+  
+  .send-button {
+    --background: transparent;
+    --color: #{$primary-color};
+    width: 36px;
+    height: 36px;
+    margin: 0;
+    
+    &[disabled] {
+      --color: #{$text-light};
+      opacity: 0.5;
+    }
+    
+    ion-icon {
+      font-size: 32px;
+    }
+  }
+}
+
+// ============================================
+// ANIMACIONES
+// ============================================
+
+@keyframes bubbleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+// ============================================
+// SAFE AREA (iOS)
+// ============================================
+
+.ios ion-footer {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+// ============================================
+// SCROLL BAR (Opcional, ocultar en móvil)
+// ============================================
+
+ion-content::part(scroll) {
+  scrollbar-width: none;
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
