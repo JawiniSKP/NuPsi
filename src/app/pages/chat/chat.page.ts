@@ -10,6 +10,8 @@ import { ChatService } from './chat.service';
 import { addIcons } from 'ionicons';
 import { 
   arrowUpCircle, ellipsisVertical, chatbubbles } from 'ionicons/icons';
+// ¡¡¡ ESTE ES EL IMPORT CLAVE QUE FALTABA !!!
+import { MarkdownComponent } from "ngx-markdown"; // <-- Importa el componente Markdown
 
 interface Message {
   id: string;
@@ -48,7 +50,9 @@ interface MessageDateGroup {
     IonButton,
     IonIcon,
     IonFooter,
-    IonTextarea
+    IonTextarea,
+    // ¡¡¡ AÑADE MarkdownComponent AQUÍ !!!
+    MarkdownComponent // <-- Añade el componente Markdown a los imports
   ]
 })
 export class ChatPage implements OnInit {
@@ -81,12 +85,10 @@ export class ChatPage implements OnInit {
     const text = this.newMessage.trim();
     if (!text) return;
 
-    // Agregar mensaje del usuario
     this.addMessage('user', text);
     this.newMessage = '';
     this.scrollToBottom(100);
 
-    // Simular respuesta del bot
     this.botIsTyping = true;
     
     this.chatService.sendMessage(text).subscribe({
@@ -128,23 +130,19 @@ export class ChatPage implements OnInit {
     this.messages.forEach((msg) => {
       const dateStr = this.formatDate(msg.timestamp);
       
-      // Buscar o crear grupo de fecha
       let dateGroup = groups.find(g => g.date === dateStr);
       if (!dateGroup) {
         dateGroup = { date: dateStr, clusters: [] };
         groups.push(dateGroup);
       }
       
-      // Buscar o crear cluster
       const lastCluster = dateGroup.clusters[dateGroup.clusters.length - 1];
       
       if (lastCluster && lastCluster.sender === msg.sender) {
-        // Agregar al cluster existente
         msg.isFirst = lastCluster.messages.length === 0;
         lastCluster.messages.push(msg);
         lastCluster.timestamp = this.formatTime(msg.timestamp);
       } else {
-        // Crear nuevo cluster
         msg.isFirst = true;
         dateGroup.clusters.push({
           sender: msg.sender,

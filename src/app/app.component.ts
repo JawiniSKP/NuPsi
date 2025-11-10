@@ -46,9 +46,8 @@ import { MenuComponent } from './components/menu/menu.component';
   standalone: true,
   imports: [
     IonicModule,
-    RouterModule,
-    MenuComponent
-  ]
+    RouterModule
+]
 })
 export class AppComponent implements OnInit {
   // ✅ CORRECTO: Inyección de dependencias al inicio

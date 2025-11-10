@@ -9,6 +9,9 @@ import { environment } from '../environments/environment';
 import { addIcons } from 'ionicons';
 import { provideHttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+// No necesitas importar HttpClientModule y MarkdownModule aquí si los provees con `importProvidersFrom`
+// import { HttpClientModule } from '@angular/common/http';
+import { MarkdownModule } from 'ngx-markdown'; // <-- Importa esto
 
 import { 
   // Iconos existentes
@@ -56,7 +59,9 @@ export const appConfig: ApplicationConfig = {
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
-    provideHttpClient(), // 👈 habilita HttpClient
-    importProvidersFrom(FormsModule) // 👈 habilita FormsModule
+    provideHttpClient(), // Habilita HttpClient para toda la app
+    importProvidersFrom(FormsModule), // Habilita FormsModule para toda la app
+    importProvidersFrom(MarkdownModule.forRoot()), // <-- AÑADE ESTO para MarkdownModule
+    importProvidersFrom(MarkdownModule.forRoot())
   ]
 };
