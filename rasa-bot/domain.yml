@@ -3,12 +3,13 @@ version: "3.1"
 intents:
   - greet
   - goodbye
+  - thanks
   - affirm
   - deny
-  - thanks
   - bot_challenge
   - introduce_bot
   - ask_capabilities
+  # Dominio nutrición / fitness / bienestar
   - ask_diet_general
   - ask_specific_food
   - ask_meal_planning
@@ -20,7 +21,7 @@ intents:
   - ask_cardio_benefits
   - ask_strength_training
   - ask_progress_tracking
-  - ask_motivation_support
+  - ask_motivation_support # <-- Asegúrate de que este intent esté aquí
   - out_of_scope
   - express_sadness
   - express_anxiety
@@ -30,11 +31,13 @@ intents:
   - ask_stress_management
   - ask_emotional_eating
   - ask_healthy_snacks
+  # Fallback + modo avanzado
   - nlu_fallback
-  - ask_gemini  # Cambiado de ask_chatgpt a un nombre más genérico para Gemini
-  - open_chat # Intent para activar el modo Gemini
-  - stop_chat # Intent para salir del modo Gemini
-  - free_text # Un intent genérico para cuando Gemini está activo y no es un intent estándar
+  - ask_gemini
+  - open_chat
+  - stop_chat
+  # (opcional) comodín para modo Gemini
+  - free_text
 
 entities:
   - macronutrient
@@ -63,7 +66,8 @@ slots:
       - type: from_entity
         entity: goal
 
-  gemini_active: # Nuevo slot para controlar el estado de Gemini
+  # Control del modo avanzado (Gemini)
+  gemini_active:
     type: bool
     initial_value: false
     influence_conversation: false
@@ -98,7 +102,7 @@ slots:
           - active_loop: nutrition_profile_form
             requested_slot: activity_level
 
-  # —— BMI y recetas ——
+  # —— Datos para IMC/recetas ——
   weight_kg:
     type: text
     influence_conversation: false
@@ -127,6 +131,7 @@ forms:
       - activity_level
 
 responses:
+  # Saludo / cierre / meta
   utter_greet:
     - text: "¡Hola! Soy tu asistente de nutrición y cambios físicos. ¿En qué te ayudo hoy?"
   utter_goodbye:
@@ -134,74 +139,87 @@ responses:
   utter_thanks:
     - text: "¡Con gusto! ¿Algo más en lo que te pueda apoyar?"
   utter_iamabot:
-    - text: "Soy un asistente virtual diseñado para ayudarte con nutrición, ejercicio y bienestar."
+    - text: "Soy un asistente virtual especializado en nutrición, ejercicio y bienestar."
   utter_default:
     - text: "Perdón, no entendí bien. ¿Puedes reformular tu pregunta con más detalles?"
-  utter_out_of_scope:
-    - text: "Ese tema está fuera de mi alcance por ahora. Puedo ayudarte con nutrición, ejercicio y gestión emocional."
+
+  # Capacidades
   utter_ask_capabilities:
-    - text: "Puedo darte pautas de alimentación saludable, ideas de plan de comidas, rutinas de ejercicio, seguimiento de progreso y apoyo motivacional."
+    - text: "Puedo ayudarte con alimentación saludable, planes de comida, rutinas, seguimiento de progreso y apoyo emocional."
+
+  # Nutrición
   utter_ask_diet_general:
-    - text: "Una dieta saludable prioriza alimentos mínimamente procesados, verduras, frutas, legumbres, granos integrales, proteínas de calidad y grasas saludables. ¿Tienes algún objetivo específico?"
+    - text: "Basea tu alimentación en verduras, frutas, legumbres, granos integrales, proteínas de calidad y grasas saludables. ¿Cuál es tu objetivo?"
   utter_ask_specific_food:
     - text: "¿Qué alimento te interesa? Si quieres, dime si lo consultas por calorías, proteínas o beneficios."
   utter_ask_meal_planning:
-    - text: "Para planificar: define objetivo, calorías aproximadas, 3-4 comidas + 1-2 snacks, lista de compras y batch cooking semanal."
+    - text: "Planifica 3–4 comidas + 1–2 snacks, define calorías/objetivo y prepara batch cooking. ¿Quieres un ejemplo semanal?"
   utter_ask_hydration:
-    - text: "Una recomendación general es ~30–35 ml/kg/día, ajustando por clima y actividad. ¿Haces ejercicio frecuente?"
+    - text: "Apunta a ~30–35 ml/kg/día y ajusta por clima/actividad. ¿Haces ejercicio?"
   utter_ask_weight_loss:
-    - text: "Para perder grasa: déficit calórico moderado, proteína adecuada, fuerza + cardio, y sueño. ¿Quieres calcular un menú base?"
+    - text: "Déficit calórico moderado + fuerza + cardio + sueño. ¿Quieres un menú base y recomendaciones de entrenamiento?"
+
+  # Ejercicio
   utter_ask_exercise_general:
-    - text: "Empieza con 2–3 días de fuerza + 2 de cardio suave. Progresión gradual. ¿Entrenas en casa o gimnasio?"
-  utter_ask_cardio_benefits:
-    - text: "El cardio mejora salud cardiovascular, quema calorías y ayuda a la recuperación. 90–150 min/semana es un buen rango para empezar."
-  utter_ask_strength_training:
-    - text: "La fuerza ayuda a ganar/retener músculo, mejorar metabolismo y postura. 2–4 sesiones/semana por grupos musculares."
-  utter_ask_motivation_support:
-    - text: "Piensa en objetivos SMART y registra tus avances (mediciones, fotos). ¿Qué te cuesta más mantener?"
-  utter_express_sadness:
-    - text: "Siento que te sientas así. Podemos avanzar con pasos pequeños y realistas. Estoy aquí para ayudarte."
-  utter_express_anxiety:
-    - text: "La ansiedad es difícil. Respiremos 4-4-8 y enfoquémonos en acciones pequeñas que controlas hoy."
-  utter_express_anger:
-    - text: "Entiendo la frustración. Canalizar en movimiento suave o una pausa breve puede ayudar."
-  utter_express_happiness:
-    - text: "¡Qué bueno! Aprovechemos esa energía para consolidar hábitos."
-  utter_ask_emotional_support:
-    - text: "Estoy contigo. ¿Quieres que revisemos gatillantes y hagamos un plan breve para hoy?"
-  utter_ask_stress_management:
-    - text: "Prueba respiración diafragmática 5 min, pausa activa y límites de horarios. ¿Te dejo una rutina breve?"
-  utter_ask_emotional_eating:
-    - text: "Identifiquemos si es hambre física o emocional. Propón una alternativa: té, paseo corto, snack rico en proteína."
-  utter_ask_healthy_snacks:
-    - text: "Ideas: yogur + fruta, frutos secos + pasas, huevo cocido, hummus + zanahoria, avena con leche, sándwich integral de pavo."
+    - text: "Empieza con 2–3 sesiones de fuerza y 2 de cardio suave. ¿Entrenas en casa o gimnasio?"
   utter_ask_workout_plan:
-    - text: "¿Buscas entrenar en casa o gimnasio? ¿Cuántos días por semana puedes entrenar?"
-  # Form messages
+    - text: "¿Buscas plan para casa o gimnasio y cuántos días por semana puedes entrenar?"
+  utter_ask_cardio_benefits:
+    - text: "El cardio mejora la salud cardiovascular y la recuperación. 90–150 min/semana es un buen inicio."
+  utter_ask_strength_training:
+    - text: "La fuerza ayuda a ganar/retener músculo y mejorar el metabolismo. 2–4 sesiones/semana por grupos musculares."
+
+  # Emocional / bienestar
+  utter_express_sadness:
+    - text: "Siento que te sientas así. Demos pasos pequeños y realistas. Estoy contigo."
+  utter_express_anxiety:
+    - text: "Respiremos 4-4-8. Enfoquémonos en acciones pequeñas que controlas hoy."
+  utter_express_anger:
+    - text: "Entiendo la frustración. Una pausa y algo de movimiento puede ayudar."
+  utter_express_happiness:
+    - text: "¡Genial! Aprovechemos esa energía para consolidar hábitos."
+  utter_ask_emotional_support:
+    - text: "¿Te dejo un mini plan para hoy (hábitos, respiración y organización)?"
+  utter_ask_stress_management:
+    - text: "Prueba 5 min de respiración diafragmática, pausas activas y límites de horario. ¿Te envío una rutina breve?"
+  utter_out_of_scope:
+    - text: "Ese tema está fuera de mi alcance. Puedo ayudarte con nutrición, ejercicio y bienestar."
+  utter_ask_emotional_eating:
+    - text: "Distingamos entre hambre física y emocional. ¿Quieres alternativas de snack y un plan anti-antojos?"
+  utter_ask_healthy_snacks:
+    - text: "Ideas: yogur + fruta, frutos secos, hummus + zanahoria, avena con leche, sándwich integral de pavo."
+  utter_ask_motivation_support: # <--- ¡ESTA ES LA RESPUESTA CORREGIDA QUE FALTABA!
+    - text: "La motivación es clave. Recuerda tu 'por qué'. Pequeños avances constantes son mejor que grandes saltos esporádicos. ¡Confío en ti!"
+
+  # Form
   utter_ask_nutrition_profile_form_user_goal:
-    - text: "¿Cuál es tu objetivo principal? (p. ej., perder grasa, ganar músculo, rendimiento)"
+    - text: "¿Cuál es tu objetivo principal? (perder grasa, ganar músculo, rendimiento)"
   utter_ask_nutrition_profile_form_dietary_restrictions:
-    - text: "¿Tienes restricciones o preferencias? (p. ej., vegetariano, sin lactosa, alergias)"
+    - text: "¿Tienes restricciones o preferencias? (vegetariano, sin lactosa, alergias)"
   utter_ask_nutrition_profile_form_activity_level:
     - text: "¿Cuál es tu nivel de actividad? (sedentario, ligero, moderado, alto)"
   utter_submit_nutrition_profile_form:
-    - text: "¡Genial! Con eso puedo proponerte pautas personalizadas. ¿Quieres un plan semanal base?"
+    - text: "¡Perfecto! Con esto puedo proponerte pautas personalizadas. ¿Quieres un plan semanal base?"
+
+  # Modo avanzado (Gemini)
   utter_activate_gemini_mode:
-    - text: "¡Has activado el modo avanzado con Gemini! Pregúntame lo que quieras."
+    - text: "¡Has activado el modo avanzado! Pregúntame lo que quieras dentro de nutrición, ejercicio y bienestar."
   utter_deactivate_gemini_mode:
     - text: "Volviendo al modo normal del asistente."
 
 actions:
+  # Acciones de dominio
   - action_answer_specific_food
   - action_propose_meal_plan
   - action_propose_workout
   - action_track_progress_tip
   - action_calculate_bmi
   - action_provide_recipe
+  # Acciones Gemini
   - action_fallback_to_gemini
   - action_call_gemini_chat
-  - action_toggle_gemini_mode # Nueva acción para activar el slot
-  - action_stop_gemini_mode # Nueva acción para desactivar el slot
+  - action_toggle_gemini_mode
+  - action_stop_gemini_mode
 
 session_config:
   session_expiration_time: 60
