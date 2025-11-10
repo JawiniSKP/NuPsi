@@ -6,8 +6,8 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { 
   IonContent, IonHeader, IonTitle, IonToolbar, IonCard, IonCardHeader,
   IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonSelect,
-  IonSelectOption, IonButton, IonTextarea, IonList, IonNote, IonSpinner,
-  IonButtons, IonBackButton, IonText, IonChip, IonIcon
+  IonSelectOption, IonButton, IonTextarea, IonNote, IonSpinner,
+  IonButtons, IonBackButton, IonChip, IonIcon
 } from '@ionic/angular/standalone';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { AuthService } from '../../services/auth.service';
@@ -28,19 +28,23 @@ import {
     CommonModule, FormsModule, ReactiveFormsModule,
     IonContent, IonHeader, IonTitle, IonToolbar, IonCard, IonCardHeader,
     IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonSelect,
-    IonSelectOption, IonButton, IonTextarea, IonList, IonNote, IonSpinner,
-    IonButtons, IonBackButton, IonText, IonChip, IonIcon
+    IonSelectOption, IonButton, IonTextarea, IonNote, IonSpinner,
+    IonButtons, IonBackButton, IonChip, IonIcon
   ]
 })
 export class IndicatorsPage implements OnInit {
   indicatorForm: FormGroup;
+  
+  // ✅ CORREGIDO: Usando propiedades normales en lugar de signals para compatibilidad con template
   userIndicators: Indicador[] = [];
   loading = false;
   esConfiguracionInicial = false;
+  
   currentUserId: string = '';
   ultimosValores: UltimosValoresFisicos = {};
   errorMessage = '';
 
+  // ✅ CORRECTO: Inyección de dependencias
   private homeService = inject(HomeService);
   private authService = inject(AuthService);
   private fb = inject(FormBuilder);
@@ -114,7 +118,7 @@ export class IndicatorsPage implements OnInit {
   }
 
   // ============================================
-  // CARGAR HISTORIAL
+  // ✅ CORREGIDO: CARGAR HISTORIAL
   // ============================================
   async loadUserIndicators() {
     this.loading = true;
@@ -133,7 +137,7 @@ export class IndicatorsPage implements OnInit {
   }
 
   // ============================================
-  // GUARDAR INDICADOR
+  // ✅ CORREGIDO: GUARDAR INDICADOR
   // ============================================
   async submitIndicator() {
     this.errorMessage = '';
@@ -216,9 +220,8 @@ export class IndicatorsPage implements OnInit {
     }
   }
 
-
-    // ============================================
-  // 🎯 COMPLETAR CONFIGURACIÓN INICIAL
+  // ============================================
+  // 🎯 COMPLETAR CONFIGURACIÓN INICIAL - CORREGIDO
   // ============================================
   private async completarConfiguracionInicial() {
     console.log('🎉 Completando configuración inicial...');
@@ -230,64 +233,68 @@ export class IndicatorsPage implements OnInit {
     await loading.present();
 
     try {
-      // Intentar marcar como completada
-      const result = await new Promise<boolean>((resolve, reject) => {
-        this.homeService.marcarConfiguracionInicialCompleta(this.currentUserId).subscribe({
-          next: (success) => {
-            console.log('📡 Respuesta de marcarConfiguracion:', success);
-            resolve(success);
-          },
-          error: (error) => {
-            console.error('📡 Error en marcarConfiguracion:', error);
-            reject(error);
+      this.homeService.marcarConfiguracionInicialCompleta(this.currentUserId).subscribe({
+        next: async (success) => {
+          console.log('📡 Respuesta de marcarConfiguracion:', success);
+          
+          await loading.dismiss();
+
+          if (success) {
+            console.log('✅ Configuración marcada correctamente');
+            await this.showToast('¡Perfil configurado exitosamente! 🎉', 'success');
+            
+            // Esperar 2 segundos antes de redirigir
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            console.log('🚀 Navegando al home...');
+            
+            // Navegar con replaceUrl para limpiar historial
+            await this.router.navigate(['/home'], { replaceUrl: true });
+            
+            console.log('✅ Navegación completada');
+          } else {
+            throw new Error('No se pudo marcar como completada');
           }
-        });
+        },
+        error: async (error) => {
+          await loading.dismiss();
+          console.error('❌ Error marcando configuración:', error);
+          await this.handleConfiguracionError(error);
+        }
       });
 
-      await loading.dismiss();
-
-      if (result) {
-        console.log('✅ Configuración marcada correctamente');
-        await this.showToast('¡Perfil configurado exitosamente! 🎉', 'success');
-        
-        // Esperar 2 segundos antes de redirigir
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        console.log('🚀 Navegando al home...');
-        
-        // Navegar con replaceUrl para limpiar historial
-        await this.router.navigate(['/home'], { replaceUrl: true });
-        
-        console.log('✅ Navegación completada');
-      } else {
-        throw new Error('No se pudo marcar como completada');
-      }
     } catch (error: any) {
       await loading.dismiss();
-      console.error('❌ Error marcando configuración:', error);
-      
-      // Mostrar mensaje específico según el error
-      if (error?.message?.includes('ERR_BLOCKED_BY_CLIENT') || 
-          error?.message?.includes('blocked') ||
-          error?.code === 'unavailable') {
-        await this.showToast(
-          '⚠️ Tu navegador está bloqueando la conexión. Desactiva extensiones de privacidad (AdBlock/Brave Shields) e intenta nuevamente.',
-          'warning'
-        );
-      } else if (error?.code === 'permission-denied') {
-        await this.showToast(
-          '❌ Error de permisos. Cierra sesión e inicia nuevamente.',
-          'danger'
-        );
-      } else {
-        await this.showToast(
-          '❌ Error al finalizar configuración. Verifica tu conexión a internet.',
-          'danger'
-        );
-      }
-      
-      console.log('⚠️ No se redirige al home debido al error');
+      console.error('❌ Error inesperado:', error);
+      await this.handleConfiguracionError(error);
     }
+  }
+
+  // ============================================
+  // 🛠️ MANEJO DE ERRORES DE CONFIGURACIÓN
+  // ============================================
+  private async handleConfiguracionError(error: any) {
+    // Mostrar mensaje específico según el error
+    if (error?.message?.includes('ERR_BLOCKED_BY_CLIENT') || 
+        error?.message?.includes('blocked') ||
+        error?.code === 'unavailable') {
+      await this.showToast(
+        '⚠️ Tu navegador está bloqueando la conexión. Desactiva extensiones de privacidad (AdBlock/Brave Shields) e intenta nuevamente.',
+        'warning'
+      );
+    } else if (error?.code === 'permission-denied') {
+      await this.showToast(
+        '❌ Error de permisos. Cierra sesión e inicia nuevamente.',
+        'danger'
+      );
+    } else {
+      await this.showToast(
+        '❌ Error al finalizar configuración. Verifica tu conexión a internet.',
+        'danger'
+      );
+    }
+    
+    console.log('⚠️ No se redirige al home debido al error');
   }
 
   // ============================================

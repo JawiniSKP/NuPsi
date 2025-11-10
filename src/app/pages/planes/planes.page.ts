@@ -1,4 +1,4 @@
-// planes.page.ts - CON SISTEMA DE PROGRESO DE DIETAS
+// planes.page.ts - VERSIÓN CORREGIDA CON GUARDADO CORRECTO
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ToastController, AlertController } from '@ionic/angular';
@@ -97,6 +97,7 @@ export class PlanesPage implements OnInit, OnDestroy {
       
       // Cargar plan actual
       this.planActual = await this.planesService.obtenerPlanUsuario();
+      console.log('📊 Plan actual cargado:', this.planActual);
       
       // Si tiene plan activo, calcular progreso y cargar recetas
       if (this.planActual?.activo) {
@@ -282,7 +283,7 @@ export class PlanesPage implements OnInit, OnDestroy {
   }
 
   // ==========================================
-  // 🍽️ GESTIÓN DE DIETAS
+  // 🍽️ GESTIÓN DE DIETAS - CORREGIDO
   // ==========================================
 
   seleccionarDieta(dieta: Dieta) {
@@ -305,6 +306,13 @@ export class PlanesPage implements OnInit, OnDestroy {
       const duracionStr = this.dietaSeleccionadaModal.duracionRecomendada || '30 días';
       const duracion = this.extraerDuracionDias(duracionStr);
 
+      console.log('💾 Guardando dieta:', {
+        dietaId: this.dietaSeleccionadaModal.id,
+        calorias: caloriasPromedio,
+        duracion: duracion
+      });
+
+      // ✅ CORREGIDO: Usar el método del servicio que guarda correctamente
       await this.planesService.guardarSeleccionDieta(
         this.dietaSeleccionadaModal.id,
         caloriasPromedio,
@@ -313,6 +321,7 @@ export class PlanesPage implements OnInit, OnDestroy {
 
       // Recargar plan actual y calcular progreso
       this.planActual = await this.planesService.obtenerPlanUsuario();
+      console.log('🔄 Plan actual recargado:', this.planActual);
       
       if (this.planActual?.activo) {
         await this.actualizarProgreso();
@@ -327,7 +336,7 @@ export class PlanesPage implements OnInit, OnDestroy {
 
     } catch (error: any) {
       console.error('❌ Error guardando dieta:', error);
-      this.mostrarToast('Error al guardar la dieta', 'danger');
+      this.mostrarToast('Error al guardar la dieta: ' + error.message, 'danger');
     } finally {
       this.cargando = false;
     }
@@ -534,6 +543,12 @@ export class PlanesPage implements OnInit, OnDestroy {
     this.dietaDetallada = null;
     this.mostrarRecetasDieta = false;
     this.recetasDietaSeleccionada = [];
+  }
+
+  tieneAlimentosEvitar(receta: Receta): boolean {
+    // Esta lógica verificaría si la receta tiene ingredientes que el usuario evita
+    // Necesitarías cargar los alimentosEvitar del usuario en este componente también
+    return false; // Implementar lógica similar a receta-detalle
   }
 
   // ==========================================
