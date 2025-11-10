@@ -2,31 +2,46 @@ version: "3.1"
 
 rules:
 
-- rule: Responder pregunta directa con Gemini
-  steps:
-  - intent: ask_gemini
-  - action: action_call_gemini_chat
+  # 🔹 Activa el modo Gemini (por intención del usuario)
+  - rule: Activar modo Gemini
+    steps:
+      - intent: open_chat
+      - action: action_toggle_gemini_mode
+      - action: utter_activate_gemini_mode
 
-- rule: Activar modo Gemini
-  steps:
-  - intent: open_chat
-  - action: action_toggle_gemini_mode
-  - action: utter_activate_gemini_mode    # CORREGIDO
+  # 🔹 Desactiva el modo Gemini
+  - rule: Desactivar modo Gemini
+    steps:
+      - intent: stop_chat
+      - action: action_stop_gemini_mode
+      - action: utter_deactivate_gemini_mode
 
-- rule: Desactivar modo Gemini
-  steps:
-  - intent: stop_chat
-  - action: action_stop_gemini_mode
-  - action: utter_deactivate_gemini_mode    # CORREGIDO
+  # 🔹 Pregunta directa al modo avanzado (por ejemplo "qué es la inteligencia artificial")
+  - rule: Pregunta directa a Gemini
+    steps:
+      - intent: ask_gemini
+      - action: action_call_gemini_chat
 
-# La regla de fallback ya no es necesaria aquí, se maneja en config.yml
+  # 🔹 Fallback automático (si Rasa no reconoce la intención)
+  - rule: Baja confianza → Fallback con Gemini
+    steps:
+      - intent: nlu_fallback
+      - action: action_fallback_to_gemini
 
-- rule: Decir adiós cuando el usuario se despide
-  steps:
-  - intent: goodbye
-  - action: utter_goodbye
+  # 🔹 Out of scope (por ejemplo si detecta que el tema no es del dominio)
+  - rule: Tema fuera de alcance → Gemini
+    steps:
+      - intent: out_of_scope
+      - action: action_fallback_to_gemini
 
-- rule: Responder al desafío de ser un bot
-  steps:
-  - intent: bot_challenge
-  - action: utter_iamabot
+  # 🔹 Despedida
+  - rule: Despedida amable
+    steps:
+      - intent: goodbye
+      - action: utter_goodbye
+
+  # 🔹 Respuesta a "¿eres un bot?"
+  - rule: Responder desafío bot
+    steps:
+      - intent: bot_challenge
+      - action: utter_iamabot
