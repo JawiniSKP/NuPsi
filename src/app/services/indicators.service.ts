@@ -1,13 +1,15 @@
-import { Injectable, inject, Injector } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { 
   Firestore, 
   collection, 
   collectionData,
   addDoc,
   query,
-  where
+  where,
+  orderBy
 } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { Observable, from } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 
 // ✅ INTERFAZ INDICATOR
 export interface Indicator {
@@ -26,21 +28,42 @@ export interface Indicator {
   providedIn: 'root'
 })
 export class IndicatorsService {
+  // ✅ CORRECTO: Inyección de dependencias al inicio
   private firestore = inject(Firestore);
-  private injector = inject(Injector); // ✅ Inyectar Injector
 
+  // ============================================
+  // ✅ CORREGIDO: Obtener indicadores con manejo de errores
+  // ============================================
   getIndicators(userId: string): Observable<Indicator[]> {
-    const indicatorsRef = collection(this.firestore, 'indicators');
-    const q = query(
-      indicatorsRef, 
-      where('userId', '==', userId)
-      // orderBy('date', 'desc') // ⏸️ Temporalmente comentado hasta crear índice
-    );
-    
-    return collectionData(q, { idField: 'id' }) as Observable<Indicator[]>;
+    try {
+      const indicatorsRef = collection(this.firestore, 'indicators');
+      const q = query(
+        indicatorsRef, 
+        where('userId', '==', userId)
+        // orderBy('date', 'desc') // ⏸️ Temporalmente comentado hasta crear índice
+      );
+      
+      // ✅ CORREGIDO: Usando collectionData dentro del contexto
+      return collectionData(q, { idField: 'id' }).pipe(
+        map(indicators => indicators as Indicator[]),
+        catchError(error => {
+          console.error('❌ Error obteniendo indicadores:', error);
+          return [];
+        })
+      );
+    } catch (error) {
+      console.error('❌ Error en getIndicators:', error);
+      return new Observable(subscriber => {
+        subscriber.next([]);
+        subscriber.complete();
+      });
+    }
   }
 
-  async addIndicator(userId: string, indicatorData: any): Promise<void> {
+  // ============================================
+  // ✅ CORREGIDO: Agregar indicador con from()
+  // ============================================
+  addIndicator(userId: string, indicatorData: any): Observable<string> {
     try {
       const indicatorsRef = collection(this.firestore, 'indicators');
       
@@ -50,33 +73,48 @@ export class IndicatorsService {
         createdAt: new Date()
       };
 
-      await addDoc(indicatorsRef, indicator);
-      console.log('✅ Indicador guardado exitosamente');
+      // ✅ CORREGIDO: Convertir promesa en observable con from()
+      return from(addDoc(indicatorsRef, indicator)).pipe(
+        map(docRef => {
+          console.log('✅ Indicador guardado exitosamente con ID:', docRef.id);
+          return docRef.id;
+        }),
+        catchError(error => {
+          console.error('❌ Error guardando indicador:', error);
+          throw error;
+        })
+      );
     } catch (error) {
-      console.error('❌ Error guardando indicador:', error);
+      console.error('❌ Error en addIndicator:', error);
       throw error;
     }
   }
 
-  // ✅ Método alternativo si necesitas usar runInInjectionContext
+  // ============================================
+  // ✅ MÉTODO ALTERNATIVO - Ya no es necesario pero lo dejamos
+  // ============================================
   getIndicatorsWithInjection(userId: string): Observable<Indicator[]> {
-    return new Observable(observer => {
-      // Usar el injector inyectado
-      const firestore = this.injector.get(Firestore);
-      
-      const indicatorsRef = collection(firestore, 'indicators');
+    try {
+      const indicatorsRef = collection(this.firestore, 'indicators');
       const q = query(
         indicatorsRef, 
         where('userId', '==', userId)
       );
       
-      const subscription = collectionData(q, { idField: 'id' }).subscribe({
-        next: (data) => observer.next(data as Indicator[]),
-        error: (err) => observer.error(err),
-        complete: () => observer.complete()
+      // ✅ CORREGIDO: Usando collectionData directamente
+      return collectionData(q, { idField: 'id' }).pipe(
+        map(indicators => indicators as Indicator[]),
+        catchError(error => {
+          console.error('❌ Error en getIndicatorsWithInjection:', error);
+          return [];
+        })
+      );
+    } catch (error) {
+      console.error('❌ Error crítico en getIndicatorsWithInjection:', error);
+      return new Observable(subscriber => {
+        subscriber.next([]);
+        subscriber.complete();
       });
-
-      return () => subscription.unsubscribe();
-    });
+    }
   }
 }

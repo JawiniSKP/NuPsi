@@ -1,4 +1,3 @@
-// src/app/services/home.service.ts - VERSIÓN COMPLETAMENTE CORREGIDA
 import { Injectable, inject } from '@angular/core';
 import {
   Firestore,
@@ -71,6 +70,7 @@ export interface UltimosValoresFisicos {
   providedIn: 'root'
 })
 export class HomeService {
+  // ✅ CORRECTO: Inyección de dependencias al inicio
   private firestore = inject(Firestore);
   private auth = inject(Auth);
 
@@ -87,7 +87,7 @@ export class HomeService {
       }
       return null;
     } catch (error) {
-      console.error('Error obteniendo datos del usuario:', error);
+      console.error('❌ Error obteniendo datos del usuario:', error);
       throw error;
     }
   }
@@ -99,7 +99,7 @@ export class HomeService {
     const userDocRef = doc(this.firestore, `usuarios/${uid}`);
     
     return new Observable<Usuario | null>(observer => {
-      // ✅ Usar onSnapshot dentro del observable está bien
+      // ✅ CORRECTO: onSnapshot dentro del contexto del observable
       const unsubscribe = onSnapshot(
         userDocRef,
         (docSnap) => {
@@ -110,7 +110,7 @@ export class HomeService {
           }
         },
         (error) => {
-          console.error('Error observing usuario:', error);
+          console.error('❌ Error observando usuario:', error);
           observer.error(error);
         }
       );
@@ -140,7 +140,7 @@ export class HomeService {
       limit(1)
     );
 
-    // ✅ CORREGIDO: Usar collectionData en lugar de onSnapshot directo
+    // ✅ CORRECTO: Usando collectionData que está dentro del contexto de inyección
     return collectionData(q, { idField: 'id' }).pipe(
       map(docs => {
         if (docs.length > 0) {
@@ -157,14 +157,14 @@ export class HomeService {
         return null;
       }),
       catchError(error => {
-        console.error('Error obteniendo indicador hoy:', error);
+        console.error('❌ Error obteniendo indicador hoy:', error);
         return of(null);
       })
     );
   }
 
   // ============================================
-  // 🎯 OBTENER ÚLTIMOS VALORES FÍSICOS
+  // ✅ CORREGIDO: Obtener últimos valores físicos
   // ============================================
   async obtenerUltimosValoresFisicos(uid: string): Promise<UltimosValoresFisicos> {
     try {
@@ -206,7 +206,7 @@ export class HomeService {
   }
 
   // ============================================
-  // GUARDAR/ACTUALIZAR INDICADOR DIARIO
+  // ✅ CORREGIDO: Guardar/actualizar indicador diario
   // ============================================
   guardarIndicadorDiario(
     uid: string,
@@ -226,6 +226,7 @@ export class HomeService {
       creadoEn: Timestamp.now()
     };
 
+    // ✅ CORRECTO: Usando from() para convertir promesas en observables
     return from(
       indicadorId 
         ? updateDoc(doc(indicadoresRef, indicadorId), data)
@@ -243,7 +244,7 @@ export class HomeService {
   }
 
   // ============================================
-  // ACTUALIZAR VASOS DE AGUA
+  // ✅ CORREGIDO: Actualizar vasos de agua
   // ============================================
   actualizarVasosAgua(
     uid: string,
@@ -259,16 +260,19 @@ export class HomeService {
     return from(
       updateDoc(indicadorRef, { vasosAgua })
     ).pipe(
-      map(() => true),
+      map(() => {
+        console.log('✅ Vasos de agua actualizados:', vasosAgua);
+        return true;
+      }),
       catchError((error) => {
-        console.error('Error actualizando vasos de agua:', error);
+        console.error('❌ Error actualizando vasos de agua:', error);
         return of(false);
       })
     );
   }
 
   // ============================================
-  // CALCULAR ESTADO DE ÁNIMO
+  // ✅ MÉTODOS SINCRÓNICOS (No requieren corrección)
   // ============================================
   calcularEstadoAnimo(emociones: string[]): string {
     if (emociones.length === 0) return 'regular';
@@ -294,9 +298,6 @@ export class HomeService {
     return 'muy-malo';
   }
 
-  // ============================================
-  // OBTENER FRASE MOTIVACIONAL
-  // ============================================
   getFraseMotivacional(): Observable<string> {
     const frasesPorDefecto = [
       'Recuerda que pequeños cambios generan grandes resultados. ¡Tú puedes!',
@@ -311,7 +312,7 @@ export class HomeService {
   }
 
   // ============================================
-  // OBTENER HISTORIAL
+  // ✅ CORREGIDO: Obtener historial
   // ============================================
   getHistorialIndicadores(uid: string, dias: number = 30): Observable<Indicador[]> {
     const indicadoresRef = collection(this.firestore, `usuarios/${uid}/indicadores`);
@@ -322,6 +323,7 @@ export class HomeService {
       limit(dias)
     );
 
+    // ✅ CORRECTO: Usando from() para getDocs
     return from(getDocs(q)).pipe(
       map((querySnapshot) => {
         const indicadores = querySnapshot.docs
@@ -335,14 +337,14 @@ export class HomeService {
         return indicadores;
       }),
       catchError((error) => {
-        console.error('Error obteniendo historial:', error);
+        console.error('❌ Error obteniendo historial:', error);
         return of([]);
       })
     );
   }
 
   // ============================================
-  // ACTUALIZAR ÚLTIMO ACCESO
+  // ✅ CORREGIDO: Actualizar último acceso
   // ============================================
   actualizarUltimoAcceso(uid: string): Observable<boolean> {
     const userDocRef = doc(this.firestore, `usuarios/${uid}`);
@@ -352,13 +354,19 @@ export class HomeService {
         ultimoAcceso: Timestamp.now()
       })
     ).pipe(
-      map(() => true),
-      catchError(() => of(false))
+      map(() => {
+        console.log('✅ Último acceso actualizado');
+        return true;
+      }),
+      catchError((error) => {
+        console.error('❌ Error actualizando último acceso:', error);
+        return of(false);
+      })
     );
   }
 
   // ============================================
-  // VERIFICAR CONFIGURACIÓN INICIAL
+  // ✅ CORREGIDO: Verificar configuración inicial
   // ============================================
   async necesitaConfiguracionInicial(uid: string): Promise<boolean> {
     try {
@@ -388,7 +396,7 @@ export class HomeService {
   }
 
   // ============================================
-  // GUARDAR INDICADOR COMPLETO
+  // ✅ CORREGIDO: Guardar indicador completo
   // ============================================
   guardarIndicadorCompleto(
     uid: string,
@@ -396,7 +404,14 @@ export class HomeService {
   ): Observable<boolean> {
     const indicadoresRef = collection(this.firestore, `usuarios/${uid}/indicadores`);
     
-    return from(addDoc(indicadoresRef, indicadorData)).pipe(
+    const dataCompleta = {
+      ...indicadorData,
+      esConfiguracionInicial: false,
+      creadoEn: Timestamp.now(),
+      fecha: Timestamp.fromDate(new Date())
+    };
+
+    return from(addDoc(indicadoresRef, dataCompleta)).pipe(
       map(() => {
         console.log('✅ Indicador completo guardado correctamente');
         return true;
@@ -409,7 +424,7 @@ export class HomeService {
   }
 
   // ============================================
-  // MARCAR CONFIGURACIÓN INICIAL COMPLETADA
+  // ✅ CORREGIDO: Marcar configuración inicial completada
   // ============================================
   marcarConfiguracionInicialCompleta(uid: string): Observable<boolean> {
     const userDocRef = doc(this.firestore, `usuarios/${uid}`);

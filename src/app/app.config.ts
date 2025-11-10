@@ -1,4 +1,4 @@
-import { ApplicationConfig, importProvidersFrom } from '@angular/core';
+import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideIonicAngular } from '@ionic/angular/standalone';
 import { routes } from './app.routes';
@@ -13,7 +13,7 @@ import {
   bulbOutline, waterOutline, eyeOutline, eyeOffOutline, hourglass,
   create, trash, refresh, time, bed, repeat, trophy, play,
   
-  // NUEVOS ICONOS IDENTIFICADOS
+  // Nuevos iconos
   arrowBack, fitness, barbell, checkmarkCircle, save, close,
   addCircle, flame, statsChart, swapHorizontal,
   fastFood, informationCircle, restaurant, timer, folder, flash,
@@ -33,54 +33,17 @@ addIcons({
   bulbOutline, waterOutline, eyeOutline, eyeOffOutline, hourglass,
   create, trash, refresh, time, bed, repeat, trophy, play,
   
-  // Nuevos iconos - FORMA CORRECTA
-  arrowBack,
-  fitness,
-  barbell,
-  checkmarkCircle,
-  save,
-  close,
-  addCircle,
-  flame,
-  statsChart,
-  swapHorizontal,
-  fastFood,
-  informationCircle,
-  restaurant,
-  timer,
-  folder,
-  flash,
-  warning,
-  trendingUp,
-  flagOutline,
-  flameOutline,
-  scaleOutline,
-  happyOutline,
-  createOutline,
-  pricetagsOutline,
-  cartOutline,
-  fitnessOutline,
-  speedometerOutline,
-  lockClosedOutline,
-  mailOutline,
-  personOutline,
-  logoGoogle,
-  alertCircle,
-  logInOutline,
-  personAddOutline,
-  heart,
-  camera,
-  key,
-  shieldCheckmark,
-  ban,
-  checkmark,
-  chevronForward,
-  resizeOutline,
-  documentOutline,
-  heartOutline,
-  trendingUpOutline,
-  settingsOutline,
-  closeCircle
+  // Nuevos iconos
+  arrowBack, fitness, barbell, checkmarkCircle, save, close,
+  addCircle, flame, statsChart, swapHorizontal, fastFood,
+  informationCircle, restaurant, timer, folder, flash, warning,
+  trendingUp, flagOutline, flameOutline, scaleOutline, happyOutline,
+  createOutline, pricetagsOutline, cartOutline, fitnessOutline,
+  speedometerOutline, lockClosedOutline, mailOutline, personOutline,
+  logoGoogle, alertCircle, logInOutline, personAddOutline, heart,
+  camera, key, shieldCheckmark, ban, checkmark, chevronForward,
+  resizeOutline, documentOutline, heartOutline, trendingUpOutline,
+  settingsOutline, closeCircle
 });
 
 export const appConfig: ApplicationConfig = {
