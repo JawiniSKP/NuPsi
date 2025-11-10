@@ -32,7 +32,7 @@
              [class.user-row]="cluster.sender === 'user'"
              [class.bot-row]="cluster.sender === 'bot'">
           
-          <!-- Avatar (solo en el primer mensaje del cluster) -->
+          <!-- Avatar (solo en el primer mensaje del cluster y si es del bot) -->
           <ion-avatar *ngIf="cluster.sender === 'bot'" class="message-avatar">
             <img src="assets/icon/bot_aura.png" alt="Aura" />
           </ion-avatar>
@@ -45,19 +45,26 @@
                  [class.bubble-last]="last"
                  [class.user-bubble]="cluster.sender === 'user'"
                  [class.bot-bubble]="cluster.sender === 'bot'">
-              <p class="message-text">{{ msg.text }}</p>
+              
+              <!-- Contenedor para el texto del mensaje, diferenciando user/bot y Markdown -->
+              <div class="message-content">
+                <p class="message-text" *ngIf="cluster.sender === 'user'">{{ msg.text }}</p>
+                <p class="message-text" *ngIf="cluster.sender === 'bot'">
+                  <markdown [data]="msg.text"></markdown>
+                </p>
+              </div>
             </div>
             <!-- Timestamp (solo en el último mensaje) -->
             <span class="message-timestamp">{{ cluster.timestamp }}</span>
           </div>
 
-          <!-- Avatar usuario (invisible pero mantiene espacio) -->
+          <!-- Avatar usuario (invisible pero mantiene espacio para alineación) -->
           <div *ngIf="cluster.sender === 'user'" class="message-avatar-spacer"></div>
         </div>
       </div>
     </div>
 
-    <!-- Indicador de escritura -->
+    <!-- Indicador de escritura del bot -->
     <div *ngIf="botIsTyping" class="typing-indicator-container">
       <div class="message-row bot-row">
         <ion-avatar class="message-avatar">

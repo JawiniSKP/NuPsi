@@ -64,7 +64,7 @@ class ActionCallGeminiChat(Action):
             dispatcher.utter_message(text="No puedo conectarme al modo avanzado (falta la clave API).")
             return []
 
-        model = genai.GenerativeModel("gemini-pro-latest")
+        model = genai.GenerativeModel("gemini-2.5-flash")
 
         user_message = tracker.latest_message.get("text", "")
         history = []
@@ -103,12 +103,12 @@ class ActionFallbackToGemini(Action):
             dispatcher.utter_message(text="No puedo conectarme al modo avanzado (falta la clave API).")
             return []
 
-        model = genai.GenerativeModel("gemini-pro-latest")
+        model = genai.GenerativeModel("gemini-2.5-flash")
         user_message = tracker.latest_message.get("text", "")
         prompt = f"{SYSTEM_PERSONA}\n\nUsuario: {user_message}"
 
         try:
-            text = await _call_gemini_async(model, prompt, history=None, timeout=14)
+            text = await _call_gemini_async(model, prompt, history=None, timeout=30)
             dispatcher.utter_message(text=text)
         except asyncio.TimeoutError:
             dispatcher.utter_message(text="No recibí respuesta a tiempo del modo avanzado.")
