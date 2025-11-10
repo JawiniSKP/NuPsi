@@ -1,3 +1,5 @@
+//app.component.ts
+
 import { Component, OnInit, inject } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
@@ -26,9 +28,14 @@ import {
   close,
   createOutline,
   analytics,
-  swapHorizontal, // ✅ AÑADIDO
-  fitness, // ✅ AÑADIDO
-  arrowBack // ✅ AÑADIDO
+  swapHorizontal,
+  fitness,
+  arrowBack,
+  alertCircle,
+  waterOutline,
+  documentOutline,
+  resizeOutline,
+  heartOutline
 } from 'ionicons/icons';
 import { MenuComponent } from './components/menu/menu.component';
 
@@ -43,6 +50,7 @@ import { MenuComponent } from './components/menu/menu.component';
 ]
 })
 export class AppComponent implements OnInit {
+  // ✅ CORRECTO: Inyección de dependencias al inicio
   private auth = inject(Auth);
   private router = inject(Router);
 
@@ -73,9 +81,14 @@ export class AppComponent implements OnInit {
       'close': close,
       'create-outline': createOutline,
       'analytics': analytics,
-      'swap-horizontal': swapHorizontal, // ✅ AÑADIDO
-      'fitness': fitness, // ✅ AÑADIDO
-      'arrow-back': arrowBack // ✅ AÑADIDO
+      'swap-horizontal': swapHorizontal,
+      'fitness': fitness,
+      'arrow-back': arrowBack,
+      'alert-circle': alertCircle,
+      'water-outline': waterOutline,
+      'document-outline': documentOutline,
+      'resize-outline': resizeOutline,
+      'heart-outline': heartOutline
     });
   }
 
@@ -105,11 +118,12 @@ export class AppComponent implements OnInit {
   }
 
   /**
-   * 🔒 GUARD DE AUTENTICACIÓN GLOBAL
+   * 🔒 GUARD DE AUTENTICACIÓN GLOBAL - CORREGIDO
    */
   private initializeAuthGuard() {
     console.log('🔐 Inicializando guard de autenticación...');
 
+    // ✅ CORREGIDO: onAuthStateChanged dentro del contexto del componente
     onAuthStateChanged(this.auth, (user) => {
       const currentUrl = this.router.url;
       console.log('👤 Estado de auth cambió. Usuario:', user?.uid || 'No autenticado', '| URL actual:', currentUrl);
@@ -119,7 +133,7 @@ export class AppComponent implements OnInit {
       const isPublicRoute = publicRoutes.includes(currentUrl);
 
       // Rutas protegidas (requieren autenticación)
-      const protectedRoutes = ['/home', '/indicators', '/profile', '/settings', '/chat', '/planes']; // ✅ AÑADIDO /planes
+      const protectedRoutes = ['/home', '/indicators', '/profile', '/settings', '/chat', '/planes'];
       const isProtectedRoute = protectedRoutes.some(route => currentUrl.startsWith(route));
 
       if (!user) {
@@ -173,6 +187,13 @@ export class AppComponent implements OnInit {
         icon: 'chatbubble',
         handler: () => {
           this.router.navigate(['/chat']);
+        }
+      },
+      {
+        text: 'Planes',
+        icon: 'fitness',
+        handler: () => {
+          this.router.navigate(['/planes']);
         }
       },
       {
@@ -257,7 +278,7 @@ export class AppComponent implements OnInit {
   }
 
   /**
-   * 🚪 CERRAR SESIÓN
+   * 🚪 CERRAR SESIÓN - CORREGIDO
    */
   private async logout() {
     try {
@@ -266,7 +287,7 @@ export class AppComponent implements OnInit {
       document.body.appendChild(loading);
       await loading.present();
 
-      // Cerrar sesión directamente con Firebase Auth
+      // ✅ CORREGIDO: signOut dentro del contexto del componente
       await signOut(this.auth);
       
       // Dismiss loading y navegar
@@ -284,7 +305,7 @@ export class AppComponent implements OnInit {
       this.router.navigate(['/login']);
       
     } catch (error: any) {
-      console.error('Error al cerrar sesión:', error);
+      console.error('❌ Error al cerrar sesión:', error);
       
       // Dismiss loading si existe
       const loading = document.querySelector('ion-loading');

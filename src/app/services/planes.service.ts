@@ -1,4 +1,3 @@
-// src/app/services/planes.service.ts - VERSIÓN COMPLETA CON PROGRESO DE DIETAS
 import { Injectable, inject } from '@angular/core';
 import { 
   Firestore, 
@@ -20,7 +19,7 @@ import { Auth } from '@angular/fire/auth';
 import { Observable, from, map, of } from 'rxjs';
 
 // ==========================================
-// 📋 INTERFACES EXISTENTES
+// 📋 INTERFACES
 // ==========================================
 
 export interface Dieta {
@@ -116,10 +115,6 @@ export interface PlantillaEjercicio {
   }>;
 }
 
-// ==========================================
-// 📊 NUEVAS INTERFACES DE PROGRESO
-// ==========================================
-
 export interface ProgresoDieta {
   diasCompletados: number;
   ultimoAcceso: Date;
@@ -166,11 +161,12 @@ export interface HistorialDieta {
   providedIn: 'root'
 })
 export class PlanesService {
+  // ✅ CORRECTO: Inyección de dependencias al inicio
   private firestore = inject(Firestore);
   private auth = inject(Auth);
 
   // ==========================================
-  // 🍽️ MÉTODOS DE DIETAS (EXISTENTES)
+  // 🍽️ MÉTODOS DE DIETAS - CORREGIDOS
   // ==========================================
 
   obtenerDietas(): Observable<Dieta[]> {
@@ -178,6 +174,7 @@ export class PlanesService {
       const dietasRef = collection(this.firestore, 'dietas');
       const q = query(dietasRef, where('esActiva', '==', true));
       
+      // ✅ CORREGIDO: Usando collectionData dentro del contexto
       return collectionData(q, { idField: 'id' }).pipe(
         map((dietas: any[]) => {
           console.log('📊 Dietas obtenidas:', dietas.length);
@@ -193,6 +190,7 @@ export class PlanesService {
   obtenerDietaPorId(id: string): Observable<Dieta | undefined> {
     try {
       const dietaDoc = doc(this.firestore, `dietas/${id}`);
+      // ✅ CORREGIDO: Usando from() para convertir promesa en observable
       return from(getDoc(dietaDoc)).pipe(
         map(docSnap => {
           if (docSnap.exists()) {
@@ -208,7 +206,7 @@ export class PlanesService {
   }
 
   // ==========================================
-  // 🍳 MÉTODOS DE RECETAS (EXISTENTES)
+  // 🍳 MÉTODOS DE RECETAS - CORREGIDOS
   // ==========================================
 
   obtenerRecetas(): Observable<Receta[]> {
@@ -217,6 +215,7 @@ export class PlanesService {
       console.warn('⚠️ Usuario no autenticado');
       return of([]);
     }
+    // ✅ CORREGIDO: Usando from() para convertir promesa en observable
     return from(this.obtenerRecetasConManejoError());
   }
 
@@ -250,6 +249,7 @@ export class PlanesService {
       console.warn('⚠️ Usuario no autenticado');
       return of([]);
     }
+    // ✅ CORREGIDO: Usando from() para convertir promesa en observable
     return from(this.obtenerRecetasPorTipoDietaConErrorHandling(tipoDieta));
   }
 
@@ -297,11 +297,12 @@ export class PlanesService {
   }
 
   // ==========================================
-  // 💪 MÉTODOS DE EJERCICIOS (EXISTENTES)
+  // 💪 MÉTODOS DE EJERCICIOS - CORREGIDOS
   // ==========================================
 
   obtenerPlantillasEjercicio(): Observable<PlantillaEjercicio[]> {
     try {
+      // ✅ CORREGIDO: Usando from() para convertir promesa en observable
       return from(this.obtenerPlantillasConManejoError());
     } catch (error) {
       console.error('❌ Error obteniendo plantillas de ejercicio:', error);
@@ -366,6 +367,7 @@ export class PlanesService {
 
     try {
       const ejerciciosRef = collection(this.firestore, `usuarios/${user.uid}/ejercicios`);
+      // ✅ CORREGIDO: Usando collectionData dentro del contexto
       return collectionData(ejerciciosRef, { idField: 'id' }) as Observable<EjercicioUsuario[]>;
     } catch (error) {
       console.error('❌ Error obteniendo ejercicios usuario:', error);
@@ -423,7 +425,7 @@ export class PlanesService {
   }
 
   // ==========================================
-  // 📊 MÉTODOS DE PLAN DE USUARIO
+  // 📊 MÉTODOS DE PLAN DE USUARIO - CORREGIDOS
   // ==========================================
 
   async obtenerPlanUsuario(): Promise<PlanUsuario | null> {
@@ -516,7 +518,7 @@ export class PlanesService {
         });
       }
       
-      console.log('✅ Selección de dieta guardada correctamente');
+      console.log('✅ Selección de dieta guardada correctamente en configuracionPlanes');
     } catch (error) {
       console.error('❌ Error guardando selección de dieta:', error);
       throw error;
@@ -544,9 +546,6 @@ export class PlanesService {
   // 📊 NUEVOS MÉTODOS DE PROGRESO DE DIETAS
   // ==========================================
 
-  /**
-   * Calcula el progreso actual de la dieta del usuario
-   */
   async calcularProgresoDieta(): Promise<ProgresoDieta | null> {
     const user = this.auth.currentUser;
     if (!user) return null;
@@ -613,9 +612,6 @@ export class PlanesService {
     }
   }
 
-  /**
-   * Actualiza el progreso en Firestore
-   */
   private async actualizarProgreso(progreso: ProgresoDieta): Promise<void> {
     const user = this.auth.currentUser;
     if (!user) return;
@@ -630,9 +626,6 @@ export class PlanesService {
     }
   }
 
-  /**
-   * Calcula la racha de días consecutivos
-   */
   private calcularRacha(historial: HistorialDiario[]): number {
     if (!historial || historial.length === 0) return 0;
 
@@ -660,9 +653,6 @@ export class PlanesService {
     return racha;
   }
 
-  /**
-   * Genera alertas automáticas según el progreso
-   */
   private generarAlertasTiempo(
     diasTranscurridos: number,
     diasRestantes: number,
@@ -722,9 +712,6 @@ export class PlanesService {
     return alertas;
   }
 
-  /**
-   * Marca el día de hoy como completado
-   */
   async marcarDiaCompletado(calorias?: number, notas?: string): Promise<void> {
     const user = this.auth.currentUser;
     if (!user) return;

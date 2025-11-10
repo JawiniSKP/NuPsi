@@ -1,4 +1,4 @@
-import { ApplicationConfig, importProvidersFrom } from '@angular/core';
+import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideIonicAngular } from '@ionic/angular/standalone';
 import { routes } from './app.routes';
@@ -14,30 +14,42 @@ import { FormsModule } from '@angular/forms';
 import { MarkdownModule } from 'ngx-markdown'; // <-- Importa esto
 
 import { 
-  personCircle, 
-  home, 
-  calendar, 
-  chatbubble, 
-  people, 
-  person,
-  bulbOutline,
-  waterOutline,
-  eyeOutline,
-  eyeOffOutline
+  // Iconos existentes
+  personCircle, home, calendar, chatbubble, people, person,
+  bulbOutline, waterOutline, eyeOutline, eyeOffOutline, hourglass,
+  create, trash, refresh, time, bed, repeat, trophy, play,
+  
+  // Nuevos iconos
+  arrowBack, fitness, barbell, checkmarkCircle, save, close,
+  addCircle, flame, statsChart, swapHorizontal,
+  fastFood, informationCircle, restaurant, timer, folder, flash,
+  warning, trendingUp, flagOutline, flameOutline, scaleOutline,
+  happyOutline, createOutline, pricetagsOutline,
+  cartOutline, fitnessOutline, speedometerOutline, lockClosedOutline,
+  mailOutline, personOutline, logoGoogle, alertCircle, logInOutline,
+  personAddOutline, heart, camera, key, shieldCheckmark, ban,
+  checkmark, chevronForward, resizeOutline, documentOutline,
+  heartOutline, trendingUpOutline, settingsOutline, closeCircle
 } from 'ionicons/icons';
 
-// Configurar iconos globalmente
+// Configurar TODOS los iconos globalmente
 addIcons({
-  personCircle, 
-  home, 
-  calendar, 
-  chatbubble, 
-  people, 
-  person,
-  bulbOutline,
-  waterOutline,
-  eyeOutline,
-  eyeOffOutline
+  // Iconos existentes
+  personCircle, home, calendar, chatbubble, people, person,
+  bulbOutline, waterOutline, eyeOutline, eyeOffOutline, hourglass,
+  create, trash, refresh, time, bed, repeat, trophy, play,
+  
+  // Nuevos iconos
+  arrowBack, fitness, barbell, checkmarkCircle, save, close,
+  addCircle, flame, statsChart, swapHorizontal, fastFood,
+  informationCircle, restaurant, timer, folder, flash, warning,
+  trendingUp, flagOutline, flameOutline, scaleOutline, happyOutline,
+  createOutline, pricetagsOutline, cartOutline, fitnessOutline,
+  speedometerOutline, lockClosedOutline, mailOutline, personOutline,
+  logoGoogle, alertCircle, logInOutline, personAddOutline, heart,
+  camera, key, shieldCheckmark, ban, checkmark, chevronForward,
+  resizeOutline, documentOutline, heartOutline, trendingUpOutline,
+  settingsOutline, closeCircle
 });
 
 export const appConfig: ApplicationConfig = {

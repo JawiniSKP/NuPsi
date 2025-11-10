@@ -28,7 +28,7 @@
       <p class="subtitle">Tu aliado en salud nutricional y emocional</p>
     </div>
 
-    <!-- Mensaje de Error Global (Reemplaza Alert) -->
+    <!-- Mensaje de Error Global -->
     <div class="error-banner" *ngIf="errorMessage && !isLoggingIn">
       <ion-icon name="alert-circle" color="danger"></ion-icon>
       <span>{{ errorMessage }}</span>
@@ -39,7 +39,7 @@
       <form [formGroup]="loginForm" (ngSubmit)="login()">
         <ion-list lines="none">
           
-          <!-- Campo Email -->
+          <!-- Campo Email - ✅ CORREGIDO: Sin [disabled] -->
           <ion-item class="form-item" [class.item-has-error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
             <ion-label position="stacked" class="input-label">Email</ion-label>
             <ion-input 
@@ -48,8 +48,7 @@
               placeholder="tu@email.com"
               class="custom-input"
               (ionInput)="clearError()"
-              [disabled]="isLoggingIn"
-              required>
+              required> <!-- ✅ SIN [disabled] -->
             </ion-input>
             <ion-icon name="mail-outline" slot="start" class="input-icon"></ion-icon>
           </ion-item>
@@ -62,7 +61,7 @@
             </ion-note>
           </div>
 
-          <!-- Campo Contraseña -->
+          <!-- Campo Contraseña - ✅ CORREGIDO: Sin [disabled] -->
           <ion-item class="form-item" [class.item-has-error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
             <ion-label position="stacked" class="input-label">Contraseña</ion-label>
             <ion-input 
@@ -71,8 +70,7 @@
               placeholder="Mínimo 6 caracteres"
               class="custom-input"
               (ionInput)="clearError()"
-              [disabled]="isLoggingIn"
-              required>
+              required> <!-- ✅ SIN [disabled] -->
             </ion-input>
             <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
             <ion-button 
@@ -80,7 +78,6 @@
               slot="end" 
               (click)="togglePasswordVisibility()"
               class="password-toggle"
-              [disabled]="isLoggingIn"
               aria-label="Mostrar/ocultar contraseña">
               <ion-icon 
                 slot="icon-only"

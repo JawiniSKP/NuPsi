@@ -25,6 +25,9 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
   tiempoRestante: number = 5; // Cuenta regresiva de preparación
   serieActual: number = 1;
   
+  // 🆕 AGREGADO: Variable para el mensaje motivacional
+  mensajeMotivacional: string = '';
+  
   // Configuración
   tiempoPreparacion: number = 5;
   tiempoTrabajo: number = 30;
@@ -63,6 +66,9 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
 
     await this.cargarEjercicio();
     this.configurarAudio();
+    
+    // 🆕 AGREGADO: Inicializar mensaje motivacional
+    this.actualizarMensajeMotivacional();
   }
 
   ngOnDestroy() {
@@ -111,6 +117,9 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
       this.tiempoRestante = this.tiempoPreparacion;
     }
 
+    // 🆕 AGREGADO: Actualizar mensaje al iniciar
+    this.actualizarMensajeMotivacional();
+
     this.timerSubscription = interval(1000).subscribe(() => {
       this.tick();
     });
@@ -140,6 +149,9 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
           : 'trabajo';
       }
     }
+    
+    // 🆕 AGREGADO: Actualizar mensaje al reanudar
+    this.actualizarMensajeMotivacional();
     
     this.iniciarTemporizador();
   }
@@ -182,6 +194,9 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
     this.iniciado = false;
     this.pausado = false;
     this.tiempoTotalTranscurrido = 0;
+    
+    // 🆕 AGREGADO: Resetear mensaje motivacional
+    this.actualizarMensajeMotivacional();
   }
 
   // ==========================================
@@ -191,6 +206,12 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
   private tick() {
     this.tiempoRestante--;
     this.tiempoTotalTranscurrido++;
+
+    // 🆕 AGREGADO: Actualizar mensaje motivacional cada ciertos segundos
+    // Solo actualizar cada 3 segundos para no cambiar tan rápido
+    if (this.tiempoRestante % 3 === 0) {
+      this.actualizarMensajeMotivacional();
+    }
 
     // Si el tiempo llegó a 0
     if (this.tiempoRestante <= 0) {
@@ -210,6 +231,7 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
         this.estado = 'trabajo';
         this.tiempoRestante = this.tiempoTrabajo;
         this.reproducirSonido('trabajo');
+        this.actualizarMensajeMotivacional(); // 🆕 AGREGADO
         break;
 
       case 'trabajo':
@@ -219,6 +241,7 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
           this.estado = 'descanso';
           this.tiempoRestante = this.tiempoDescanso;
           this.reproducirSonido('descanso');
+          this.actualizarMensajeMotivacional(); // 🆕 AGREGADO
         } else {
           // Ejercicio completado
           this.completarEjercicio();
@@ -231,6 +254,7 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
         this.estado = 'trabajo';
         this.tiempoRestante = this.tiempoTrabajo;
         this.reproducirSonido('trabajo');
+        this.actualizarMensajeMotivacional(); // 🆕 AGREGADO
         break;
     }
   }
@@ -239,6 +263,9 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
     this.estado = 'completado';
     this.detenerTemporizador();
     this.reproducirSonido('completado');
+    
+    // 🆕 AGREGADO: Limpiar mensaje al completar
+    this.mensajeMotivacional = '';
 
     try {
       // Guardar en Firestore
@@ -255,6 +282,39 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
       this.mostrarToast('Error al guardar el progreso', 'danger');
     }
   }
+
+  // ==========================================
+  // 💪 MENSAJES MOTIVACIONALES
+  // ==========================================
+
+  // 🆕 NUEVO MÉTODO: Actualiza el mensaje motivacional
+  private actualizarMensajeMotivacional(): void {
+    if (this.estado === 'trabajo') {
+      const mensajes = [
+        '¡Tú puedes!',
+        '¡Sigue así!',
+        '¡Excelente!',
+        '¡No pares!',
+        '¡Eres fuerte!'
+      ];
+      this.mensajeMotivacional = mensajes[Math.floor(Math.random() * mensajes.length)];
+    } else if (this.estado === 'descanso') {
+      const mensajes = [
+        'Respira profundo',
+        'Recupérate bien',
+        'Descansa un poco',
+        'Hidrátate',
+        'Relájate'
+      ];
+      this.mensajeMotivacional = mensajes[Math.floor(Math.random() * mensajes.length)];
+    } else if (this.estado === 'preparacion') {
+      this.mensajeMotivacional = 'Prepárate para comenzar';
+    } else {
+      this.mensajeMotivacional = '';
+    }
+  }
+
+  // ❌ ELIMINADO: getMensajeMotivacional() - Ya no es necesario
 
   // ==========================================
   // 🎉 MODAL DE COMPLETADO
@@ -393,31 +453,6 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
       case 'completado': return 'COMPLETADO';
       default: return '';
     }
-  }
-
-  getMensajeMotivacional(): string {
-    if (this.estado === 'trabajo') {
-      const mensajes = [
-        '¡Tú puedes!',
-        '¡Sigue así!',
-        '¡Excelente!',
-        '¡No pares!',
-        '¡Eres fuerte!'
-      ];
-      return mensajes[Math.floor(Math.random() * mensajes.length)];
-    } else if (this.estado === 'descanso') {
-      const mensajes = [
-        'Respira profundo',
-        'Recupérate bien',
-        'Descansa un poco',
-        'Hidratate',
-        'Relájate'
-      ];
-      return mensajes[Math.floor(Math.random() * mensajes.length)];
-    } else if (this.estado === 'preparacion') {
-      return 'Prepárate para comenzar';
-    }
-    return '';
   }
 
   // ==========================================

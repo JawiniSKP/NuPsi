@@ -1,4 +1,4 @@
-<!-- receta-detalle.page.html - VERSIÓN CORREGIDA -->
+<!-- receta-detalle.page.html - VERSIÓN COMPLETA CON ALERTAS ESTILO HOME -->
 <ion-header [translucent]="true">
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
@@ -17,7 +17,7 @@
 <ion-content [fullscreen]="true" class="receta-detalle-content">
   <div class="content-wrapper" *ngIf="receta">
     
-    <!-- HERO IMAGE -->
+    <!-- HERO SECTION -->
     <div class="receta-hero">
       <div class="hero-background" [style.background]="getGradient()"></div>
       <div class="hero-content">
@@ -32,7 +32,46 @@
       </div>
     </div>
 
-    <!-- RECETA INFO -->
+    <!-- 🚨 ALERTA DE ALIMENTOS A EVITAR - ESTILO HOME -->
+    <div *ngIf="ingredientesProblema.length > 0" class="alerta-container">
+      <div class="alerta-card">
+        <div class="alerta-header">
+          <div class="alerta-icon">
+            <ion-icon name="warning" class="warning-icon"></ion-icon>
+          </div>
+          <div class="alerta-title">
+            <h3>Ingredientes a Considerar</h3>
+            <p>Hemos detectado algunos ingredientes que prefieres evitar</p>
+          </div>
+        </div>
+        
+        <div class="alerta-content">
+          <div class="ingredientes-problema">
+            <div class="ingrediente-item" *ngFor="let ingrediente of ingredientesProblema">
+              <ion-icon name="close-circle" class="ingrediente-icon"></ion-icon>
+              <span class="ingrediente-nombre">{{ingrediente}}</span>
+            </div>
+          </div>
+          
+          <div class="alerta-message">
+            <p>No te preocupes, puedes adaptar esta receta sustituyendo estos ingredientes.</p>
+          </div>
+        </div>
+
+        <div class="alerta-actions">
+          <ion-button fill="solid" color="warning" (click)="mostrarSugerenciasSustitucion()" class="action-btn">
+            <ion-icon slot="start" name="bulb-outline"></ion-icon>
+            Ver Alternativas
+          </ion-button>
+          <ion-button fill="outline" color="medium" (click)="irAPerfil()" class="action-btn">
+            <ion-icon slot="start" name="settings-outline"></ion-icon>
+            Preferencias
+          </ion-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECETA INFO SECTION -->
     <div class="receta-info-section">
       <div class="info-grid">
         <div class="info-item">
@@ -46,7 +85,6 @@
         <div class="info-item">
           <ion-icon name="flame-outline"></ion-icon>
           <div class="info-content">
-            <!-- ✅ CORREGIDO: calorias está en el nivel principal -->
             <span class="info-value">{{ receta.calorias || 0 }} cal</span>
             <span class="info-label">Calorías</span>
           </div>
@@ -73,7 +111,10 @@
     <!-- INFORMACIÓN NUTRICIONAL -->
     <ion-card class="nutricion-card">
       <ion-card-header>
-        <ion-card-title>💪 Información Nutricional</ion-card-title>
+        <ion-card-title>
+          <ion-icon name="fitness-outline" color="primary"></ion-icon>
+          Información Nutricional
+        </ion-card-title>
       </ion-card-header>
       <ion-card-content>
         <div class="nutricion-grid">
@@ -115,7 +156,10 @@
     <!-- INGREDIENTES -->
     <ion-card class="ingredientes-card">
       <ion-card-header>
-        <ion-card-title>🛒 Ingredientes</ion-card-title>
+        <ion-card-title>
+          <ion-icon name="cart-outline" color="primary"></ion-icon>
+          Ingredientes
+        </ion-card-title>
         <ion-card-subtitle>Para {{ receta.porciones }} porciones</ion-card-subtitle>
       </ion-card-header>
       <ion-card-content>
@@ -133,7 +177,10 @@
     <!-- INSTRUCCIONES -->
     <ion-card class="instrucciones-card">
       <ion-card-header>
-        <ion-card-title>👨‍🍳 Instrucciones</ion-card-title>
+        <ion-card-title>
+          <ion-icon name="restaurant-outline" color="primary"></ion-icon>
+          Instrucciones
+        </ion-card-title>
         <ion-card-subtitle>Sigue estos pasos</ion-card-subtitle>
       </ion-card-header>
       <ion-card-content>
@@ -150,7 +197,10 @@
     <!-- ETIQUETAS -->
     <ion-card class="etiquetas-card" *ngIf="receta.etiquetas && receta.etiquetas.length > 0">
       <ion-card-header>
-        <ion-card-title>🏷️ Etiquetas</ion-card-title>
+        <ion-card-title>
+          <ion-icon name="pricetags-outline" color="primary"></ion-icon>
+          Etiquetas
+        </ion-card-title>
       </ion-card-header>
       <ion-card-content>
         <div class="etiquetas-container">
