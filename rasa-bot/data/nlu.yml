@@ -1,0 +1,350 @@
+version: "3.1"
+
+nlu:
+
+  # --- Intent para activar Gemini ---
+  - intent: open_chat
+    examples: |
+      - quiero hablar con gemini
+      - activar gemini
+      - chatear con la ia
+      - preguntarle algo a gemini
+      - necesito una respuesta avanzada
+      - hablar con tu cerebro avanzado
+      - iniciar chat avanzado
+      - quiero usar la inteligencia artificial
+      - cambia a modo avanzado
+      - puedes responder esto?
+      - quiero que me ayudes con algo complejo
+      - háblame de algo que no sepa
+      - cerebro avanzado
+
+  # --- Intent para salir del chat con Gemini ---
+  - intent: stop_chat
+    examples: |
+      - salir del chat
+      - terminar chat
+      - basta de gemini
+      - volver a lo normal
+      - no más ia
+      - cancelar gemini
+      - volver a mis funciones
+      - desconectar ia
+      - desactiva gemini
+      - quiero mi bot normal
+      - modo normal
+
+  # --- Intent para preguntar directamente a Gemini ---
+  - intent: ask_gemini
+    examples: |
+      - ¿Qué es la inteligencia artificial?
+      - Cuéntame un chiste
+      - Explica el teorema de Pitágoras
+      - Hazme una pregunta
+      - Necesito información sobre el universo
+      - Cuál es la capital de Francia
+      - dame el número de la suerte
+      - cuánto es 2 + 2
+      - qué tiempo hace hoy
+      - háblame de política
+      - cuál es la mejor serie
+      - dónde puedo comprar ropa
+
+  - intent: greet
+    examples: |
+      - hola
+      - buenos días
+      - buenas tardes
+      - buenas noches
+      - que tal
+      - hola bot
+      - hey
+      - holi
+
+  - intent: goodbye
+    examples: |
+      - adiós
+      - hasta luego
+      - nos vemos
+      - chao
+      - me despido
+      - adiosito
+
+  - intent: affirm
+    examples: |
+      - sí
+      - claro
+      - por supuesto
+      - exacto
+      - correcto
+      - así es
+      - vale
+
+  - intent: deny
+    examples: |
+      - no
+      - para nada
+      - incorrecto
+      - no es eso
+      - no quiero
+
+  - intent: bot_challenge
+    examples: |
+      - eres un bot
+      - eres humano
+      - quien eres
+      - eres real
+      - eres una persona
+      - eres inteligencia artificial
+
+  - intent: thanks
+    examples: |
+      - gracias
+      - muchas gracias
+      - te lo agradezco
+      - mil gracias
+      - muy amable
+
+  - intent: introduce_bot
+    examples: |
+      - preséntate
+      - dime quién eres
+      - cuál es tu propósito
+      - a qué te dedicas
+      - qué haces
+
+  - intent: ask_capabilities
+    examples: |
+      - qué puedes hacer
+      - en qué me puedes ayudar
+      - cuáles son tus funciones
+      - qué temas cubres
+      - qué sabes hacer
+
+  # --- EJEMPLOS DE NUTRICIÓN ---
+  - intent: ask_diet_general
+    examples: |
+      - qué es una dieta saludable
+      - cómo comer sano
+      - consejos para una buena alimentación
+      - qué debo comer
+      - pautas de alimentación
+      - dime sobre nutrición
+      - cómo mejorar mi dieta
+
+  - intent: ask_specific_food
+    examples: |
+      - calorías de la manzana
+      - es bueno el brócoli
+      - el aguacate engorda
+      - propiedades del salmón
+      - qué beneficios tiene la avena
+      - el pan es bueno o malo
+      - qué contiene el arroz
+      - información sobre [proteínas](macronutrient)
+      - datos de [carbohidratos](macronutrient)
+
+  - intent: ask_meal_planning
+    examples: |
+      - cómo planificar mis comidas
+      - ideas para el meal prep
+      - cómo organizar mi dieta semanal
+      - consejos para planificar mis alimentos
+      - necesito ayuda con mi menú semanal
+
+  - intent: ask_hydration
+    examples: |
+      - cuánta agua debo beber
+      - es importante beber agua
+      - beneficios del agua
+      - cómo me hidrato
+      - tengo que beber más agua
+      - recomendaciones de agua
+
+  - intent: ask_weight_loss
+    examples: |
+      - cómo puedo bajar de peso
+      - quiero adelgazar
+      - consejos para perder grasa
+      - dieta para adelgazar
+      - quiero perder peso
+      - cómo quemar calorías
+      - cómo [perder peso](goal)
+
+  # --- EJEMPLOS DE SALUD FÍSICA Y EJERCICIO ---
+  - intent: ask_exercise_general
+    examples: |
+      - qué ejercicio es bueno para mí
+      - consejos para hacer ejercicio
+      - qué tipo de ejercicio debo hacer
+      - importancia del ejercicio
+      - cómo empezar a entrenar
+      - qué es el ejercicio físico
+
+  - intent: ask_workout_plan
+    examples: |
+      - necesito un plan de entrenamiento
+      - cómo crear una rutina de gimnasio
+      - plan de ejercicio semanal
+      - ideas para mi rutina
+
+  - intent: ask_muscle_group
+    examples: |
+      - ejercicios para abdominales
+      - cómo entrenar los brazos
+      - quiero fortalecer mis piernas
+      - ejercicios para glúteos
+      - rutina de espalda
+      - cómo trabajar el [pecho](muscle_group)
+
+  - intent: ask_cardio_benefits
+    examples: |
+      - para qué sirve el cardio
+      - beneficios de correr
+      - es bueno hacer cardio
+      - ventajas del ejercicio aeróbico
+
+  - intent: ask_strength_training
+    examples: |
+      - qué es el entrenamiento de fuerza
+      - cómo ganar músculo
+      - importancia del levantamiento de pesas
+      - quiero ser más fuerte
+      - beneficios de las pesas
+
+  # --- EJEMPLOS DE CAMBIOS FÍSICOS Y SEGUIMIENTO ---
+  - intent: ask_progress_tracking
+    examples: |
+      - cómo saber si estoy progresando
+      - cómo medir mis cambios físicos
+      - cómo llevar un registro de mi peso
+      - es bueno pesarse cada día
+      - cómo seguir mi evolución
+
+  - intent: ask_motivation_support
+    examples: |
+      - necesito motivación
+      - estoy perdiendo la motivación
+      - cómo me mantengo motivado
+      - consejos para no rendirse
+      - ayúdame a seguir adelante
+
+  - intent: out_of_scope
+    examples: |
+      - puedes reservarme un vuelo?
+      - haz mis deberes de la universidad
+      - cuál es tu opinión sobre temas controvertidos
+      - dame un diagnóstico médico
+      - esto no tiene que ver contigo
+
+  # --- APOYO EMOCIONAL ---
+  - intent: express_sadness
+    examples: |
+      - me siento triste
+      - estoy deprimido
+      - no me siento bien
+      - me siento mal
+      - estoy muy triste
+      - tengo ganas de llorar
+      - me siento solo
+      - estoy decaído
+
+  - intent: express_anxiety
+    examples: |
+      - estoy ansioso
+      - tengo ansiedad
+      - me siento estresado
+      - estoy muy nervioso
+      - tengo mucha tensión
+      - no puedo relajarme
+      - estoy preocupado
+      - me siento agobiado
+
+  - intent: express_anger
+    examples: |
+      - estoy enojado
+      - me siento frustrado
+      - tengo rabia
+      - estoy molesto
+      - me da mucha ira
+      - estoy furioso
+
+  - intent: express_happiness
+    examples: |
+      - estoy feliz
+      - me siento bien
+      - estoy contento
+      - hoy fue un buen día
+      - me siento genial
+      - estoy de buen humor
+
+  - intent: ask_emotional_support
+    examples: |
+      - necesito apoyo
+      - ayúdame a sentirme mejor
+      - qué hago cuando me siento mal
+      - cómo manejo mis emociones
+      - necesito hablar con alguien
+
+  - intent: ask_stress_management
+    examples: |
+      - cómo manejo el estrés
+      - técnicas para relajarme
+      - qué hago cuando estoy estresado
+      - ejercicios de respiración
+      - necesito calmarme
+
+  # --- NUTRICIÓN EMOCIONAL ---
+  - intent: ask_emotional_eating
+    examples: |
+      - como cuando estoy triste
+      - cómo controlar la ansiedad por comer
+      - como por estrés
+      - no puedo parar de comer
+      - tengo atracones
+      - como por ansiedad
+
+  - intent: ask_healthy_snacks
+    examples: |
+      - qué puedo comer entre comidas
+      - snacks saludables
+      - tengo hambre qué como
+      - opciones de colaciones
+      - qué es un snack sano
+
+  - synonym: proteínas
+    examples: |
+      - proteinas
+      - proteína
+      - protein
+      - protes
+
+  - synonym: carbohidratos
+    examples: |
+      - carbos
+      - hidratos
+      - carbo
+      - carbohidrato
+
+  - synonym: grasas
+    examples: |
+      - lípidos
+      - grasas saludables
+
+  - lookup: macronutrient
+    examples: |
+      - proteínas
+      - carbohidratos
+      - grasas
+      - fibra
+
+  - lookup: muscle_group
+    examples: |
+      - pecho
+      - espalda
+      - piernas
+      - glúteos
+      - hombros
+      - bíceps
+      - tríceps
+      - abdomen

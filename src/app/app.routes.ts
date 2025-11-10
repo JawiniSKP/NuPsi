@@ -37,10 +37,10 @@ export const routes: Routes = [
     path: 'indicators',
     loadComponent: () => import('./pages/indicators/indicators.page').then(m => m.IndicatorsPage),
   },
-  {
-    path: 'chat', 
-    loadComponent: () => import('./pages/chat/chat.page').then(m => m.ChatPage) 
-  },
+  { path: 'chat', loadComponent: () => import('./pages/chat/chat.page').then(m => m.ChatPage) },
+
+  { path: '', pathMatch: 'full', redirectTo: 'chat' }
+  ,
   {
     path: 'receta-detalle/:id',
     loadComponent: () => import('./pages/receta-detalle/receta-detalle.page').then(m => m.RecetaDetallePage)
@@ -48,7 +48,8 @@ export const routes: Routes = [
   {
     path: '**',
     redirectTo: 'home'
-  },  {
+  },
+  {
     path: 'perfil',
     loadComponent: () => import('./pages/perfil/perfil.page').then( m => m.PerfilPage)
   }

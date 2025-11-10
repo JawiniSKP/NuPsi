@@ -68,3 +68,27 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+
+# Modelos entrenados de Rasa
+models/
+.rasa/
+
+# Caché y logs de Python
+__pycache__/
+*.pyc
+*.log
+*.sqlite
+.ipynb_checkpoints/
+
+# Archivos específicos de VS Code (opcional, pero común)
+.vscode/
+
+# Variables de entorno (¡MUY IMPORTANTE por seguridad!)
+.env
+
+

@@ -1,0 +1,49 @@
+{
+  "type": "MaxHistoryTrackerFeaturizer",
+  "state_featurizer": {
+    "action_texts": [],
+    "entity_tag_specs": [],
+    "feature_states": {
+      "intent": {
+        "back": 0,
+        "despedirse": 1,
+        "nlu_fallback": 2,
+        "out_of_scope": 3,
+        "pedir_consejo_nutricion": 4,
+        "preguntar_agua": 5,
+        "preguntar_proteina": 6,
+        "restart": 7,
+        "saludar": 8,
+        "sentirse_desmotivado": 9,
+        "session_start": 10
+      },
+      "action_name": {
+        "action_listen": 0,
+        "action_restart": 1,
+        "action_session_start": 2,
+        "action_default_fallback": 3,
+        "action_deactivate_loop": 4,
+        "action_revert_fallback_events": 5,
+        "action_default_ask_affirmation": 6,
+        "action_default_ask_rephrase": 7,
+        "action_two_stage_fallback": 8,
+        "action_unlikely_intent": 9,
+        "action_back": 10,
+        "...": 11,
+        "action_extract_slots": 12,
+        "utter_default_nutricion": 13,
+        "utter_despedirse_nutricion": 14,
+        "utter_disclaimer_medico": 15,
+        "utter_explicar_agua": 16,
+        "utter_explicar_proteina": 17,
+        "utter_motivar": 18,
+        "utter_saludar_nutricion": 19
+      },
+      "entities": {},
+      "slots": {},
+      "active_loop": {}
+    }
+  },
+  "remove_duplicates": true,
+  "max_history": 5
+}
