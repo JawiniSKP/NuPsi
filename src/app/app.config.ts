@@ -7,6 +7,12 @@ import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { environment } from '../environments/environment';
 import { addIcons } from 'ionicons';
+import { provideHttpClient } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
+// No necesitas importar HttpClientModule y MarkdownModule aquí si los provees con `importProvidersFrom`
+// import { HttpClientModule } from '@angular/common/http';
+import { MarkdownModule } from 'ngx-markdown'; // <-- Importa esto
+
 import { 
   // Iconos existentes (sin duplicados)
   personCircle, home, calendar, chatbubble, people, person,
@@ -95,6 +101,10 @@ export const appConfig: ApplicationConfig = {
     provideIonicAngular({}),
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
     provideAuth(() => getAuth()),
-    provideFirestore(() => getFirestore())
+    provideFirestore(() => getFirestore()),
+    provideHttpClient(), // Habilita HttpClient para toda la app
+    importProvidersFrom(FormsModule), // Habilita FormsModule para toda la app
+    importProvidersFrom(MarkdownModule.forRoot()), // <-- AÑADE ESTO para MarkdownModule
+    importProvidersFrom(MarkdownModule.forRoot())
   ]
 };

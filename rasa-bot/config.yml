@@ -1,0 +1,38 @@
+language: es
+
+pipeline:
+- name: WhitespaceTokenizer
+- name: RegexFeaturizer
+- name: LexicalSyntacticFeaturizer
+- name: CountVectorsFeaturizer
+- name: CountVectorsFeaturizer
+  analyzer: "char_wb"
+  min_ngram: 1
+  max_ngram: 4
+- name: DIETClassifier
+  epochs: 100
+  constrain_similarities: true
+- name: EntitySynonymMapper
+
+  # 👇 ESTE paso es el que hace que Rasa dispare `nlu_fallback`
+  # cuando no logra identificar una intención con suficiente confianza.
+- name: FallbackClassifier
+  threshold: 0.55               # Ajusta sensibilidad: 0.5–0.6 va bien
+  ambiguity_threshold: 0.05      # Si dos intents están muy empatados, activa fallback
+
+policies:
+  # RulePolicy maneja las reglas y el fallback global
+- name: RulePolicy
+  nlu_fallback_threshold: 0.0      # lo maneja el FallbackClassifier
+  core_fallback_threshold: 0.4
+  fallback_action_name: "action_fallback_to_gemini"
+
+  # MemoizationPolicy recuerda secuencias de diálogo conocidas
+- name: MemoizationPolicy
+
+  # TEDPolicy maneja casos no cubiertos por reglas
+- name: TEDPolicy
+  max_history: 5
+  epochs: 100
+  constrain_similarities: true
+assistant_id: 20251110-120316-canary-learning
