@@ -1,5 +1,4 @@
-// src/app/services/ejercicios.service.ts
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, NgZone } from '@angular/core'; // ✅ NgZone AGREGADO
 import { 
   Firestore, 
   collection, 
@@ -73,43 +72,50 @@ export interface EstadisticasEjercicio {
 export class EjerciciosService {
   private firestore = inject(Firestore);
   private auth = inject(Auth);
+  private ngZone = inject(NgZone); // ✅ NgZone AGREGADO
 
   // ==========================================
-  // 📊 MÉTODOS DE PLANTILLAS
+  // 📊 MÉTODOS DE PLANTILLAS - CORREGIDOS
   // ==========================================
 
   /**
    * Obtiene todas las plantillas de ejercicio disponibles
    */
   obtenerPlantillasEjercicio(): Observable<PlantillaEjercicio[]> {
-    try {
-      return from(this.obtenerPlantillasConManejoError());
-    } catch (error) {
-      console.error('❌ Error obteniendo plantillas de ejercicio:', error);
-      return of([]);
-    }
+    return this.ngZone.run(() => {
+      try {
+        return from(this.obtenerPlantillasConManejoError());
+      } catch (error) {
+        console.error('❌ Error obteniendo plantillas de ejercicio:', error);
+        return of([]);
+      }
+    });
   }
 
   private async obtenerPlantillasConManejoError(): Promise<PlantillaEjercicio[]> {
-    try {
-      const plantillasRef = collection(this.firestore, 'plantillas');
-      
-      // Intentar con orderBy primero
+    return this.ngZone.run(() => {
       try {
-        const q = query(plantillasRef, orderBy('nombre'));
-        const querySnapshot = await getDocs(q);
-        return this.mapearPlantillas(querySnapshot);
-      } catch (orderError) {
-        console.warn('⚠️ OrderBy falló, obteniendo sin ordenar...', orderError);
+        const plantillasRef = collection(this.firestore, 'plantillas');
         
-        // Fallback: Sin orderBy
-        const querySnapshot = await getDocs(plantillasRef);
-        return this.mapearPlantillas(querySnapshot);
+        // Intentar con orderBy primero
+        return getDocs(query(plantillasRef, orderBy('nombre'))).then(querySnapshot => {
+          const plantillas = this.mapearPlantillas(querySnapshot);
+          console.log('📊 Plantillas obtenidas (ordenadas):', plantillas.length);
+          return plantillas;
+        }).catch(async (orderError) => {
+          console.warn('⚠️ OrderBy falló, obteniendo sin ordenar...', orderError);
+          
+          // Fallback: Sin orderBy
+          const querySnapshot = await getDocs(plantillasRef);
+          const plantillas = this.mapearPlantillas(querySnapshot);
+          console.log('📊 Plantillas obtenidas (sin ordenar):', plantillas.length);
+          return plantillas;
+        });
+      } catch (error) {
+        console.error('❌ Error crítico obteniendo plantillas:', error);
+        return [];
       }
-    } catch (error) {
-      console.error('❌ Error crítico obteniendo plantillas:', error);
-      return [];
-    }
+    });
   }
 
   private mapearPlantillas(querySnapshot: any): PlantillaEjercicio[] {
@@ -117,334 +123,353 @@ export class EjerciciosService {
       id: doc.id,
       ...doc.data()
     }));
-    
-    console.log('📊 Plantillas obtenidas:', plantillas.length);
     return plantillas as PlantillaEjercicio[];
   }
 
   // ==========================================
-  // 💪 MÉTODOS DE EJERCICIOS DEL USUARIO
+  // 💪 MÉTODOS DE EJERCICIOS DEL USUARIO - CORREGIDOS
   // ==========================================
 
   /**
    * Crea un nuevo ejercicio para el usuario
    */
   async crearEjercicio(ejercicio: Partial<EjercicioUsuario>): Promise<string> {
-    const user = this.auth.currentUser;
-    if (!user) throw new Error('❌ Usuario no autenticado');
+    return this.ngZone.run(() => {
+      const user = this.auth.currentUser;
+      if (!user) throw new Error('❌ Usuario no autenticado');
 
-    try {
-      const ejercicioCompleto: EjercicioUsuario = {
-        nombre: ejercicio.nombre!,
-        descripcion: ejercicio.descripcion || '',
-        duracion: ejercicio.temporizador ? this.calcularDuracionTotal(ejercicio.temporizador) : 0,
-        categoria: ejercicio.categoria || 'personalizado',
-        temporizador: ejercicio.temporizador || { trabajo: 30, descanso: 10, series: 3 },
-        completado: false,
-        fechaCreacion: new Date(),
-        ultimaModificacion: new Date(),
-        vecesCompletado: 0,
-        historial: []
-      };
+      try {
+        const ejercicioCompleto: EjercicioUsuario = {
+          nombre: ejercicio.nombre!,
+          descripcion: ejercicio.descripcion || '',
+          duracion: ejercicio.temporizador ? this.calcularDuracionTotal(ejercicio.temporizador) : 0,
+          categoria: ejercicio.categoria || 'personalizado',
+          temporizador: ejercicio.temporizador || { trabajo: 30, descanso: 10, series: 3 },
+          completado: false,
+          fechaCreacion: new Date(),
+          ultimaModificacion: new Date(),
+          vecesCompletado: 0,
+          historial: []
+        };
 
-      const ejerciciosRef = collection(this.firestore, `usuarios/${user.uid}/ejercicios`);
-      const docRef = await addDoc(ejerciciosRef, ejercicioCompleto);
-      
-      console.log('✅ Ejercicio creado con ID:', docRef.id);
-      return docRef.id;
-    } catch (error) {
-      console.error('❌ Error creando ejercicio:', error);
-      throw error;
-    }
+        const ejerciciosRef = collection(this.firestore, `usuarios/${user.uid}/ejercicios`);
+        return addDoc(ejerciciosRef, ejercicioCompleto).then(docRef => {
+          console.log('✅ Ejercicio creado con ID:', docRef.id);
+          return docRef.id;
+        });
+      } catch (error) {
+        console.error('❌ Error creando ejercicio:', error);
+        throw error;
+      }
+    });
   }
 
   /**
    * Obtiene todos los ejercicios del usuario
    */
   obtenerEjerciciosUsuario(): Observable<EjercicioUsuario[]> {
-    const user = this.auth.currentUser;
-    if (!user) {
-      console.warn('⚠️ Usuario no autenticado');
-      return of([]);
-    }
+    return this.ngZone.run(() => {
+      const user = this.auth.currentUser;
+      if (!user) {
+        console.warn('⚠️ Usuario no autenticado');
+        return of([]);
+      }
 
-    try {
-      const ejerciciosRef = collection(this.firestore, `usuarios/${user.uid}/ejercicios`);
-      return collectionData(ejerciciosRef, { idField: 'id' }) as Observable<EjercicioUsuario[]>;
-    } catch (error) {
-      console.error('❌ Error obteniendo ejercicios usuario:', error);
-      return of([]);
-    }
+      try {
+        const ejerciciosRef = collection(this.firestore, `usuarios/${user.uid}/ejercicios`);
+        return collectionData(ejerciciosRef, { idField: 'id' }) as Observable<EjercicioUsuario[]>;
+      } catch (error) {
+        console.error('❌ Error obteniendo ejercicios usuario:', error);
+        return of([]);
+      }
+    });
   }
 
   /**
    * Obtiene un ejercicio específico por ID
    */
   async obtenerEjercicioPorId(ejercicioId: string): Promise<EjercicioUsuario | null> {
-    const user = this.auth.currentUser;
-    if (!user) throw new Error('❌ Usuario no autenticado');
+    return this.ngZone.run(() => {
+      const user = this.auth.currentUser;
+      if (!user) throw new Error('❌ Usuario no autenticado');
 
-    try {
-      const ejercicioDoc = doc(this.firestore, `usuarios/${user.uid}/ejercicios/${ejercicioId}`);
-      const ejercicioSnap = await getDoc(ejercicioDoc);
-      
-      if (ejercicioSnap.exists()) {
-        return {
-          id: ejercicioSnap.id,
-          ...ejercicioSnap.data()
-        } as EjercicioUsuario;
+      try {
+        const ejercicioDoc = doc(this.firestore, `usuarios/${user.uid}/ejercicios/${ejercicioId}`);
+        return getDoc(ejercicioDoc).then(ejercicioSnap => {
+          if (ejercicioSnap.exists()) {
+            return {
+              id: ejercicioSnap.id,
+              ...ejercicioSnap.data()
+            } as EjercicioUsuario;
+          }
+          return null;
+        });
+      } catch (error) {
+        console.error('❌ Error obteniendo ejercicio por ID:', error);
+        return null;
       }
-      
-      return null;
-    } catch (error) {
-      console.error('❌ Error obteniendo ejercicio por ID:', error);
-      return null;
-    }
+    });
   }
 
   /**
    * Actualiza un ejercicio existente
    */
   async actualizarEjercicio(ejercicioId: string, ejercicio: Partial<EjercicioUsuario>): Promise<void> {
-    const user = this.auth.currentUser;
-    if (!user) throw new Error('❌ Usuario no autenticado');
+    return this.ngZone.run(() => {
+      const user = this.auth.currentUser;
+      if (!user) throw new Error('❌ Usuario no autenticado');
 
-    try {
-      const ejercicioDoc = doc(this.firestore, `usuarios/${user.uid}/ejercicios/${ejercicioId}`);
-      
-      const datosActualizados: any = {
-        ...ejercicio,
-        ultimaModificacion: new Date()
-      };
+      try {
+        const ejercicioDoc = doc(this.firestore, `usuarios/${user.uid}/ejercicios/${ejercicioId}`);
+        
+        const datosActualizados: any = {
+          ...ejercicio,
+          ultimaModificacion: new Date()
+        };
 
-      if (ejercicio.temporizador) {
-        datosActualizados.duracion = this.calcularDuracionTotal(ejercicio.temporizador);
+        if (ejercicio.temporizador) {
+          datosActualizados.duracion = this.calcularDuracionTotal(ejercicio.temporizador);
+        }
+
+        return updateDoc(ejercicioDoc, datosActualizados).then(() => {
+          console.log('✅ Ejercicio actualizado correctamente');
+        });
+      } catch (error) {
+        console.error('❌ Error actualizando ejercicio:', error);
+        throw error;
       }
-
-      await updateDoc(ejercicioDoc, datosActualizados);
-      console.log('✅ Ejercicio actualizado correctamente');
-    } catch (error) {
-      console.error('❌ Error actualizando ejercicio:', error);
-      throw error;
-    }
+    });
   }
 
   /**
    * Elimina un ejercicio
    */
   async eliminarEjercicio(ejercicioId: string): Promise<void> {
-    const user = this.auth.currentUser;
-    if (!user) throw new Error('❌ Usuario no autenticado');
+    return this.ngZone.run(() => {
+      const user = this.auth.currentUser;
+      if (!user) throw new Error('❌ Usuario no autenticado');
 
-    try {
-      const ejercicioDoc = doc(this.firestore, `usuarios/${user.uid}/ejercicios/${ejercicioId}`);
-      await deleteDoc(ejercicioDoc);
-      console.log('✅ Ejercicio eliminado correctamente');
-    } catch (error) {
-      console.error('❌ Error eliminando ejercicio:', error);
-      throw error;
-    }
+      try {
+        const ejercicioDoc = doc(this.firestore, `usuarios/${user.uid}/ejercicios/${ejercicioId}`);
+        return deleteDoc(ejercicioDoc).then(() => {
+          console.log('✅ Ejercicio eliminado correctamente');
+        });
+      } catch (error) {
+        console.error('❌ Error eliminando ejercicio:', error);
+        throw error;
+      }
+    });
   }
 
   // ==========================================
-  // 📈 MÉTODOS DE PROGRESO Y HISTORIAL
+  // 📈 MÉTODOS DE PROGRESO Y HISTORIAL - CORREGIDOS
   // ==========================================
 
   /**
    * Completa un ejercicio y registra en el historial
    */
   async completarEjercicio(ejercicioId: string, duracionReal: number, notas?: string): Promise<void> {
-    const user = this.auth.currentUser;
-    if (!user) throw new Error('❌ Usuario no autenticado');
+    return this.ngZone.run(() => {
+      const user = this.auth.currentUser;
+      if (!user) throw new Error('❌ Usuario no autenticado');
 
-    try {
-      const ejercicioDoc = doc(this.firestore, `usuarios/${user.uid}/ejercicios/${ejercicioId}`);
-      const ejercicioSnap = await getDoc(ejercicioDoc);
-      
-      if (ejercicioSnap.exists()) {
-        const ejercicioData = ejercicioSnap.data() as EjercicioUsuario;
-        const vecesCompletado = (ejercicioData.vecesCompletado || 0) + 1;
-        const historial = ejercicioData.historial || [];
-        
-        // Agregar nueva entrada al historial
-        historial.push({
-          fecha: new Date(),
-          duracionReal: duracionReal,
-          completado: true,
-          notas: notas
-        });
+      try {
+        const ejercicioDoc = doc(this.firestore, `usuarios/${user.uid}/ejercicios/${ejercicioId}`);
+        return getDoc(ejercicioDoc).then(async (ejercicioSnap) => {
+          if (ejercicioSnap.exists()) {
+            const ejercicioData = ejercicioSnap.data() as EjercicioUsuario;
+            const vecesCompletado = (ejercicioData.vecesCompletado || 0) + 1;
+            const historial = ejercicioData.historial || [];
+            
+            // Agregar nueva entrada al historial
+            historial.push({
+              fecha: new Date(),
+              duracionReal: duracionReal,
+              completado: true,
+              notas: notas
+            });
 
-        await updateDoc(ejercicioDoc, {
-          completado: true,
-          vecesCompletado: vecesCompletado,
-          historial: historial,
-          ultimaModificacion: new Date()
+            await updateDoc(ejercicioDoc, {
+              completado: true,
+              vecesCompletado: vecesCompletado,
+              historial: historial,
+              ultimaModificacion: new Date()
+            });
+            
+            console.log('✅ Ejercicio completado y registrado en historial');
+          }
         });
-        
-        console.log('✅ Ejercicio completado y registrado en historial');
+      } catch (error) {
+        console.error('❌ Error completando ejercicio:', error);
+        throw error;
       }
-    } catch (error) {
-      console.error('❌ Error completando ejercicio:', error);
-      throw error;
-    }
+    });
   }
 
   /**
    * Resetea el estado de completado de un ejercicio
    */
   async resetearEjercicio(ejercicioId: string): Promise<void> {
-    const user = this.auth.currentUser;
-    if (!user) throw new Error('❌ Usuario no autenticado');
+    return this.ngZone.run(() => {
+      const user = this.auth.currentUser;
+      if (!user) throw new Error('❌ Usuario no autenticado');
 
-    try {
-      const ejercicioDoc = doc(this.firestore, `usuarios/${user.uid}/ejercicios/${ejercicioId}`);
-      await updateDoc(ejercicioDoc, {
-        completado: false,
-        ultimaModificacion: new Date()
-      });
-      console.log('✅ Ejercicio reseteado correctamente');
-    } catch (error) {
-      console.error('❌ Error reseteando ejercicio:', error);
-      throw error;
-    }
+      try {
+        const ejercicioDoc = doc(this.firestore, `usuarios/${user.uid}/ejercicios/${ejercicioId}`);
+        return updateDoc(ejercicioDoc, {
+          completado: false,
+          ultimaModificacion: new Date()
+        }).then(() => {
+          console.log('✅ Ejercicio reseteado correctamente');
+        });
+      } catch (error) {
+        console.error('❌ Error reseteando ejercicio:', error);
+        throw error;
+      }
+    });
   }
 
   /**
    * Obtiene el historial de un ejercicio específico
    */
   async obtenerHistorialEjercicio(ejercicioId: string): Promise<HistorialEjercicio[]> {
-    const user = this.auth.currentUser;
-    if (!user) throw new Error('❌ Usuario no autenticado');
+    return this.ngZone.run(() => {
+      const user = this.auth.currentUser;
+      if (!user) throw new Error('❌ Usuario no autenticado');
 
-    try {
-      const ejercicioDoc = doc(this.firestore, `usuarios/${user.uid}/ejercicios/${ejercicioId}`);
-      const ejercicioSnap = await getDoc(ejercicioDoc);
-      
-      if (ejercicioSnap.exists()) {
-        const ejercicioData = ejercicioSnap.data() as EjercicioUsuario;
-        return ejercicioData.historial || [];
+      try {
+        const ejercicioDoc = doc(this.firestore, `usuarios/${user.uid}/ejercicios/${ejercicioId}`);
+        return getDoc(ejercicioDoc).then(ejercicioSnap => {
+          if (ejercicioSnap.exists()) {
+            const ejercicioData = ejercicioSnap.data() as EjercicioUsuario;
+            return ejercicioData.historial || [];
+          }
+          return [];
+        });
+      } catch (error) {
+        console.error('❌ Error obteniendo historial:', error);
+        return [];
       }
-      
-      return [];
-    } catch (error) {
-      console.error('❌ Error obteniendo historial:', error);
-      return [];
-    }
+    });
   }
 
   /**
    * Obtiene estadísticas generales de ejercicios del usuario
    */
   async obtenerEstadisticas(): Promise<EstadisticasEjercicio> {
-    const user = this.auth.currentUser;
-    if (!user) throw new Error('❌ Usuario no autenticado');
+    return this.ngZone.run(() => {
+      const user = this.auth.currentUser;
+      if (!user) throw new Error('❌ Usuario no autenticado');
 
-    try {
-      const ejerciciosRef = collection(this.firestore, `usuarios/${user.uid}/ejercicios`);
-      const querySnapshot = await getDocs(ejerciciosRef);
-      
-      let totalEjercicios = 0;
-      let ejerciciosCompletados = 0;
-      let tiempoTotalEntrenamiento = 0;
-      let ultimoEntrenamiento: Date | undefined = undefined;
+      try {
+        const ejerciciosRef = collection(this.firestore, `usuarios/${user.uid}/ejercicios`);
+        return getDocs(ejerciciosRef).then(querySnapshot => {
+          let totalEjercicios = 0;
+          let ejerciciosCompletados = 0;
+          let tiempoTotalEntrenamiento = 0;
+          let ultimoEntrenamiento: Date | undefined = undefined;
 
-      querySnapshot.forEach((doc) => {
-        const ejercicio = doc.data() as EjercicioUsuario;
-        totalEjercicios++;
-        
-        if (ejercicio.completado) {
-          ejerciciosCompletados++;
-        }
-        
-        if (ejercicio.historial && ejercicio.historial.length > 0) {
-          ejercicio.historial.forEach((entrada: any) => {
-            tiempoTotalEntrenamiento += entrada.duracionReal;
+          querySnapshot.forEach((doc) => {
+            const ejercicio = doc.data() as EjercicioUsuario;
+            totalEjercicios++;
             
-            const fechaEntrada = entrada.fecha instanceof Date 
-              ? entrada.fecha 
-              : entrada.fecha.toDate();
+            if (ejercicio.completado) {
+              ejerciciosCompletados++;
+            }
             
-            if (!ultimoEntrenamiento || fechaEntrada > ultimoEntrenamiento) {
-              ultimoEntrenamiento = fechaEntrada;
+            if (ejercicio.historial && ejercicio.historial.length > 0) {
+              ejercicio.historial.forEach((entrada: any) => {
+                tiempoTotalEntrenamiento += entrada.duracionReal;
+                
+                const fechaEntrada = entrada.fecha instanceof Date 
+                  ? entrada.fecha 
+                  : entrada.fecha.toDate();
+                
+                if (!ultimoEntrenamiento || fechaEntrada > ultimoEntrenamiento) {
+                  ultimoEntrenamiento = fechaEntrada;
+                }
+              });
             }
           });
-        }
-      });
 
-      // Calcular racha (días consecutivos)
-      const racha = await this.calcularRacha();
-
-      return {
-        totalEjercicios,
-        ejerciciosCompletados,
-        tiempoTotalEntrenamiento,
-        racha,
-        ultimoEntrenamiento
-      };
-    } catch (error) {
-      console.error('❌ Error obteniendo estadísticas:', error);
-      return {
-        totalEjercicios: 0,
-        ejerciciosCompletados: 0,
-        tiempoTotalEntrenamiento: 0,
-        racha: 0
-      };
-    }
+          // Calcular racha (días consecutivos)
+          return this.calcularRacha().then(racha => {
+            return {
+              totalEjercicios,
+              ejerciciosCompletados,
+              tiempoTotalEntrenamiento,
+              racha,
+              ultimoEntrenamiento
+            };
+          });
+        });
+      } catch (error) {
+        console.error('❌ Error obteniendo estadísticas:', error);
+        return {
+          totalEjercicios: 0,
+          ejerciciosCompletados: 0,
+          tiempoTotalEntrenamiento: 0,
+          racha: 0
+        };
+      }
+    });
   }
 
   /**
    * Calcula la racha de días consecutivos con entrenamientos
    */
   private async calcularRacha(): Promise<number> {
-    const user = this.auth.currentUser;
-    if (!user) return 0;
+    return this.ngZone.run(() => {
+      const user = this.auth.currentUser;
+      if (!user) return 0;
 
-    try {
-      const ejerciciosRef = collection(this.firestore, `usuarios/${user.uid}/ejercicios`);
-      const querySnapshot = await getDocs(ejerciciosRef);
-      
-      const fechasEntrenamiento: Date[] = [];
-      
-      querySnapshot.forEach((doc) => {
-        const ejercicio = doc.data() as EjercicioUsuario;
-        if (ejercicio.historial) {
-          ejercicio.historial.forEach((entrada: any) => {
-            const fecha = entrada.fecha instanceof Date 
-              ? entrada.fecha 
-              : entrada.fecha.toDate();
-            fechasEntrenamiento.push(fecha);
+      try {
+        const ejerciciosRef = collection(this.firestore, `usuarios/${user.uid}/ejercicios`);
+        return getDocs(ejerciciosRef).then(querySnapshot => {
+          const fechasEntrenamiento: Date[] = [];
+          
+          querySnapshot.forEach((doc) => {
+            const ejercicio = doc.data() as EjercicioUsuario;
+            if (ejercicio.historial) {
+              ejercicio.historial.forEach((entrada: any) => {
+                const fecha = entrada.fecha instanceof Date 
+                  ? entrada.fecha 
+                  : entrada.fecha.toDate();
+                fechasEntrenamiento.push(fecha);
+              });
+            }
           });
-        }
-      });
 
-      if (fechasEntrenamiento.length === 0) return 0;
+          if (fechasEntrenamiento.length === 0) return 0;
 
-      // Ordenar fechas de más reciente a más antigua
-      fechasEntrenamiento.sort((a, b) => b.getTime() - a.getTime());
+          // Ordenar fechas de más reciente a más antigua
+          fechasEntrenamiento.sort((a, b) => b.getTime() - a.getTime());
 
-      let racha = 0;
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
+          let racha = 0;
+          const hoy = new Date();
+          hoy.setHours(0, 0, 0, 0);
 
-      let fechaActual = new Date(hoy);
-      
-      for (const fechaEntrenamiento of fechasEntrenamiento) {
-        const fecha = new Date(fechaEntrenamiento);
-        fecha.setHours(0, 0, 0, 0);
-        
-        if (fecha.getTime() === fechaActual.getTime()) {
-          racha++;
-          fechaActual.setDate(fechaActual.getDate() - 1);
-        } else if (fecha.getTime() < fechaActual.getTime()) {
-          break;
-        }
+          let fechaActual = new Date(hoy);
+          
+          for (const fechaEntrenamiento of fechasEntrenamiento) {
+            const fecha = new Date(fechaEntrenamiento);
+            fecha.setHours(0, 0, 0, 0);
+            
+            if (fecha.getTime() === fechaActual.getTime()) {
+              racha++;
+              fechaActual.setDate(fechaActual.getDate() - 1);
+            } else if (fecha.getTime() < fechaActual.getTime()) {
+              break;
+            }
+          }
+
+          return racha;
+        });
+      } catch (error) {
+        console.error('❌ Error calculando racha:', error);
+        return 0;
       }
-
-      return racha;
-    } catch (error) {
-      console.error('❌ Error calculando racha:', error);
-      return 0;
-    }
+    });
   }
 
   // ==========================================

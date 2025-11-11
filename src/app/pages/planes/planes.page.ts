@@ -1,5 +1,5 @@
-// planes.page.ts - VERSIÓN CORREGIDA CON GUARDADO CORRECTO
-import { Component, OnInit, OnDestroy } from '@angular/core';
+// planes.page.ts - VERSIÓN CORREGIDA CON INYECCIÓN CORRECTA DE FIREBASE
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ToastController, AlertController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
@@ -55,9 +55,11 @@ export class PlanesPage implements OnInit, OnDestroy {
 
   private subscriptions: Subscription[] = [];
 
+  // ✅ CORREGIDO: Usar inject() para servicios que podrían causar problemas de contexto
+  private planesService = inject(PlanesService);
+  private ejerciciosService = inject(EjerciciosService);
+
   constructor(
-    private planesService: PlanesService,
-    private ejerciciosService: EjerciciosService,
     private router: Router,
     private toastController: ToastController,
     private alertController: AlertController
@@ -76,28 +78,18 @@ export class PlanesPage implements OnInit, OnDestroy {
   }
 
   // ==========================================
-  // 📥 CARGA DE DATOS
+  // 📥 CARGA DE DATOS - CORREGIDO
   // ==========================================
 
   async cargarDatosIniciales() {
     try {
       this.cargando = true;
       
-      // Cargar dietas desde Firestore
-      const dietasSub = this.planesService.obtenerDietas().subscribe({
-        next: (dietas) => {
-          this.dietas = dietas;
-          console.log('✅ Dietas cargadas:', dietas.length);
-        },
-        error: (error: any) => {
-          console.error('❌ Error cargando dietas:', error);
-          this.mostrarToast('Error al cargar las dietas', 'danger');
-        }
-      });
+      // ✅ CORREGIDO: Cargar dietas de forma segura
+      await this.cargarDietas();
       
-      // Cargar plan actual
-      this.planActual = await this.planesService.obtenerPlanUsuario();
-      console.log('📊 Plan actual cargado:', this.planActual);
+      // ✅ CORREGIDO: Cargar plan actual de forma segura
+      await this.cargarPlanUsuario();
       
       // Si tiene plan activo, calcular progreso y cargar recetas
       if (this.planActual?.activo) {
@@ -109,8 +101,6 @@ export class PlanesPage implements OnInit, OnDestroy {
       // Cargar estadísticas de ejercicios
       await this.cargarEstadisticasEjercicios();
       
-      this.subscriptions.push(dietasSub);
-      
     } catch (error: any) {
       console.error('❌ Error cargando datos:', error);
       this.mostrarToast('Error al cargar los datos', 'danger');
@@ -119,24 +109,60 @@ export class PlanesPage implements OnInit, OnDestroy {
     }
   }
 
+  // ✅ NUEVO: Método separado para cargar dietas de forma segura
+  private async cargarDietas() {
+    return new Promise<void>((resolve, reject) => {
+      const dietasSub = this.planesService.obtenerDietas().subscribe({
+        next: (dietas) => {
+          this.dietas = dietas;
+          console.log('✅ Dietas cargadas:', dietas.length);
+          resolve();
+        },
+        error: (error: any) => {
+          console.error('❌ Error cargando dietas:', error);
+          this.mostrarToast('Error al cargar las dietas', 'danger');
+          reject(error);
+        }
+      });
+      
+      this.subscriptions.push(dietasSub);
+    });
+  }
+
+  // ✅ NUEVO: Método separado para cargar plan de usuario de forma segura
+  private async cargarPlanUsuario() {
+    try {
+      this.planActual = await this.planesService.obtenerPlanUsuario();
+      console.log('📊 Plan actual cargado:', this.planActual);
+    } catch (error: any) {
+      console.error('❌ Error cargando plan usuario:', error);
+      throw error;
+    }
+  }
+
   async cargarRecetasDelDia() {
     if (!this.planActual?.dietaSeleccionada) return;
     
     try {
-      const recetasSub = this.planesService
-        .obtenerRecetasPorTipoDieta(this.planActual.dietaSeleccionada)
-        .subscribe({
-          next: (recetas: Receta[]) => {
-            // Obtener 3 recetas aleatorias para el día
-            this.recetasDelDia = this.obtenerRecetasAleatorias(recetas, 3);
-            console.log('✅ Recetas del día cargadas:', this.recetasDelDia.length);
-          },
-          error: (error: any) => {
-            console.error('❌ Error cargando recetas:', error);
-          }
-        });
-      
-      this.subscriptions.push(recetasSub);
+      // ✅ CORREGIDO: Usar promesa para manejar la suscripción de forma segura
+      await new Promise<void>((resolve, reject) => {
+        const recetasSub = this.planesService
+          .obtenerRecetasPorTipoDieta(this.planActual!.dietaSeleccionada)
+          .subscribe({
+            next: (recetas: Receta[]) => {
+              // Obtener 3 recetas aleatorias para el día
+              this.recetasDelDia = this.obtenerRecetasAleatorias(recetas, 3);
+              console.log('✅ Recetas del día cargadas:', this.recetasDelDia.length);
+              resolve();
+            },
+            error: (error: any) => {
+              console.error('❌ Error cargando recetas:', error);
+              reject(error);
+            }
+          });
+        
+        this.subscriptions.push(recetasSub);
+      });
     } catch (error: any) {
       console.error('❌ Error cargando recetas:', error);
     }
@@ -320,7 +346,7 @@ export class PlanesPage implements OnInit, OnDestroy {
       );
 
       // Recargar plan actual y calcular progreso
-      this.planActual = await this.planesService.obtenerPlanUsuario();
+      await this.cargarPlanUsuario();
       console.log('🔄 Plan actual recargado:', this.planActual);
       
       if (this.planActual?.activo) {
@@ -379,7 +405,7 @@ export class PlanesPage implements OnInit, OnDestroy {
           handler: async () => {
             try {
               await this.planesService.desactivarPlan();
-              this.planActual = await this.planesService.obtenerPlanUsuario();
+              await this.cargarPlanUsuario();
               this.progresoDieta = null;
               this.recetasDelDia = [];
               this.diaYaMarcado = false;
@@ -406,22 +432,27 @@ export class PlanesPage implements OnInit, OnDestroy {
       this.cargando = true;
       this.dietaDetallada = dieta;
       
-      const recetasSub = this.planesService
-        .obtenerRecetasPorTipoDieta(dieta.id)
-        .subscribe({
-          next: (recetas: Receta[]) => {
-            this.recetasDietaSeleccionada = recetas;
-            this.mostrarRecetasDieta = true;
-            this.cargando = false;
-          },
-          error: (error: any) => {
-            console.error('❌ Error cargando recetas:', error);
-            this.mostrarToast('Error al cargar las recetas', 'danger');
-            this.cargando = false;
-          }
-        });
-      
-      this.subscriptions.push(recetasSub);
+      // ✅ CORREGIDO: Usar promesa para manejar la suscripción de forma segura
+      await new Promise<void>((resolve, reject) => {
+        const recetasSub = this.planesService
+          .obtenerRecetasPorTipoDieta(dieta.id)
+          .subscribe({
+            next: (recetas: Receta[]) => {
+              this.recetasDietaSeleccionada = recetas;
+              this.mostrarRecetasDieta = true;
+              this.cargando = false;
+              resolve();
+            },
+            error: (error: any) => {
+              console.error('❌ Error cargando recetas:', error);
+              this.mostrarToast('Error al cargar las recetas', 'danger');
+              this.cargando = false;
+              reject(error);
+            }
+          });
+        
+        this.subscriptions.push(recetasSub);
+      });
     } catch (error: any) {
       console.error('❌ Error:', error);
       this.cargando = false;

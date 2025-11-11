@@ -14,23 +14,23 @@
           <img 
             *ngIf="logoLoaded" 
             src="assets/Nupsi/nupsiLogo.png" 
-            alt="NuPsi Logo" 
+            alt="NuPsi Logo - Salud nutricional y emocional" 
             class="logo-img" 
             (load)="onLogoLoad()" 
             (error)="onLogoError()">
-          <div class="logo-fallback" *ngIf="!logoLoaded">
-            <ion-icon name="heart" color="primary"></ion-icon>
+          <div class="logo-fallback" *ngIf="!logoLoaded" aria-hidden="true">
+            <ion-icon name="heart" color="primary" aria-hidden="true"></ion-icon>
             <span>NuPsi</span>
           </div>
         </div>
       </div>
-      <h2 class="welcome-title">Bienvenido a NutPsi</h2>
+      <h1 class="welcome-title">Bienvenido a NutPsi</h1>
       <p class="subtitle">Tu aliado en salud nutricional y emocional</p>
     </div>
 
     <!-- Mensaje de Error Global -->
-    <div class="error-banner" *ngIf="errorMessage && !isLoggingIn">
-      <ion-icon name="alert-circle" color="danger"></ion-icon>
+    <div class="error-banner" *ngIf="errorMessage && !isLoggingIn" role="alert" aria-live="polite">
+      <ion-icon name="alert-circle" color="danger" aria-hidden="true"></ion-icon>
       <span>{{ errorMessage }}</span>
     </div>
 
@@ -39,7 +39,7 @@
       <form [formGroup]="loginForm" (ngSubmit)="login()">
         <ion-list lines="none">
           
-          <!-- Campo Email - ✅ CORREGIDO: Sin [disabled] -->
+          <!-- Campo Email -->
           <ion-item class="form-item" [class.item-has-error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
             <ion-label position="stacked" class="input-label">Email</ion-label>
             <ion-input 
@@ -48,20 +48,23 @@
               placeholder="tu@email.com"
               class="custom-input"
               (ionInput)="clearError()"
-              required> <!-- ✅ SIN [disabled] -->
+              required
+              aria-describedby="email-errors"
+              aria-invalid="{{ loginForm.get('email')?.invalid && loginForm.get('email')?.touched ? 'true' : 'false' }}">
             </ion-input>
-            <ion-icon name="mail-outline" slot="start" class="input-icon"></ion-icon>
+            <!-- ✅ CORREGIDO: mail-outline reemplazado por mail -->
+            <ion-icon name="mail" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
           </ion-item>
           
-          <div class="error-messages" *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.errors">
+          <div class="error-messages" id="email-errors" *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.errors" role="alert">
             <ion-note color="danger">
-              <ion-icon name="alert-circle"></ion-icon>
+              <ion-icon name="alert-circle" aria-hidden="true"></ion-icon>
               <span *ngIf="loginForm.get('email')?.errors?.['required']">Email es requerido</span>
               <span *ngIf="loginForm.get('email')?.errors?.['email']">Formato de email inválido</span>
             </ion-note>
           </div>
 
-          <!-- Campo Contraseña - ✅ CORREGIDO: Sin [disabled] -->
+          <!-- Campo Contraseña -->
           <ion-item class="form-item" [class.item-has-error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
             <ion-label position="stacked" class="input-label">Contraseña</ion-label>
             <ion-input 
@@ -70,26 +73,32 @@
               placeholder="Mínimo 6 caracteres"
               class="custom-input"
               (ionInput)="clearError()"
-              required> <!-- ✅ SIN [disabled] -->
+              required
+              aria-describedby="password-errors"
+              aria-invalid="{{ loginForm.get('password')?.invalid && loginForm.get('password')?.touched ? 'true' : 'false' }}">
             </ion-input>
-            <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
+            <!-- ✅ CORREGIDO: lock-closed-outline reemplazado por lock-closed -->
+            <ion-icon name="lock-closed" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
             <ion-button 
               fill="clear" 
               slot="end" 
               (click)="togglePasswordVisibility()"
               class="password-toggle"
-              aria-label="Mostrar/ocultar contraseña">
+              [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              [attr.aria-pressed]="showPassword"
+              type="button">
               <ion-icon 
                 slot="icon-only"
-                [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"
-                color="medium">
+                [name]="showPassword ? 'eye-off' : 'eye'"
+                color="medium"
+                aria-hidden="true">
               </ion-icon>
             </ion-button>
           </ion-item>
           
-          <div class="error-messages" *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.errors">
+          <div class="error-messages" id="password-errors" *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.errors" role="alert">
             <ion-note color="danger">
-              <ion-icon name="alert-circle"></ion-icon>
+              <ion-icon name="alert-circle" aria-hidden="true"></ion-icon>
               <span *ngIf="loginForm.get('password')?.errors?.['required']">Contraseña es requerida</span>
               <span *ngIf="loginForm.get('password')?.errors?.['minlength']">Mínimo 6 caracteres</span>
             </ion-note>
@@ -101,16 +110,18 @@
           expand="block" 
           type="submit" 
           [disabled]="!loginForm.valid || isLoggingIn"
-          class="login-button ion-margin-vertical">
-          <ion-spinner *ngIf="isLoggingIn" name="crescent" class="button-spinner"></ion-spinner>
-          <ion-icon *ngIf="!isLoggingIn" name="log-in-outline" slot="start"></ion-icon>
+          class="login-button ion-margin-vertical"
+          [attr.aria-label]="isLoggingIn ? 'Iniciando sesión, por favor espere' : 'Iniciar sesión'">
+          <ion-spinner *ngIf="isLoggingIn" name="crescent" class="button-spinner" aria-hidden="true"></ion-spinner>
+          <!-- ✅ CORREGIDO: log-in-outline reemplazado por log-in -->
+          <ion-icon *ngIf="!isLoggingIn" name="log-in" slot="start" aria-hidden="true"></ion-icon>
           <span *ngIf="!isLoggingIn">Iniciar Sesión</span>
           <span *ngIf="isLoggingIn">Iniciando sesión...</span>
         </ion-button>
       </form>
 
       <!-- Separador -->
-      <div class="separator">
+      <div class="separator" aria-hidden="true">
         <span class="separator-line"></span>
         <span class="separator-text">o continuar con</span>
         <span class="separator-line"></span>
@@ -122,9 +133,10 @@
         fill="outline" 
         (click)="loginWithGoogle()"
         [disabled]="isLoggingIn"
-        class="google-button ion-margin-vertical">
-        <ion-spinner *ngIf="isLoggingIn" name="crescent" class="button-spinner"></ion-spinner>
-        <ion-icon *ngIf="!isLoggingIn" slot="start" name="logo-google" color="danger"></ion-icon>
+        class="google-button ion-margin-vertical"
+        [attr.aria-label]="isLoggingIn ? 'Conectando con Google, por favor espere' : 'Continuar con Google'">
+        <ion-spinner *ngIf="isLoggingIn" name="crescent" class="button-spinner" aria-hidden="true"></ion-spinner>
+        <ion-icon *ngIf="!isLoggingIn" slot="start" name="logo-google" color="danger" aria-hidden="true"></ion-icon>
         <span *ngIf="!isLoggingIn">Continuar con Google</span>
         <span *ngIf="isLoggingIn">Conectando...</span>
       </ion-button>
@@ -134,7 +146,8 @@
     <div class="register-link">
       <p class="register-text">
         ¿No tienes cuenta? 
-        <a (click)="goToRegister()" class="register-link-text">Regístrate aquí</a>
+        <a (click)="goToRegister()" class="register-link-text" role="button" tabindex="0" 
+           aria-label="Registrarse en NutPsi">Regístrate aquí</a>
       </p>
     </div>
   </div>

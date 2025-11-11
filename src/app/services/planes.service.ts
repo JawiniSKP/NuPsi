@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, NgZone } from '@angular/core';
 import { 
   Firestore, 
   collection, 
@@ -157,52 +157,60 @@ export interface HistorialDieta {
   razonTermino?: 'completada' | 'cambiada' | 'abandonada';
 }
 
+// Interface para datos de Firestore
+interface FirestoreDocument {
+  id: string;
+  [key: string]: any;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class PlanesService {
-  // ✅ CORRECTO: Inyección de dependencias al inicio
   private firestore = inject(Firestore);
   private auth = inject(Auth);
+  private ngZone = inject(NgZone);
 
   // ==========================================
   // 🍽️ MÉTODOS DE DIETAS - CORREGIDOS
   // ==========================================
 
   obtenerDietas(): Observable<Dieta[]> {
-    try {
-      const dietasRef = collection(this.firestore, 'dietas');
-      const q = query(dietasRef, where('esActiva', '==', true));
-      
-      // ✅ CORREGIDO: Usando collectionData dentro del contexto
-      return collectionData(q, { idField: 'id' }).pipe(
-        map((dietas: any[]) => {
-          console.log('📊 Dietas obtenidas:', dietas.length);
-          return dietas.map(dieta => this.mapearDietaFirestore(dieta));
-        })
-      ) as Observable<Dieta[]>;
-    } catch (error) {
-      console.error('❌ Error obteniendo dietas:', error);
-      return of([]);
-    }
+    return this.ngZone.run(() => {
+      try {
+        const dietasRef = collection(this.firestore, 'dietas');
+        const q = query(dietasRef, where('esActiva', '==', true));
+        
+        return collectionData(q, { idField: 'id' }).pipe(
+          map((dietas: any[]) => {
+            console.log('📊 Dietas obtenidas:', dietas.length);
+            return dietas.map(dieta => this.mapearDietaFirestore(dieta));
+          })
+        ) as Observable<Dieta[]>;
+      } catch (error) {
+        console.error('❌ Error obteniendo dietas:', error);
+        return of([]);
+      }
+    });
   }
 
   obtenerDietaPorId(id: string): Observable<Dieta | undefined> {
-    try {
-      const dietaDoc = doc(this.firestore, `dietas/${id}`);
-      // ✅ CORREGIDO: Usando from() para convertir promesa en observable
-      return from(getDoc(dietaDoc)).pipe(
-        map(docSnap => {
-          if (docSnap.exists()) {
-            return this.mapearDietaFirestore({ id: docSnap.id, ...docSnap.data() });
-          }
-          return undefined;
-        })
-      );
-    } catch (error) {
-      console.error('❌ Error obteniendo dieta por ID:', error);
-      return of(undefined);
-    }
+    return this.ngZone.run(() => {
+      try {
+        const dietaDoc = doc(this.firestore, `dietas/${id}`);
+        return from(getDoc(dietaDoc)).pipe(
+          map(docSnap => {
+            if (docSnap.exists()) {
+              return this.mapearDietaFirestore({ id: docSnap.id, ...docSnap.data() });
+            }
+            return undefined;
+          })
+        );
+      } catch (error) {
+        console.error('❌ Error obteniendo dieta por ID:', error);
+        return of(undefined);
+      }
+    });
   }
 
   // ==========================================
@@ -210,90 +218,111 @@ export class PlanesService {
   // ==========================================
 
   obtenerRecetas(): Observable<Receta[]> {
-    const user = this.auth.currentUser;
-    if (!user) {
-      console.warn('⚠️ Usuario no autenticado');
-      return of([]);
-    }
-    // ✅ CORREGIDO: Usando from() para convertir promesa en observable
-    return from(this.obtenerRecetasConManejoError());
+    return this.ngZone.run(() => {
+      const user = this.auth.currentUser;
+      if (!user) {
+        console.warn('⚠️ Usuario no autenticado');
+        return of([]);
+      }
+      return from(this.obtenerRecetasConManejoError());
+    });
   }
 
   private async obtenerRecetasConManejoError(): Promise<Receta[]> {
-    try {
-      const recetasRef = collection(this.firestore, 'recetas');
-      
+    return this.ngZone.run(async () => {
       try {
-        const q = query(recetasRef, where('esVerificada', '==', true), orderBy('titulo'));
-        const querySnapshot = await getDocs(q);
-        const recetas = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        console.log('📊 Recetas obtenidas (complejas):', recetas.length);
-        return recetas.map(receta => this.mapearRecetaFirestore(receta));
-      } catch (complexError) {
-        console.warn('⚠️ Consulta compleja falló, intentando simple...', complexError);
-        const qSimple = query(recetasRef, where('esVerificada', '==', true));
-        const querySnapshot = await getDocs(qSimple);
-        const recetas = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        console.log('📊 Recetas obtenidas (simples):', recetas.length);
-        return recetas.map(receta => this.mapearRecetaFirestore(receta));
+        const recetasRef = collection(this.firestore, 'recetas');
+        
+        try {
+          const q = query(recetasRef, where('esVerificada', '==', true), orderBy('titulo'));
+          const querySnapshot = await getDocs(q);
+          const recetas = querySnapshot.docs.map(doc => ({ 
+            id: doc.id, 
+            ...doc.data()
+          } as FirestoreDocument));
+          console.log('📊 Recetas obtenidas (complejas):', recetas.length);
+          return recetas.map(receta => this.mapearRecetaFirestore(receta));
+        } catch (complexError) {
+          console.warn('⚠️ Consulta compleja falló, intentando simple...', complexError);
+          const querySnapshot = await getDocs(recetasRef);
+          const recetas = querySnapshot.docs.map(doc => ({ 
+            id: doc.id, 
+            ...doc.data()
+          } as FirestoreDocument))
+            .filter(receta => receta['esVerificada'] !== false); // ✅ CORREGIDO: Acceso con corchetes
+          console.log('📊 Recetas obtenidas (simples):', recetas.length);
+          return recetas.map(receta => this.mapearRecetaFirestore(receta));
+        }
+      } catch (error) {
+        console.error('❌ Error crítico obteniendo recetas:', error);
+        return [];
       }
-    } catch (error) {
-      console.error('❌ Error crítico obteniendo recetas:', error);
-      return [];
-    }
+    });
   }
 
   obtenerRecetasPorTipoDieta(tipoDieta: string): Observable<Receta[]> {
-    const user = this.auth.currentUser;
-    if (!user) {
-      console.warn('⚠️ Usuario no autenticado');
-      return of([]);
-    }
-    // ✅ CORREGIDO: Usando from() para convertir promesa en observable
-    return from(this.obtenerRecetasPorTipoDietaConErrorHandling(tipoDieta));
+    return this.ngZone.run(() => {
+      const user = this.auth.currentUser;
+      if (!user) {
+        console.warn('⚠️ Usuario no autenticado');
+        return of([]);
+      }
+      return from(this.obtenerRecetasPorTipoDietaConErrorHandling(tipoDieta));
+    });
   }
 
   private async obtenerRecetasPorTipoDietaConErrorHandling(tipoDieta: string): Promise<Receta[]> {
-    try {
-      const recetasRef = collection(this.firestore, 'recetas');
-      const q = query(
-        recetasRef,
-        where('tipoDieta', 'array-contains', tipoDieta),
-        where('esVerificada', '==', true)
-      );
-      const querySnapshot = await getDocs(q);
-      const recetas = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      console.log(`📊 Recetas para dieta ${tipoDieta}:`, recetas.length);
-      return recetas.map(receta => this.mapearRecetaFirestore(receta));
-    } catch (error) {
-      console.error(`❌ Error obteniendo recetas para dieta ${tipoDieta}:`, error);
+    return this.ngZone.run(async () => {
       try {
-        const todasLasRecetas = await this.obtenerRecetasConManejoError();
-        return todasLasRecetas.filter(receta => receta.tipoDieta.includes(tipoDieta));
-      } catch (fallbackError) {
-        console.error('❌ Error en fallback:', fallbackError);
-        return [];
+        const recetasRef = collection(this.firestore, 'recetas');
+        const q = query(
+          recetasRef,
+          where('tipoDieta', 'array-contains', tipoDieta),
+          where('esVerificada', '==', true)
+        );
+        
+        const querySnapshot = await getDocs(q);
+        const recetas = querySnapshot.docs.map(doc => ({ 
+          id: doc.id, 
+          ...doc.data()
+        } as FirestoreDocument));
+        console.log(`📊 Recetas para dieta ${tipoDieta}:`, recetas.length);
+        return recetas.map(receta => this.mapearRecetaFirestore(receta));
+      } catch (error) {
+        console.error(`❌ Error obteniendo recetas para dieta ${tipoDieta}:`, error);
+        try {
+          const todasLasRecetas = await this.obtenerRecetasConManejoError();
+          return todasLasRecetas.filter(receta => receta.tipoDieta.includes(tipoDieta));
+        } catch (fallbackError) {
+          console.error('❌ Error en fallback:', fallbackError);
+          return [];
+        }
       }
-    }
+    });
   }
 
   async obtenerRecetaPorId(recetaId: string): Promise<Receta | null> {
-    try {
-      const recetaDocRef = doc(this.firestore, 'recetas', recetaId);
-      const recetaDoc = await getDoc(recetaDocRef);
-      
-      if (recetaDoc.exists()) {
-        const recetaData = { id: recetaDoc.id, ...recetaDoc.data() };
-        console.log('✅ Receta obtenida por ID:', recetaData.id);
-        return this.mapearRecetaFirestore(recetaData);
+    return this.ngZone.run(async () => {
+      try {
+        const recetaDocRef = doc(this.firestore, 'recetas', recetaId);
+        const recetaDoc = await getDoc(recetaDocRef);
+        
+        if (recetaDoc.exists()) {
+          const recetaData = { 
+            id: recetaDoc.id, 
+            ...recetaDoc.data()
+          };
+          console.log('✅ Receta obtenida por ID:', recetaData.id);
+          return this.mapearRecetaFirestore(recetaData);
+        }
+        
+        console.warn('⚠️ Receta no encontrada con ID:', recetaId);
+        return null;
+      } catch (error) {
+        console.error('❌ Error obteniendo receta por ID:', error);
+        throw error;
       }
-      
-      console.warn('⚠️ Receta no encontrada con ID:', recetaId);
-      return null;
-    } catch (error) {
-      console.error('❌ Error obteniendo receta por ID:', error);
-      throw error;
-    }
+    });
   }
 
   // ==========================================
@@ -301,127 +330,140 @@ export class PlanesService {
   // ==========================================
 
   obtenerPlantillasEjercicio(): Observable<PlantillaEjercicio[]> {
-    try {
-      // ✅ CORREGIDO: Usando from() para convertir promesa en observable
-      return from(this.obtenerPlantillasConManejoError());
-    } catch (error) {
-      console.error('❌ Error obteniendo plantillas de ejercicio:', error);
-      return of([]);
-    }
+    return this.ngZone.run(() => {
+      try {
+        return from(this.obtenerPlantillasConManejoError());
+      } catch (error) {
+        console.error('❌ Error obteniendo plantillas de ejercicio:', error);
+        return of([]);
+      }
+    });
   }
 
   private async obtenerPlantillasConManejoError(): Promise<PlantillaEjercicio[]> {
-    try {
-      const plantillasRef = collection(this.firestore, 'plantillas');
+    return this.ngZone.run(async () => {
       try {
-        const q = query(plantillasRef, orderBy('nombre'));
-        const querySnapshot = await getDocs(q);
-        const plantillas = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        console.log('📊 Plantillas obtenidas (ordenadas):', plantillas.length);
-        return plantillas.map(plantilla => this.mapearPlantillaEjercicioFirestore(plantilla));
-      } catch (orderError) {
-        console.warn('⚠️ OrderBy falló, obteniendo sin ordenar...', orderError);
-        const querySnapshot = await getDocs(plantillasRef);
-        const plantillas = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        console.log('📊 Plantillas obtenidas (sin ordenar):', plantillas.length);
-        return plantillas.map(plantilla => this.mapearPlantillaEjercicioFirestore(plantilla));
+        const plantillasRef = collection(this.firestore, 'plantillas');
+        
+        try {
+          const q = query(plantillasRef, orderBy('nombre'));
+          const querySnapshot = await getDocs(q);
+          const plantillas = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FirestoreDocument));
+          console.log('📊 Plantillas obtenidas (ordenadas):', plantillas.length);
+          return plantillas.map(plantilla => this.mapearPlantillaEjercicioFirestore(plantilla));
+        } catch (orderError) {
+          console.warn('⚠️ OrderBy falló, obteniendo sin ordenar...', orderError);
+          const querySnapshot = await getDocs(plantillasRef);
+          const plantillas = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FirestoreDocument));
+          console.log('📊 Plantillas obtenidas (sin ordenar):', plantillas.length);
+          return plantillas.map(plantilla => this.mapearPlantillaEjercicioFirestore(plantilla));
+        }
+      } catch (error) {
+        console.error('❌ Error crítico obteniendo plantillas:', error);
+        return [];
       }
-    } catch (error) {
-      console.error('❌ Error crítico obteniendo plantillas:', error);
-      return [];
-    }
+    });
   }
 
   async crearEjercicio(ejercicio: Partial<EjercicioUsuario>): Promise<string> {
-    const user = this.auth.currentUser;
-    if (!user) throw new Error('❌ Usuario no autenticado');
+    return this.ngZone.run(async () => {
+      const user = this.auth.currentUser;
+      if (!user) throw new Error('❌ Usuario no autenticado');
 
-    try {
-      const ejercicioCompleto: EjercicioUsuario = {
-        nombre: ejercicio.nombre!,
-        descripcion: ejercicio.descripcion || '',
-        duracion: ejercicio.temporizador ? this.calcularDuracionTotal(ejercicio.temporizador) : 0,
-        categoria: ejercicio.categoria || 'personalizado',
-        temporizador: ejercicio.temporizador || { trabajo: 30, descanso: 10, series: 3 },
-        completado: false,
-        fechaCreacion: new Date(),
-        ultimaModificacion: new Date()
-      };
+      try {
+        const ejercicioCompleto: EjercicioUsuario = {
+          nombre: ejercicio.nombre!,
+          descripcion: ejercicio.descripcion || '',
+          duracion: ejercicio.temporizador ? this.calcularDuracionTotal(ejercicio.temporizador) : 0,
+          categoria: ejercicio.categoria || 'personalizado',
+          temporizador: ejercicio.temporizador || { trabajo: 30, descanso: 10, series: 3 },
+          completado: false,
+          fechaCreacion: new Date(),
+          ultimaModificacion: new Date()
+        };
 
-      const ejerciciosRef = collection(this.firestore, `usuarios/${user.uid}/ejercicios`);
-      const docRef = await addDoc(ejerciciosRef, ejercicioCompleto);
-      console.log('✅ Ejercicio creado con ID:', docRef.id);
-      return docRef.id;
-    } catch (error) {
-      console.error('❌ Error creando ejercicio:', error);
-      throw error;
-    }
+        const ejerciciosRef = collection(this.firestore, `usuarios/${user.uid}/ejercicios`);
+        const docRef = await addDoc(ejerciciosRef, ejercicioCompleto);
+        console.log('✅ Ejercicio creado con ID:', docRef.id);
+        return docRef.id;
+      } catch (error) {
+        console.error('❌ Error creando ejercicio:', error);
+        throw error;
+      }
+    });
   }
 
   obtenerEjerciciosUsuario(): Observable<EjercicioUsuario[]> {
-    const user = this.auth.currentUser;
-    if (!user) {
-      console.warn('⚠️ Usuario no autenticado');
-      return of([]);
-    }
+    return this.ngZone.run(() => {
+      const user = this.auth.currentUser;
+      if (!user) {
+        console.warn('⚠️ Usuario no autenticado');
+        return of([]);
+      }
 
-    try {
-      const ejerciciosRef = collection(this.firestore, `usuarios/${user.uid}/ejercicios`);
-      // ✅ CORREGIDO: Usando collectionData dentro del contexto
-      return collectionData(ejerciciosRef, { idField: 'id' }) as Observable<EjercicioUsuario[]>;
-    } catch (error) {
-      console.error('❌ Error obteniendo ejercicios usuario:', error);
-      return of([]);
-    }
+      try {
+        const ejerciciosRef = collection(this.firestore, `usuarios/${user.uid}/ejercicios`);
+        return collectionData(ejerciciosRef, { idField: 'id' }) as Observable<EjercicioUsuario[]>;
+      } catch (error) {
+        console.error('❌ Error obteniendo ejercicios usuario:', error);
+        return of([]);
+      }
+    });
   }
 
   async actualizarEjercicio(ejercicioId: string, ejercicio: Partial<EjercicioUsuario>): Promise<void> {
-    const user = this.auth.currentUser;
-    if (!user) throw new Error('❌ Usuario no autenticado');
+    return this.ngZone.run(async () => {
+      const user = this.auth.currentUser;
+      if (!user) throw new Error('❌ Usuario no autenticado');
 
-    try {
-      const ejercicioDoc = doc(this.firestore, `usuarios/${user.uid}/ejercicios/${ejercicioId}`);
-      const datosActualizados: any = { ...ejercicio, ultimaModificacion: new Date() };
-      if (ejercicio.temporizador) {
-        datosActualizados.duracion = this.calcularDuracionTotal(ejercicio.temporizador);
+      try {
+        const ejercicioDoc = doc(this.firestore, `usuarios/${user.uid}/ejercicios/${ejercicioId}`);
+        const datosActualizados: any = { ...ejercicio, ultimaModificacion: new Date() };
+        if (ejercicio.temporizador) {
+          datosActualizados.duracion = this.calcularDuracionTotal(ejercicio.temporizador);
+        }
+        await updateDoc(ejercicioDoc, datosActualizados);
+        console.log('✅ Ejercicio actualizado correctamente');
+      } catch (error) {
+        console.error('❌ Error actualizando ejercicio:', error);
+        throw error;
       }
-      await updateDoc(ejercicioDoc, datosActualizados);
-      console.log('✅ Ejercicio actualizado correctamente');
-    } catch (error) {
-      console.error('❌ Error actualizando ejercicio:', error);
-      throw error;
-    }
+    });
   }
 
   async eliminarEjercicio(ejercicioId: string): Promise<void> {
-    const user = this.auth.currentUser;
-    if (!user) throw new Error('❌ Usuario no autenticado');
+    return this.ngZone.run(async () => {
+      const user = this.auth.currentUser;
+      if (!user) throw new Error('❌ Usuario no autenticado');
 
-    try {
-      const ejercicioDoc = doc(this.firestore, `usuarios/${user.uid}/ejercicios/${ejercicioId}`);
-      await deleteDoc(ejercicioDoc);
-      console.log('✅ Ejercicio eliminado correctamente');
-    } catch (error) {
-      console.error('❌ Error eliminando ejercicio:', error);
-      throw error;
-    }
+      try {
+        const ejercicioDoc = doc(this.firestore, `usuarios/${user.uid}/ejercicios/${ejercicioId}`);
+        await deleteDoc(ejercicioDoc);
+        console.log('✅ Ejercicio eliminado correctamente');
+      } catch (error) {
+        console.error('❌ Error eliminando ejercicio:', error);
+        throw error;
+      }
+    });
   }
 
   async completarEjercicio(ejercicioId: string): Promise<void> {
-    const user = this.auth.currentUser;
-    if (!user) throw new Error('❌ Usuario no autenticado');
+    return this.ngZone.run(async () => {
+      const user = this.auth.currentUser;
+      if (!user) throw new Error('❌ Usuario no autenticado');
 
-    try {
-      const ejercicioDoc = doc(this.firestore, `usuarios/${user.uid}/ejercicios/${ejercicioId}`);
-      await updateDoc(ejercicioDoc, {
-        completado: true,
-        ultimaModificacion: new Date()
-      });
-      console.log('✅ Ejercicio marcado como completado');
-    } catch (error) {
-      console.error('❌ Error completando ejercicio:', error);
-      throw error;
-    }
+      try {
+        const ejercicioDoc = doc(this.firestore, `usuarios/${user.uid}/ejercicios/${ejercicioId}`);
+        await updateDoc(ejercicioDoc, {
+          completado: true,
+          ultimaModificacion: new Date()
+        });
+        console.log('✅ Ejercicio marcado como completado');
+      } catch (error) {
+        console.error('❌ Error completando ejercicio:', error);
+        throw error;
+      }
+    });
   }
 
   // ==========================================
@@ -429,117 +471,123 @@ export class PlanesService {
   // ==========================================
 
   async obtenerPlanUsuario(): Promise<PlanUsuario | null> {
-    const user = this.auth.currentUser;
-    if (!user) {
-      console.warn('❌ Usuario no autenticado');
-      return null;
-    }
-
-    try {
-      const userDoc = doc(this.firestore, `usuarios/${user.uid}`);
-      const docSnap = await getDoc(userDoc);
-      
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const plan = data['configuracionPlanes'];
-        
-        if (plan) {
-          if (plan.fechaInicio && typeof plan.fechaInicio.toDate === 'function') {
-            plan.fechaInicio = plan.fechaInicio.toDate();
-          }
-          if (plan.progreso?.ultimoAcceso && typeof plan.progreso.ultimoAcceso.toDate === 'function') {
-            plan.progreso.ultimoAcceso = plan.progreso.ultimoAcceso.toDate();
-          }
-          if (plan.progreso?.fechaInicio && typeof plan.progreso.fechaInicio.toDate === 'function') {
-            plan.progreso.fechaInicio = plan.progreso.fechaInicio.toDate();
-          }
-          if (plan.progreso?.fechaFin && typeof plan.progreso.fechaFin.toDate === 'function') {
-            plan.progreso.fechaFin = plan.progreso.fechaFin.toDate();
-          }
-          
-          console.log('📊 Plan de usuario obtenido:', plan);
-          return plan;
-        }
+    return this.ngZone.run(async () => {
+      const user = this.auth.currentUser;
+      if (!user) {
+        console.warn('❌ Usuario no autenticado');
+        return null;
       }
-      
-      console.log('📊 No se encontró plan de usuario');
-      return null;
-    } catch (error) {
-      console.error('❌ Error obteniendo plan usuario:', error);
-      return null;
-    }
+
+      try {
+        const userDoc = doc(this.firestore, `usuarios/${user.uid}`);
+        const docSnap = await getDoc(userDoc);
+        
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const plan = data['configuracionPlanes'];
+          
+          if (plan) {
+            if (plan.fechaInicio && typeof plan.fechaInicio.toDate === 'function') {
+              plan.fechaInicio = plan.fechaInicio.toDate();
+            }
+            if (plan.progreso?.ultimoAcceso && typeof plan.progreso.ultimoAcceso.toDate === 'function') {
+              plan.progreso.ultimoAcceso = plan.progreso.ultimoAcceso.toDate();
+            }
+            if (plan.progreso?.fechaInicio && typeof plan.progreso.fechaInicio.toDate === 'function') {
+              plan.progreso.fechaInicio = plan.progreso.fechaInicio.toDate();
+            }
+            if (plan.progreso?.fechaFin && typeof plan.progreso.fechaFin.toDate === 'function') {
+              plan.progreso.fechaFin = plan.progreso.fechaFin.toDate();
+            }
+            
+            console.log('📊 Plan de usuario obtenido:', plan);
+            return plan;
+          }
+        }
+        
+        console.log('📊 No se encontró plan de usuario');
+        return null;
+      } catch (error) {
+        console.error('❌ Error obteniendo plan usuario:', error);
+        return null;
+      }
+    });
   }
 
   async guardarSeleccionDieta(dietaId: string, objetivoCalorico: number, duracion: string): Promise<void> {
-    const user = this.auth.currentUser;
-    if (!user) throw new Error('❌ Usuario no autenticado');
+    return this.ngZone.run(async () => {
+      const user = this.auth.currentUser;
+      if (!user) throw new Error('❌ Usuario no autenticado');
 
-    try {
-      const fechaInicio = new Date();
-      const duracionDias = parseInt(duracion) || 30;
-      const fechaFin = new Date(fechaInicio);
-      fechaFin.setDate(fechaFin.getDate() + duracionDias);
+      try {
+        const fechaInicio = new Date();
+        const duracionDias = parseInt(duracion) || 30;
+        const fechaFin = new Date(fechaInicio);
+        fechaFin.setDate(fechaFin.getDate() + duracionDias);
 
-      const plan: PlanUsuario = {
-        dietaSeleccionada: dietaId,
-        objetivoCaloricoPersonalizado: objetivoCalorico,
-        duracionPlan: duracion,
-        fechaInicio: fechaInicio,
-        activo: true,
-        progreso: {
-          diasCompletados: 0,
-          ultimoAcceso: new Date(),
+        const plan: PlanUsuario = {
+          dietaSeleccionada: dietaId,
+          objetivoCaloricoPersonalizado: objetivoCalorico,
+          duracionPlan: duracion,
           fechaInicio: fechaInicio,
-          fechaFin: fechaFin,
-          diasRestantes: duracionDias,
-          porcentajeCompletado: 0,
-          racha: 0,
-          diasSeguidos: 0,
-          historialDiario: [],
-          alertasTiempo: [],
-          estaVencida: false,
-          excedeTiempoRecomendado: false
-        }
-      };
+          activo: true,
+          progreso: {
+            diasCompletados: 0,
+            ultimoAcceso: new Date(),
+            fechaInicio: fechaInicio,
+            fechaFin: fechaFin,
+            diasRestantes: duracionDias,
+            porcentajeCompletado: 0,
+            racha: 0,
+            diasSeguidos: 0,
+            historialDiario: [],
+            alertasTiempo: [],
+            estaVencida: false,
+            excedeTiempoRecomendado: false
+          }
+        };
 
-      const userDoc = doc(this.firestore, `usuarios/${user.uid}`);
-      const userSnap = await getDoc(userDoc);
-      
-      if (userSnap.exists()) {
-        await updateDoc(userDoc, {
-          'configuracionPlanes': plan,
-          'ultimaActualizacion': new Date()
-        });
-      } else {
-        await setDoc(userDoc, {
-          configuracionPlanes: plan,
-          ultimaActualizacion: new Date(),
-          fechaCreacion: new Date()
-        });
+        const userDoc = doc(this.firestore, `usuarios/${user.uid}`);
+        const userSnap = await getDoc(userDoc);
+        
+        if (userSnap.exists()) {
+          await updateDoc(userDoc, {
+            'configuracionPlanes': plan,
+            'ultimaActualizacion': new Date()
+          });
+        } else {
+          await setDoc(userDoc, {
+            configuracionPlanes: plan,
+            ultimaActualizacion: new Date(),
+            fechaCreacion: new Date()
+          });
+        }
+        
+        console.log('✅ Selección de dieta guardada correctamente en configuracionPlanes');
+      } catch (error) {
+        console.error('❌ Error guardando selección de dieta:', error);
+        throw error;
       }
-      
-      console.log('✅ Selección de dieta guardada correctamente en configuracionPlanes');
-    } catch (error) {
-      console.error('❌ Error guardando selección de dieta:', error);
-      throw error;
-    }
+    });
   }
 
   async desactivarPlan(): Promise<void> {
-    const user = this.auth.currentUser;
-    if (!user) throw new Error('❌ Usuario no autenticado');
+    return this.ngZone.run(async () => {
+      const user = this.auth.currentUser;
+      if (!user) throw new Error('❌ Usuario no autenticado');
 
-    try {
-      const userDoc = doc(this.firestore, `usuarios/${user.uid}`);
-      await updateDoc(userDoc, {
-        'configuracionPlanes.activo': false,
-        'ultimaActualizacion': new Date()
-      });
-      console.log('✅ Plan desactivado correctamente');
-    } catch (error) {
-      console.error('❌ Error desactivando plan:', error);
-      throw error;
-    }
+      try {
+        const userDoc = doc(this.firestore, `usuarios/${user.uid}`);
+        await updateDoc(userDoc, {
+          'configuracionPlanes.activo': false,
+          'ultimaActualizacion': new Date()
+        });
+        console.log('✅ Plan desactivado correctamente');
+      } catch (error) {
+        console.error('❌ Error desactivando plan:', error);
+        throw error;
+      }
+    });
   }
 
   // ==========================================
@@ -547,83 +595,87 @@ export class PlanesService {
   // ==========================================
 
   async calcularProgresoDieta(): Promise<ProgresoDieta | null> {
-    const user = this.auth.currentUser;
-    if (!user) return null;
+    return this.ngZone.run(async () => {
+      const user = this.auth.currentUser;
+      if (!user) return null;
 
-    try {
-      const planActual = await this.obtenerPlanUsuario();
-      if (!planActual || !planActual.activo) return null;
+      try {
+        const planActual = await this.obtenerPlanUsuario();
+        if (!planActual || !planActual.activo) return null;
 
-      const fechaInicio = planActual.fechaInicio instanceof Date 
-        ? planActual.fechaInicio 
-        : (planActual.fechaInicio as any).toDate();
-      
-      const duracionDias = parseInt(planActual.duracionPlan) || 30;
-      const fechaFin = new Date(fechaInicio);
-      fechaFin.setDate(fechaFin.getDate() + duracionDias);
+        const fechaInicio = planActual.fechaInicio instanceof Date 
+          ? planActual.fechaInicio 
+          : (planActual.fechaInicio as any).toDate();
+        
+        const duracionDias = parseInt(planActual.duracionPlan) || 30;
+        const fechaFin = new Date(fechaInicio);
+        fechaFin.setDate(fechaFin.getDate() + duracionDias);
 
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
 
-      const fechaInicioSinHora = new Date(fechaInicio);
-      fechaInicioSinHora.setHours(0, 0, 0, 0);
+        const fechaInicioSinHora = new Date(fechaInicio);
+        fechaInicioSinHora.setHours(0, 0, 0, 0);
 
-      const diasTranscurridos = Math.floor(
-        (hoy.getTime() - fechaInicioSinHora.getTime()) / (1000 * 60 * 60 * 24)
-      );
+        const diasTranscurridos = Math.floor(
+          (hoy.getTime() - fechaInicioSinHora.getTime()) / (1000 * 60 * 60 * 24)
+        );
 
-      const diasRestantes = Math.max(0, duracionDias - diasTranscurridos);
-      const porcentajeCompletado = Math.min((diasTranscurridos / duracionDias) * 100, 100);
-      const estaVencida = hoy > fechaFin;
-      const excedeTiempoRecomendado = diasTranscurridos > 84; // 12 semanas
+        const diasRestantes = Math.max(0, duracionDias - diasTranscurridos);
+        const porcentajeCompletado = Math.min((diasTranscurridos / duracionDias) * 100, 100);
+        const estaVencida = hoy > fechaFin;
+        const excedeTiempoRecomendado = diasTranscurridos > 84; // 12 semanas
 
-      const historial = planActual.progreso?.historialDiario || [];
-      const racha = this.calcularRacha(historial);
-      const diasSeguidos = historial.filter(h => h.completado).length;
+        const historial = planActual.progreso?.historialDiario || [];
+        const racha = this.calcularRacha(historial);
+        const diasSeguidos = historial.filter(h => h.completado).length;
 
-      const alertas = this.generarAlertasTiempo(
-        diasTranscurridos,
-        diasRestantes,
-        estaVencida,
-        excedeTiempoRecomendado,
-        duracionDias
-      );
+        const alertas = this.generarAlertasTiempo(
+          diasTranscurridos,
+          diasRestantes,
+          estaVencida,
+          excedeTiempoRecomendado,
+          duracionDias
+        );
 
-      const progreso: ProgresoDieta = {
-        diasCompletados: diasTranscurridos,
-        ultimoAcceso: new Date(),
-        fechaInicio: fechaInicio,
-        fechaFin: fechaFin,
-        diasRestantes: diasRestantes,
-        porcentajeCompletado: Math.round(porcentajeCompletado),
-        racha: racha,
-        diasSeguidos: diasSeguidos,
-        historialDiario: historial,
-        alertasTiempo: alertas,
-        estaVencida: estaVencida,
-        excedeTiempoRecomendado: excedeTiempoRecomendado
-      };
+        const progreso: ProgresoDieta = {
+          diasCompletados: diasTranscurridos,
+          ultimoAcceso: new Date(),
+          fechaInicio: fechaInicio,
+          fechaFin: fechaFin,
+          diasRestantes: diasRestantes,
+          porcentajeCompletado: Math.round(porcentajeCompletado),
+          racha: racha,
+          diasSeguidos: diasSeguidos,
+          historialDiario: historial,
+          alertasTiempo: alertas,
+          estaVencida: estaVencida,
+          excedeTiempoRecomendado: excedeTiempoRecomendado
+        };
 
-      await this.actualizarProgreso(progreso);
-      return progreso;
-    } catch (error) {
-      console.error('❌ Error calculando progreso:', error);
-      return null;
-    }
+        await this.actualizarProgreso(progreso);
+        return progreso;
+      } catch (error) {
+        console.error('❌ Error calculando progreso:', error);
+        return null;
+      }
+    });
   }
 
   private async actualizarProgreso(progreso: ProgresoDieta): Promise<void> {
-    const user = this.auth.currentUser;
-    if (!user) return;
+    return this.ngZone.run(async () => {
+      const user = this.auth.currentUser;
+      if (!user) return;
 
-    try {
-      const userDoc = doc(this.firestore, `usuarios/${user.uid}`);
-      await updateDoc(userDoc, {
-        'configuracionPlanes.progreso': progreso
-      });
-    } catch (error) {
-      console.error('❌ Error actualizando progreso:', error);
-    }
+      try {
+        const userDoc = doc(this.firestore, `usuarios/${user.uid}`);
+        await updateDoc(userDoc, {
+          'configuracionPlanes.progreso': progreso
+        });
+      } catch (error) {
+        console.error('❌ Error actualizando progreso:', error);
+      }
+    });
   }
 
   private calcularRacha(historial: HistorialDiario[]): number {
@@ -713,42 +765,64 @@ export class PlanesService {
   }
 
   async marcarDiaCompletado(calorias?: number, notas?: string): Promise<void> {
-    const user = this.auth.currentUser;
-    if (!user) return;
+    return this.ngZone.run(async () => {
+      const user = this.auth.currentUser;
+      if (!user) return;
 
-    try {
-      const planActual = await this.obtenerPlanUsuario();
-      if (!planActual || !planActual.activo) return;
+      try {
+        const planActual = await this.obtenerPlanUsuario();
+        if (!planActual || !planActual.activo) return;
 
-      const historial = planActual.progreso?.historialDiario || [];
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
+        const historial = planActual.progreso?.historialDiario || [];
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
 
-      const yaRegistrado = historial.some(h => {
-        const fecha = h.fecha instanceof Date ? h.fecha : (h.fecha as any).toDate();
-        fecha.setHours(0, 0, 0, 0);
-        return fecha.getTime() === hoy.getTime();
-      });
-
-      if (!yaRegistrado) {
-        historial.push({
-          fecha: hoy,
-          completado: true,
-          calorias: calorias,
-          notas: notas
+        const yaRegistrado = historial.some(h => {
+          const fecha = h.fecha instanceof Date ? h.fecha : (h.fecha as any).toDate();
+          fecha.setHours(0, 0, 0, 0);
+          return fecha.getTime() === hoy.getTime();
         });
 
-        const userDoc = doc(this.firestore, `usuarios/${user.uid}`);
-        await updateDoc(userDoc, {
-          'configuracionPlanes.progreso.historialDiario': historial
-        });
+        if (!yaRegistrado) {
+          // ✅ CORREGIDO: Crear objeto limpio sin campos undefined
+          const nuevoRegistro: any = {
+            fecha: hoy,
+            completado: true
+          };
 
-        await this.calcularProgresoDieta();
-        console.log('✅ Día marcado como completado');
+          // ✅ SOLO agregar calorias si tiene valor
+          if (calorias !== undefined && calorias !== null) {
+            nuevoRegistro.calorias = calorias;
+          }
+
+          // ✅ SOLO agregar notas si tiene valor
+          if (notas && notas.trim() !== '') {
+            nuevoRegistro.notas = notas.trim();
+          }
+
+          historial.push(nuevoRegistro);
+
+          const userDoc = doc(this.firestore, `usuarios/${user.uid}`);
+          
+          // ✅ CORREGIDO: Pasar solo el array de historial, no todo el objeto
+          await updateDoc(userDoc, {
+            'configuracionPlanes.progreso.historialDiario': historial
+          });
+
+          await this.calcularProgresoDieta();
+          console.log('✅ Día marcado como completado correctamente');
+        } else {
+          console.log('ℹ️ El día ya estaba marcado como completado');
+        }
+      } catch (error) {
+        console.error('❌ Error marcando día completado:', error);
+        // ✅ MEJORADO: Mostrar más detalles del error
+        if (error instanceof Error) {
+          console.error('Mensaje de error:', error.message);
+          console.error('Stack trace:', error.stack);
+        }
       }
-    } catch (error) {
-      console.error('❌ Error marcando día completado:', error);
-    }
+    });
   }
 
   // ==========================================
@@ -827,6 +901,9 @@ export class PlanesService {
       tiempoTotal = tiempoTotal.seconds / 60;
     }
 
+    // ✅ CORREGIDO: Acceso seguro a propiedades con corchetes
+    const esVerificada = recetaData['esVerificada'] !== false;
+
     return {
       id: recetaData.id,
       titulo: recetaData.titulo || 'Receta sin título',
@@ -843,7 +920,7 @@ export class PlanesService {
       porciones: recetaData.porciones || 1,
       dificultad: recetaData.dificultad || 'facil',
       etiquetas: recetaData.etiquetas || [],
-      esVerificada: recetaData.esVerificada !== false,
+      esVerificada: esVerificada, // ✅ CORREGIDO
       megusta: recetaData.megusta || 0,
       guardados: recetaData.guardados || 0
     };

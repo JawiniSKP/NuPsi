@@ -1,43 +1,12 @@
-//app.component.ts
-
-import { Component, OnInit, inject } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { Component, OnInit, OnDestroy, inject, NgZone } from '@angular/core';
+import { IonicModule, ToastController, LoadingController, AlertController, ActionSheetController } from '@ionic/angular';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
-import { Auth, onAuthStateChanged, signOut } from '@angular/fire/auth';
-import { filter } from 'rxjs/operators';
-import { addIcons } from 'ionicons';
-import {
-  happy,
-  happyOutline,
-  sad,
-  sadOutline,
-  warning,
-  removeOutline,
-  checkmarkCircleOutline,
-  closeCircleOutline,
-  personAddOutline,
-  home,
-  statsChart,
-  chatbubble,
-  person,
-  personCircleOutline,
-  menu,
-  logOutOutline,
-  settingsOutline,
-  personOutline,
-  close,
-  createOutline,
-  analytics,
-  swapHorizontal,
-  fitness,
-  arrowBack,
-  alertCircle,
-  waterOutline,
-  documentOutline,
-  resizeOutline,
-  heartOutline
-} from 'ionicons/icons';
-import { MenuComponent } from './components/menu/menu.component';
+import { Auth, authState, signOut } from '@angular/fire/auth';
+import { filter, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+
+// ✅ Servicio de íconos
+import { IconService } from './services/icon.service';
 
 @Component({
   selector: 'app-root',
@@ -46,51 +15,29 @@ import { MenuComponent } from './components/menu/menu.component';
   standalone: true,
   imports: [
     IonicModule,
-    RouterModule,
-    MenuComponent
+    RouterModule
   ]
 })
-export class AppComponent implements OnInit {
-  // ✅ CORRECTO: Inyección de dependencias al inicio
+export class AppComponent implements OnInit, OnDestroy {
   private auth = inject(Auth);
   private router = inject(Router);
+  private ngZone = inject(NgZone);
+  private iconService = inject(IconService);
+  
+  private toastController = inject(ToastController);
+  private loadingController = inject(LoadingController);
+  private alertController = inject(AlertController);
+  private actionSheetController = inject(ActionSheetController);
+
+  private destroy$ = new Subject<void>();
 
   // Control de visibilidad del menú
   showMenu = false;
   showHeader = false;
+  private authChecked = false; // ✅ NUEVO: Evitar redirecciones múltiples
 
   constructor() {
-    addIcons({
-      'happy': happy,
-      'happy-outline': happyOutline,
-      'sad': sad,
-      'sad-outline': sadOutline,
-      'warning': warning,
-      'remove-outline': removeOutline,
-      'checkmark-circle-outline': checkmarkCircleOutline,
-      'close-circle-outline': closeCircleOutline,
-      'person-add-outline': personAddOutline,
-      'home': home,
-      'stats-chart': statsChart,
-      'chatbubble': chatbubble,
-      'person': person,
-      'person-circle-outline': personCircleOutline,
-      'menu': menu,
-      'log-out-outline': logOutOutline,
-      'settings-outline': settingsOutline,
-      'person-outline': personOutline,
-      'close': close,
-      'create-outline': createOutline,
-      'analytics': analytics,
-      'swap-horizontal': swapHorizontal,
-      'fitness': fitness,
-      'arrow-back': arrowBack,
-      'alert-circle': alertCircle,
-      'water-outline': waterOutline,
-      'document-outline': documentOutline,
-      'resize-outline': resizeOutline,
-      'heart-outline': heartOutline
-    });
+    console.log('🚀 AppComponent inicializado con íconos globales');
   }
 
   ngOnInit() {
@@ -98,135 +45,183 @@ export class AppComponent implements OnInit {
     this.setupRouteListener();
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   /**
-   * 🎯 CONFIGURAR LISTENER DE RUTAS
+   * 🎯 CONFIGURAR LISTENER DE RUTAS - SEGURO
    */
   private setupRouteListener() {
     this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
+      .pipe(
+        filter(event => event instanceof NavigationEnd),
+        takeUntil(this.destroy$)
+      )
       .subscribe((event: NavigationEnd) => {
         const currentUrl = event.url;
         
-        // Rutas donde NO mostrar header ni menu
         const hiddenLayoutRoutes = ['/login', '/register'];
         const shouldHideLayout = hiddenLayoutRoutes.includes(currentUrl);
         
-        this.showHeader = !shouldHideLayout;
-        this.showMenu = !shouldHideLayout;
+        this.ngZone.run(() => {
+          this.showHeader = !shouldHideLayout;
+          this.showMenu = !shouldHideLayout;
+        });
         
         console.log('📍 Ruta cambiada:', currentUrl, '| Mostrar layout:', !shouldHideLayout);
       });
   }
 
   /**
-   * 🔒 GUARD DE AUTENTICACIÓN GLOBAL - CORREGIDO
+   * 🔒 GUARD DE AUTENTICACIÓN - VERSIÓN SEGURA
    */
   private initializeAuthGuard() {
     console.log('🔐 Inicializando guard de autenticación...');
 
-    // ✅ CORREGIDO: onAuthStateChanged dentro del contexto del componente
-    onAuthStateChanged(this.auth, (user) => {
+    authState(this.auth)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(user => {
+        this.ngZone.run(() => {
+          this.handleAuthStateChange(user);
+        });
+      });
+  }
+
+  /**
+   * 🔐 MANEJAR CAMBIOS DE AUTENTICACIÓN - VERSIÓN SEGURA
+   */
+  private handleAuthStateChange(user: any) {
+    // ✅ EVITAR MÚLTIPLES EJECUCIONES
+    if (this.authChecked) {
+      return;
+    }
+
+    const currentUrl = this.router.url;
+    console.log('👤 Estado de auth:', user ? 'Autenticado' : 'No autenticado', '| URL:', currentUrl);
+
+    // ✅ SOLO REDIRIGIR EN CASOS MUY ESPECÍFICOS
+    if (!user) {
+      // Usuario NO autenticado
+      if (this.isProtectedRoute(currentUrl)) {
+        console.log('🚫 Redirigiendo a login desde ruta protegida');
+        this.safeNavigate(['/login']);
+      }
+    } else {
+      // Usuario SÍ autenticado
+      if (this.isAuthRoute(currentUrl)) {
+        console.log('🏠 Redirigiendo a home desde ruta de auth');
+        this.safeNavigate(['/home']);
+      }
+    }
+
+    this.authChecked = true;
+  }
+
+  /**
+   * ✅ NUEVO: Método seguro para navegación
+   */
+  private safeNavigate(commands: any[]) {
+    this.ngZone.run(() => {
+      // Verificar que no estamos ya en esa ruta
       const currentUrl = this.router.url;
-      console.log('👤 Estado de auth cambió. Usuario:', user?.uid || 'No autenticado', '| URL actual:', currentUrl);
-
-      // Rutas públicas (no requieren autenticación)
-      const publicRoutes = ['/', '/login', '/register'];
-      const isPublicRoute = publicRoutes.includes(currentUrl);
-
-      // Rutas protegidas (requieren autenticación)
-      const protectedRoutes = ['/home', '/indicators', '/profile', '/settings', '/chat', '/planes'];
-      const isProtectedRoute = protectedRoutes.some(route => currentUrl.startsWith(route));
-
-      if (!user) {
-        // ❌ Usuario NO autenticado
-        if (isProtectedRoute) {
-          console.log('🚫 Acceso denegado - Redirigiendo a login');
-          this.router.navigate(['/login']);
-        } else if (currentUrl === '/') {
-          console.log('🏠 Primera carga - Redirigiendo a login');
-          this.router.navigate(['/login']);
-        }
-      } else {
-        // ✅ Usuario autenticado
-        if (isPublicRoute && currentUrl !== '/') {
-          console.log('✅ Usuario autenticado en ruta pública');
-        }
-        
-        // Redirigir a home si está en login/register
-        if (['/login', '/register', '/'].includes(currentUrl)) {
-          console.log('🏠 Redirigiendo a home desde ruta pública');
-          this.router.navigate(['/home']);
-        }
+      const targetUrl = commands[0];
+      
+      if (currentUrl !== targetUrl) {
+        this.router.navigate(commands);
       }
     });
+  }
+
+  /**
+   * ✅ NUEVO: Verificar si es ruta protegida
+   */
+  private isProtectedRoute(url: string): boolean {
+    const protectedRoutes = ['/home', '/indicators', '/profile', '/settings', '/chat', '/planes', '/perfil'];
+    return protectedRoutes.some(route => url.startsWith(route));
+  }
+
+  /**
+   * ✅ NUEVO: Verificar si es ruta de autenticación
+   */
+  private isAuthRoute(url: string): boolean {
+    const authRoutes = ['/login', '/register', '/'];
+    return authRoutes.includes(url);
   }
 
   /**
    * 🍔 ABRIR MENÚ HAMBURGUESA PRINCIPAL
    */
   async openMainMenu() {
-    const actionSheet = document.createElement('ion-action-sheet');
-    
-    actionSheet.header = 'Navegación';
-    actionSheet.buttons = [
-      {
-        text: 'Inicio',
-        icon: 'home',
-        handler: () => {
-          this.router.navigate(['/home']);
+    const actionSheet = await this.actionSheetController.create({
+      header: 'Navegación',
+      buttons: [
+        {
+          text: 'Inicio',
+          icon: 'home',
+          handler: () => {
+            this.router.navigate(['/home']);
+          }
+        },
+        {
+          text: 'Indicadores',
+          icon: 'stats-chart',
+          handler: () => {
+            this.router.navigate(['/indicators']);
+          }
+        },
+        {
+          text: 'Chatbot',
+          icon: 'chatbubble',
+          handler: () => {
+            this.router.navigate(['/chat']);
+          }
+        },
+        {
+          text: 'Planes',
+          icon: 'fitness',
+          handler: () => {
+            this.router.navigate(['/planes']);
+          }
+        },
+        {
+          text: 'Perfil',
+          icon: 'person-outline',
+          handler: () => {
+            this.router.navigate(['/perfil']);
+          }
+        },
+        {
+          text: 'Estadísticas',
+          icon: 'analytics',
+          handler: () => {
+            this.showComingSoon('Estadísticas');
+          }
+        },
+        {
+          text: 'Configuración',
+          icon: 'settings-outline',
+          handler: () => {
+            this.showComingSoon('Configuración');
+          }
+        },
+        {
+          text: 'Cerrar Sesión',
+          icon: 'log-out-outline',
+          role: 'destructive',
+          handler: () => {
+            this.logout();
+          }
+        },
+        {
+          text: 'Cancelar',
+          icon: 'close',
+          role: 'cancel'
         }
-      },
-      {
-        text: 'Indicadores',
-        icon: 'stats-chart',
-        handler: () => {
-          this.router.navigate(['/indicators']);
-        }
-      },
-      {
-        text: 'Chatbot',
-        icon: 'chatbubble',
-        handler: () => {
-          this.router.navigate(['/chat']);
-        }
-      },
-      {
-        text: 'Planes',
-        icon: 'fitness',
-        handler: () => {
-          this.router.navigate(['/planes']);
-        }
-      },
-      {
-        text: 'Estadísticas',
-        icon: 'analytics',
-        handler: () => {
-          this.showComingSoon('Estadísticas');
-        }
-      },
-      {
-        text: 'Configuración',
-        icon: 'settings-outline',
-        handler: () => {
-          this.showComingSoon('Configuración');
-        }
-      },
-      {
-        text: 'Cerrar Sesión',
-        icon: 'log-out-outline',
-        role: 'destructive',
-        handler: () => {
-          this.logout();
-        }
-      },
-      {
-        text: 'Cancelar',
-        icon: 'close',
-        role: 'cancel'
-      }
-    ];
+      ]
+    });
 
-    document.body.appendChild(actionSheet);
     await actionSheet.present();
   }
 
@@ -234,92 +229,86 @@ export class AppComponent implements OnInit {
    * 👤 ABRIR MENÚ DE PERFIL
    */
   async openProfileMenu(event: any) {
-    const actionSheet = document.createElement('ion-action-sheet');
-    
-    actionSheet.header = 'Mi Perfil';
-    actionSheet.buttons = [
-      {
-        text: 'Ver Perfil',
-        icon: 'person-outline',
-        handler: () => {
-          this.router.navigate(['/profile']);
+    const actionSheet = await this.actionSheetController.create({
+      header: 'Mi Perfil',
+      buttons: [
+        {
+          text: 'Ver Perfil',
+          icon: 'person-outline',
+          handler: () => {
+            this.router.navigate(['/perfil']);
+          }
+        },
+        {
+          text: 'Editar Perfil',
+          icon: 'create-outline',
+          handler: () => {
+            this.router.navigate(['/perfil']);
+          }
+        },
+        {
+          text: 'Configuración',
+          icon: 'settings-outline',
+          handler: () => {
+            this.showComingSoon('Configuración');
+          }
+        },
+        {
+          text: 'Cerrar Sesión',
+          icon: 'log-out-outline',
+          role: 'destructive',
+          handler: () => {
+            this.logout();
+          }
+        },
+        {
+          text: 'Cancelar',
+          icon: 'close',
+          role: 'cancel'
         }
-      },
-      {
-        text: 'Editar Perfil',
-        icon: 'create-outline',
-        handler: () => {
-          this.showComingSoon('Editar Perfil');
-        }
-      },
-      {
-        text: 'Configuración',
-        icon: 'settings-outline',
-        handler: () => {
-          this.showComingSoon('Configuración');
-        }
-      },
-      {
-        text: 'Cerrar Sesión',
-        icon: 'log-out-outline',
-        role: 'destructive',
-        handler: () => {
-          this.logout();
-        }
-      },
-      {
-        text: 'Cancelar',
-        icon: 'close',
-        role: 'cancel'
-      }
-    ];
+      ]
+    });
 
-    document.body.appendChild(actionSheet);
     await actionSheet.present();
   }
 
   /**
-   * 🚪 CERRAR SESIÓN - CORREGIDO
+   * 🚪 CERRAR SESIÓN - VERSIÓN SEGURA
    */
   private async logout() {
     try {
-      const loading = document.createElement('ion-loading');
-      loading.message = 'Cerrando sesión...';
-      document.body.appendChild(loading);
+      const loading = await this.loadingController.create({
+        message: 'Cerrando sesión...'
+      });
       await loading.present();
 
-      // ✅ CORREGIDO: signOut dentro del contexto del componente
       await signOut(this.auth);
       
-      // Dismiss loading y navegar
       await loading.dismiss();
       
-      // Mostrar mensaje de éxito
-      const toast = document.createElement('ion-toast');
-      toast.message = 'Sesión cerrada correctamente';
-      toast.duration = 2000;
-      toast.color = 'success';
-      document.body.appendChild(toast);
+      const toast = await this.toastController.create({
+        message: 'Sesión cerrada correctamente',
+        duration: 2000,
+        color: 'success'
+      });
       await toast.present();
       
-      // Redirigir al login
-      this.router.navigate(['/login']);
+      // ✅ Resetear flag de autenticación
+      this.authChecked = false;
+      
+      this.ngZone.run(() => {
+        this.router.navigate(['/login']);
+      });
       
     } catch (error: any) {
       console.error('❌ Error al cerrar sesión:', error);
+      await this.loadingController.dismiss();
       
-      // Dismiss loading si existe
-      const loading = document.querySelector('ion-loading');
-      if (loading) {
-        await (loading as any).dismiss();
-      }
-      
-      // Mostrar error
-      const alert = document.createElement('ion-alert');
-      alert.header = 'Error';
-      alert.message = 'No se pudo cerrar la sesión: ' + (error.message || 'Error desconocido');
-      alert.buttons = ['OK'];
-      document.body.appendChild(alert);
+      const alert = await this.alertController.create({
+        header: 'Error',
+        message: 'No se pudo cerrar la sesión: ' + (error.message || 'Error desconocido'),
+        buttons: ['OK']
+      });
       await alert.present();
     }
   }
@@ -328,12 +317,12 @@ export class AppComponent implements OnInit {
    * 🚧 MOSTRAR "PRÓXIMAMENTE"
    */
   private async showComingSoon(feature: string) {
-    const alert = document.createElement('ion-alert');
-    alert.header = 'Próximamente';
-    alert.message = `${feature} estará disponible en la próxima actualización.`;
-    alert.buttons = ['OK'];
+    const alert = await this.alertController.create({
+      header: 'Próximamente',
+      message: `${feature} estará disponible en la próxima actualización.`,
+      buttons: ['OK']
+    });
 
-    document.body.appendChild(alert);
     await alert.present();
   }
 }

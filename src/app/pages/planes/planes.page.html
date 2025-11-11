@@ -2,7 +2,7 @@
 <ion-header [translucent]="true">
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
-      <ion-button (click)="goBack()">
+      <ion-button (click)="goBack()" aria-label="Volver">
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -21,16 +21,16 @@
     
     <!-- SELECTOR DE SECCIÓN -->
     <div class="segment-container">
-      <ion-segment [value]="seccionActiva" (ionChange)="cambiarSeccion($event)" class="custom-segment">
+      <ion-segment [value]="seccionActiva" (ionChange)="cambiarSeccion($event)" class="custom-segment" aria-label="Seleccionar sección">
         <ion-segment-button value="nutricion" class="segment-button">
           <div class="segment-content">
-            <ion-icon name="restaurant"></ion-icon>
+            <ion-icon name="restaurant" aria-hidden="true"></ion-icon>
             <ion-label>Nutrición</ion-label>
           </div>
         </ion-segment-button>
         <ion-segment-button value="ejercicio" class="segment-button">
           <div class="segment-content">
-            <ion-icon name="fitness"></ion-icon>
+            <ion-icon name="fitness" aria-hidden="true"></ion-icon>
             <ion-label>Ejercicio</ion-label>
           </div>
         </ion-segment-button>
@@ -40,7 +40,7 @@
     <!-- ESTADO DE CARGA -->
     <div *ngIf="cargando" class="cargando-state">
       <div class="spinner-container">
-        <ion-spinner name="crescent"></ion-spinner>
+        <ion-spinner name="crescent" aria-label="Cargando planes"></ion-spinner>
         <p>Cargando tu plan...</p>
       </div>
     </div>
@@ -66,14 +66,16 @@
               <div class="alert-icon">
                 <ion-icon 
                   [name]="progresoDieta.estaVencida ? 'warning' : 'information-circle'"
-                  [color]="progresoDieta.estaVencida ? 'danger' : 'warning'">
+                  [color]="progresoDieta.estaVencida ? 'danger' : 'warning'"
+                  aria-hidden="true">
                 </ion-icon>
               </div>
               <div class="alert-messages">
                 <div 
-                  *ngFor="let alerta of progresoDieta.alertasTiempo" 
+                  *ngFor="let alerta of progresoDieta.alertasTiempo; let i = index" 
                   class="alert-item"
-                  [class]="alerta.tipo">
+                  [class]="alerta.tipo"
+                  [attr.aria-label]="'Alerta: ' + alerta.mensaje">
                   {{alerta.mensaje}}
                 </div>
               </div>
@@ -83,12 +85,12 @@
           <!-- TARJETA DE PLAN ACTUAL -->
           <ion-card class="plan-card">
             <div class="plan-header">
-              <div class="plan-icon">{{getDietaIcon(planActual?.dietaSeleccionada)}}</div>
+              <div class="plan-icon" [attr.aria-label]="'Icono de ' + getDietaNombre(planActual?.dietaSeleccionada)">{{getDietaIcon(planActual?.dietaSeleccionada)}}</div>
               <div class="plan-info">
                 <h2>Tu Plan Actual</h2>
                 <p class="plan-nombre">{{getDietaNombre(planActual?.dietaSeleccionada)}}</p>
               </div>
-              <div class="plan-badge" [class]="getProgresoClase()">
+              <div class="plan-badge" [class]="getProgresoClase()" [attr.aria-label]="progresoDieta.diasCompletados + ' días completados'">
                 {{progresoDieta.diasCompletados}} días
               </div>
             </div>
@@ -113,7 +115,7 @@
             <div class="progreso-section-mejorada">
               <div class="progreso-header">
                 <div class="progreso-title">
-                  <ion-icon name="trending-up"></ion-icon>
+                  <ion-icon name="trending-up" aria-hidden="true"></ion-icon>
                   <span>Progreso de tu Dieta</span>
                 </div>
                 <div class="progreso-porcentaje-grande">
@@ -126,18 +128,21 @@
                   class="progreso-fill-mejorada" 
                   [style.width.%]="progresoDieta.porcentajeCompletado"
                   [class.completado]="progresoDieta.porcentajeCompletado === 100"
-                  [class.advertencia]="progresoDieta.excedeTiempoRecomendado">
+                  [class.advertencia]="progresoDieta.excedeTiempoRecomendado"
+                  [attr.aria-label]="'Progreso: ' + progresoDieta.porcentajeCompletado + ' por ciento'">
                   <span class="progreso-label-interno">{{progresoDieta.porcentajeCompletado}}%</span>
                 </div>
               </div>
 
               <div class="progreso-detalles">
                 <div class="detalle-item">
-                  <ion-icon name="calendar-outline"></ion-icon>
+                  <!-- ✅ CORREGIDO: calendar-outline reemplazado por calendar -->
+                  <ion-icon name="calendar" aria-hidden="true"></ion-icon>
                   <span>Inicio: {{formatearFecha(progresoDieta.fechaInicio)}}</span>
                 </div>
                 <div class="detalle-item">
-                  <ion-icon name="flag-outline"></ion-icon>
+                  <!-- ✅ CORREGIDO: flag-outline reemplazado por flag -->
+                  <ion-icon name="flag" aria-hidden="true"></ion-icon>
                   <span>Fin: {{formatearFecha(progresoDieta.fechaFin)}}</span>
                 </div>
               </div>
@@ -145,14 +150,14 @@
               <!-- RACHA Y DÍAS SEGUIDOS -->
               <div class="progreso-racha" *ngIf="progresoDieta.racha || progresoDieta.diasSeguidos">
                 <div class="racha-item">
-                  <ion-icon name="flame" color="warning"></ion-icon>
+                  <ion-icon name="flame" color="warning" aria-hidden="true"></ion-icon>
                   <div class="racha-info">
                     <span class="racha-valor">{{progresoDieta.racha || 0}}</span>
                     <span class="racha-label">Racha</span>
                   </div>
                 </div>
                 <div class="racha-item">
-                  <ion-icon name="checkmark-circle" color="success"></ion-icon>
+                  <ion-icon name="checkmark-circle" color="success" aria-hidden="true"></ion-icon>
                   <div class="racha-info">
                     <span class="racha-valor">{{progresoDieta.diasSeguidos || 0}}</span>
                     <span class="racha-label">Días Seguidos</span>
@@ -167,20 +172,21 @@
                 expand="block" 
                 color="success"
                 (click)="marcarDiaCompletado()"
-                [disabled]="diaYaMarcado">
-                <ion-icon slot="start" name="checkmark-circle"></ion-icon>
+                [disabled]="diaYaMarcado"
+                [attr.aria-label]="diaYaMarcado ? 'Día ya registrado' : 'Marcar hoy como día completado'">
+                <ion-icon slot="start" name="checkmark-circle" aria-hidden="true"></ion-icon>
                 {{diaYaMarcado ? '✅ Día Registrado' : 'Marcar Hoy como Completado'}}
               </ion-button>
             </div>
 
             <!-- ACCIONES DEL PLAN -->
             <div class="plan-actions">
-              <ion-button expand="block" color="primary" (click)="verPlanCompleto()">
-                <ion-icon slot="start" name="calendar"></ion-icon>
+              <ion-button expand="block" color="primary" (click)="verPlanCompleto()" aria-label="Ver planificación completa">
+                <ion-icon slot="start" name="calendar" aria-hidden="true"></ion-icon>
                 Ver Planificación
               </ion-button>
-              <ion-button expand="block" fill="outline" color="medium" (click)="cambiarPlan()">
-                <ion-icon slot="start" name="swap-horizontal"></ion-icon>
+              <ion-button expand="block" fill="outline" color="medium" (click)="cambiarPlan()" aria-label="Cambiar plan actual">
+                <ion-icon slot="start" name="swap-horizontal" aria-hidden="true"></ion-icon>
                 Cambiar Plan
               </ion-button>
             </div>
@@ -190,19 +196,20 @@
           <div class="recetas-section" *ngIf="recetasDelDia.length > 0">
             <div class="section-header">
               <div class="section-title">
-                <div class="title-icon">🍽️</div>
+                <div class="title-icon" aria-hidden="true">🍽️</div>
                 <span>Recomendaciones de Hoy</span>
               </div>
             </div>
 
             <div class="recetas-grid">
               <ion-card class="receta-card" *ngFor="let receta of recetasDelDia; let i = index" 
-                        (click)="seleccionarComida(receta, i)">
+                        (click)="seleccionarComida(receta, i)"
+                        [attr.aria-label]="'Receta: ' + receta.titulo + '. ' + receta.descripcion">
                 <div class="receta-image">
                   <div class="meal-time">
                     {{ getTiempoComida(i) }}
                   </div>
-                  <div class="food-icon">
+                  <div class="food-icon" aria-hidden="true">
                     {{ getComidaIcon(i) }}
                   </div>
                 </div>
@@ -213,15 +220,18 @@
                   
                   <div class="receta-meta">
                     <div class="meta-item">
-                      <ion-icon name="time-outline"></ion-icon>
+                      <!-- ✅ CORREGIDO: time-outline reemplazado por time -->
+                      <ion-icon name="time" aria-hidden="true"></ion-icon>
                       <span>{{ receta.tiempoTotal }} min</span>
                     </div>
                     <div class="meta-item">
-                      <ion-icon name="flame-outline"></ion-icon>
+                      <!-- ✅ CORREGIDO: flame-outline reemplazado por flame -->
+                      <ion-icon name="flame" aria-hidden="true"></ion-icon>
                       <span>{{ receta.calorias }} cal</span>
                     </div>
                     <div class="meta-item">
-                      <ion-icon name="restaurant-outline"></ion-icon>
+                      <!-- ✅ CORREGIDO: restaurant-outline reemplazado por restaurant -->
+                      <ion-icon name="restaurant" aria-hidden="true"></ion-icon>
                       <span>{{ receta.porciones }} porc.</span>
                     </div>
                   </div>
@@ -233,10 +243,10 @@
           <!-- SIN RECETAS -->
           <ion-card *ngIf="recetasDelDia.length === 0 && planActual?.activo" class="empty-state-card">
             <ion-card-content class="empty-content">
-              <div class="empty-icon">🍽️</div>
+              <div class="empty-icon" aria-hidden="true">🍽️</div>
               <h3>No hay recetas disponibles</h3>
               <p>No se encontraron recetas para tu dieta actual</p>
-              <ion-button fill="outline" (click)="verRecetasDietaSiExiste()" *ngIf="getDietaActual()">
+              <ion-button fill="outline" (click)="verRecetasDietaSiExiste()" *ngIf="getDietaActual()" aria-label="Ver todas las recetas disponibles">
                 Ver todas las recetas
               </ion-button>
             </ion-card-content>
@@ -249,7 +259,7 @@
           <!-- 📋 DISCLAIMER DE NUTRICIONISTA -->
           <ion-card class="disclaimer-card">
             <ion-card-header>
-              <div class="disclaimer-icon">⚕️</div>
+              <div class="disclaimer-icon" aria-hidden="true">⚕️</div>
               <ion-card-title>Consulta con un Profesional</ion-card-title>
             </ion-card-header>
             <ion-card-content>
@@ -260,15 +270,15 @@
               </p>
               <div class="disclaimer-points">
                 <div class="point-item">
-                  <ion-icon name="checkmark-circle" color="success"></ion-icon>
+                  <ion-icon name="checkmark-circle" color="success" aria-hidden="true"></ion-icon>
                   <span>Los planes aquí mostrados son referencias generales</span>
                 </div>
                 <div class="point-item">
-                  <ion-icon name="checkmark-circle" color="success"></ion-icon>
+                  <ion-icon name="checkmark-circle" color="success" aria-hidden="true"></ion-icon>
                   <span>No reemplazas una consulta médica profesional</span>
                 </div>
                 <div class="point-item">
-                  <ion-icon name="checkmark-circle" color="success"></ion-icon>
+                  <ion-icon name="checkmark-circle" color="success" aria-hidden="true"></ion-icon>
                   <span>Duración máxima recomendada: 12 semanas</span>
                 </div>
               </div>
@@ -289,9 +299,10 @@
                 <ion-card 
                   *ngFor="let dieta of dietas" 
                   class="dieta-card"
-                  [style.--dieta-color]="dieta.color">
+                  [style.--dieta-color]="dieta.color"
+                  [attr.aria-label]="'Dieta ' + dieta.nombre + ': ' + dieta.descripcion">
                   <div class="dieta-card-header">
-                    <div class="dieta-icon">{{dieta.icon}}</div>
+                    <div class="dieta-icon" [attr.aria-label]="'Icono de ' + dieta.nombre">{{dieta.icon}}</div>
                     <div class="dieta-badge" [class]="dieta.tipo">{{dieta.tipo | titlecase}}</div>
                   </div>
                   
@@ -303,32 +314,32 @@
                   <ion-card-content class="dieta-beneficios">
                     <div class="beneficios-list">
                       <div class="beneficio-item" *ngFor="let beneficio of dieta.beneficios.slice(0, 2)">
-                        <ion-icon name="checkmark-circle" class="beneficio-icon"></ion-icon>
+                        <ion-icon name="checkmark-circle" class="beneficio-icon" aria-hidden="true"></ion-icon>
                         <span>{{beneficio}}</span>
                       </div>
                     </div>
                     
                     <div class="dieta-meta">
                       <div class="dieta-calorias">
-                        <ion-icon name="flame"></ion-icon>
+                        <ion-icon name="flame" aria-hidden="true"></ion-icon>
                         <span>{{dieta.caloriasRecomendadas.min}} - {{dieta.caloriasRecomendadas.max}} cal</span>
                       </div>
                       <div class="dieta-duracion">
-                        <ion-icon name="calendar"></ion-icon>
+                        <ion-icon name="calendar" aria-hidden="true"></ion-icon>
                         <span>{{dieta.duracionRecomendada || '4-12 semanas'}}</span>
                       </div>
                     </div>
                   </ion-card-content>
 
                   <div class="dieta-actions">
-                    <ion-button fill="solid" color="primary" (click)="seleccionarDieta(dieta)" class="seleccionar-btn">
+                    <ion-button fill="solid" color="primary" (click)="seleccionarDieta(dieta)" class="seleccionar-btn" aria-label="Seleccionar dieta">
                       Seleccionar
                     </ion-button>
-                    <ion-button fill="clear" color="medium" (click)="verDetallesDieta(dieta)" class="detalles-btn">
-                      <ion-icon name="information-circle"></ion-icon>
+                    <ion-button fill="clear" color="medium" (click)="verDetallesDieta(dieta)" class="detalles-btn" aria-label="Ver detalles de la dieta">
+                      <ion-icon name="information-circle" aria-hidden="true"></ion-icon>
                     </ion-button>
-                    <ion-button fill="clear" color="success" (click)="verRecetasDieta(dieta)" class="recetas-btn">
-                      <ion-icon name="fast-food"></ion-icon>
+                    <ion-button fill="clear" color="success" (click)="verRecetasDieta(dieta)" class="recetas-btn" aria-label="Ver recetas de la dieta">
+                      <ion-icon name="fast-food" aria-hidden="true"></ion-icon>
                     </ion-button>
                   </div>
                 </ion-card>
@@ -345,7 +356,7 @@
         
         <ion-card class="redirect-card">
           <ion-card-header>
-            <div class="redirect-icon">💪</div>
+            <div class="redirect-icon" aria-hidden="true">💪</div>
             <ion-card-title>Gestiona tus Ejercicios</ion-card-title>
             <ion-card-subtitle>Crea y organiza tus rutinas personalizadas</ion-card-subtitle>
           </ion-card-header>
@@ -358,19 +369,19 @@
             
             <div class="redirect-features">
               <div class="feature-item">
-                <ion-icon name="timer" color="primary"></ion-icon>
+                <ion-icon name="timer" color="primary" aria-hidden="true"></ion-icon>
                 <span>Temporizador inteligente</span>
               </div>
               <div class="feature-item">
-                <ion-icon name="stats-chart" color="primary"></ion-icon>
+                <ion-icon name="stats-chart" color="primary" aria-hidden="true"></ion-icon>
                 <span>Estadísticas de progreso</span>
               </div>
               <div class="feature-item">
-                <ion-icon name="folder" color="primary"></ion-icon>
+                <ion-icon name="folder" color="primary" aria-hidden="true"></ion-icon>
                 <span>Historial completo</span>
               </div>
               <div class="feature-item">
-                <ion-icon name="flash" color="primary"></ion-icon>
+                <ion-icon name="flash" color="primary" aria-hidden="true"></ion-icon>
                 <span>Plantillas predefinidas</span>
               </div>
             </div>
@@ -380,8 +391,9 @@
               color="primary" 
               size="large"
               (click)="irAEjercicios()"
-              class="redirect-btn">
-              <ion-icon slot="start" name="fitness"></ion-icon>
+              class="redirect-btn"
+              aria-label="Ir a la sección de ejercicios">
+              <ion-icon slot="start" name="fitness" aria-hidden="true"></ion-icon>
               Ir a Mis Ejercicios
             </ion-button>
           </ion-card-content>
@@ -413,15 +425,15 @@
     </div>
 
     <!-- ========================================
-         🎪 MODALES (SIN CAMBIOS)
+         🎪 MODALES
          ======================================== -->
 
     <!-- MODAL DE CONFIRMACIÓN DE DIETA CON DISCLAIMER -->
-    <div *ngIf="mostrarModalDieta" class="modal-overlay">
+    <div *ngIf="mostrarModalDieta" class="modal-overlay" role="dialog" aria-labelledby="modal-dieta-title">
       <div class="modal-content">
         <ion-card class="modal-card">
           <ion-card-header>
-            <ion-card-title>⚕️ Importante: Consulta Profesional</ion-card-title>
+            <ion-card-title id="modal-dieta-title">⚕️ Importante: Consulta Profesional</ion-card-title>
             <ion-card-subtitle>Antes de comenzar tu plan</ion-card-subtitle>
           </ion-card-header>
           
@@ -430,7 +442,7 @@
             <!-- DISCLAIMER -->
             <div class="modal-disclaimer">
               <div class="disclaimer-box">
-                <ion-icon name="warning" color="warning"></ion-icon>
+                <ion-icon name="warning" color="warning" aria-hidden="true"></ion-icon>
                 <p>
                   <strong>Recomendación importante:</strong> Antes de iniciar este plan alimenticio, 
                   consulta con un nutricionista certificado para asegurar que sea adecuado para tu 
@@ -441,7 +453,7 @@
 
             <!-- INFO DE LA DIETA -->
             <div class="dieta-modal-info">
-              <div class="dieta-modal-icon">{{dietaSeleccionadaModal.icon}}</div>
+              <div class="dieta-modal-icon" [attr.aria-label]="'Icono de ' + dietaSeleccionadaModal.nombre">{{dietaSeleccionadaModal.icon}}</div>
               <div class="dieta-modal-details">
                 <h3>{{dietaSeleccionadaModal.nombre}}</h3>
                 <p>{{dietaSeleccionadaModal.descripcion}}</p>
@@ -473,14 +485,16 @@
             <ion-button 
               expand="block" 
               color="primary" 
-              (click)="confirmarSeleccionDieta()">
+              (click)="confirmarSeleccionDieta()"
+              aria-label="Confirmar selección de dieta">
               Entiendo y Quiero Continuar
             </ion-button>
             <ion-button 
               expand="block" 
               fill="outline" 
               color="medium"
-              (click)="cancelarSeleccionDieta()">
+              (click)="cancelarSeleccionDieta()"
+              aria-label="Cancelar selección de dieta">
               Cancelar
             </ion-button>
           </div>
@@ -488,20 +502,20 @@
       </div>
     </div>
 
-    <!-- MODAL DETALLES DIETA (sin cambios) -->
-    <div *ngIf="mostrarDetallesDieta" class="modal-overlay">
+    <!-- MODAL DETALLES DIETA -->
+    <div *ngIf="mostrarDetallesDieta" class="modal-overlay" role="dialog" aria-labelledby="modal-detalles-title">
       <div class="modal-content large-modal">
         <ion-card class="modal-card">
           <ion-card-header>
-            <ion-card-title>Detalles de la Dieta</ion-card-title>
-            <ion-button fill="clear" slot="end" (click)="cerrarModales()">
-              <ion-icon name="close"></ion-icon>
+            <ion-card-title id="modal-detalles-title">Detalles de la Dieta</ion-card-title>
+            <ion-button fill="clear" slot="end" (click)="cerrarModales()" aria-label="Cerrar modal">
+              <ion-icon name="close" aria-hidden="true"></ion-icon>
             </ion-button>
           </ion-card-header>
           
           <ion-card-content *ngIf="dietaDetallada">
             <div class="dieta-detalle-header">
-              <div class="dieta-icon-large">{{dietaDetallada.icon}}</div>
+              <div class="dieta-icon-large" [attr.aria-label]="'Icono de ' + dietaDetallada.nombre">{{dietaDetallada.icon}}</div>
               <div class="dieta-detalle-info">
                 <h2>{{dietaDetallada.nombre}}</h2>
                 <p class="dieta-descripcion">{{dietaDetallada.descripcion}}</p>
@@ -543,7 +557,7 @@
                     <h3>⭐ Beneficios</h3>
                     <ul class="lista-beneficios">
                       <li *ngFor="let beneficio of dietaDetallada.beneficios">
-                        <ion-icon name="checkmark-circle" color="success"></ion-icon>
+                        <ion-icon name="checkmark-circle" color="success" aria-hidden="true"></ion-icon>
                         {{beneficio}}
                       </li>
                     </ul>
@@ -554,7 +568,7 @@
                     <h3>📋 Consideraciones</h3>
                     <ul class="lista-consideraciones">
                       <li *ngFor="let consideracion of dietaDetallada.consideraciones">
-                        <ion-icon name="information-circle" color="primary"></ion-icon>
+                        <ion-icon name="information-circle" color="primary" aria-hidden="true"></ion-icon>
                         {{consideracion}}
                       </li>
                     </ul>
@@ -586,11 +600,11 @@
             </ion-grid>
 
             <div class="modal-actions">
-              <ion-button expand="block" color="primary" (click)="seleccionarDieta(dietaDetallada)">
+              <ion-button expand="block" color="primary" (click)="seleccionarDieta(dietaDetallada)" aria-label="Seleccionar esta dieta">
                 Seleccionar esta Dieta
               </ion-button>
-              <ion-button expand="block" fill="outline" color="success" (click)="verRecetasDieta(dietaDetallada)">
-                <ion-icon slot="start" name="fast-food"></ion-icon>
+              <ion-button expand="block" fill="outline" color="success" (click)="verRecetasDieta(dietaDetallada)" aria-label="Ver recetas de esta dieta">
+                <ion-icon slot="start" name="fast-food" aria-hidden="true"></ion-icon>
                 Ver Recetas
               </ion-button>
             </div>
@@ -599,26 +613,26 @@
       </div>
     </div>
 
-    <!-- MODAL RECETAS DIETA (sin cambios) -->
-    <div *ngIf="mostrarRecetasDieta" class="modal-overlay">
+    <!-- MODAL RECETAS DIETA -->
+    <div *ngIf="mostrarRecetasDieta" class="modal-overlay" role="dialog" aria-labelledby="modal-recetas-title">
       <div class="modal-content large-modal">
         <ion-card class="modal-card">
           <ion-card-header>
-            <ion-card-title>Recetas para {{dietaDetallada?.nombre}}</ion-card-title>
-            <ion-button fill="clear" slot="end" (click)="cerrarModales()">
-              <ion-icon name="close"></ion-icon>
+            <ion-card-title id="modal-recetas-title">Recetas para {{dietaDetallada?.nombre}}</ion-card-title>
+            <ion-button fill="clear" slot="end" (click)="cerrarModales()" aria-label="Cerrar modal de recetas">
+              <ion-icon name="close" aria-hidden="true"></ion-icon>
             </ion-button>
           </ion-card-header>
           
           <ion-card-content>
             <div *ngIf="recetasDietaSeleccionada.length === 0" class="empty-recetas">
-              <div class="empty-icon">🍽️</div>
+              <div class="empty-icon" aria-hidden="true">🍽️</div>
               <h3>No hay recetas disponibles</h3>
               <p>No se encontraron recetas para esta dieta</p>
             </div>
 
             <div class="recetas-grid" *ngIf="recetasDietaSeleccionada.length > 0">
-              <ion-card *ngFor="let receta of recetasDietaSeleccionada" class="receta-card" (click)="verReceta(receta.id)">
+              <ion-card *ngFor="let receta of recetasDietaSeleccionada" class="receta-card" (click)="verReceta(receta.id)" [attr.aria-label]="'Receta: ' + receta.titulo">
                 <ion-card-header>
                   <ion-card-title>{{receta.titulo}}</ion-card-title>
                   <ion-card-subtitle>{{receta.descripcion}}</ion-card-subtitle>
@@ -647,7 +661,7 @@
                   </div>
 
                   <div class="receta-actions">
-                    <ion-button fill="solid" color="primary" (click)="verReceta(receta.id); $event.stopPropagation()">
+                    <ion-button fill="solid" color="primary" (click)="verReceta(receta.id); $event.stopPropagation()" aria-label="Ver receta completa">
                       Ver Receta
                     </ion-button>
                   </div>

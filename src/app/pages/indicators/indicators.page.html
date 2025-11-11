@@ -2,7 +2,7 @@
 <ion-header [translucent]="true">
   <ion-toolbar color="primary">
     <ion-buttons slot="start" *ngIf="!esConfiguracionInicial">
-      <ion-back-button defaultHref="/home" text=""></ion-back-button>
+      <ion-back-button defaultHref="/home" text="" aria-label="Volver al inicio"></ion-back-button>
     </ion-buttons>
     
     <ion-title>
@@ -26,8 +26,8 @@
   <!-- ============================================
        MENSAJE DE ERROR GLOBAL
        ============================================ -->
-  <div class="error-banner" *ngIf="errorMessage && !loading">
-    <ion-icon name="alert-circle" color="danger"></ion-icon>
+  <div class="error-banner" *ngIf="errorMessage && !loading" role="alert" aria-live="polite">
+    <ion-icon name="alert-circle" color="danger" aria-hidden="true"></ion-icon>
     <span>{{ errorMessage }}</span>
   </div>
 
@@ -37,7 +37,8 @@
   <ion-card *ngIf="ultimosValores.peso && !esConfiguracionInicial" class="info-card">
     <ion-card-content>
       <div class="info-content">
-        <ion-icon name="trending-up-outline" color="primary"></ion-icon>
+        <!-- ✅ CORREGIDO: trending-up-outline reemplazado por trending-up -->
+        <ion-icon name="trending-up" color="primary" aria-hidden="true"></ion-icon>
         <div class="info-text">
           <strong>Datos precargados</strong>
           <p>Último registro: {{ ultimosValores.peso }}kg, {{ ultimosValores.estatura }}cm (IMC: {{ ultimosValores.imc }})</p>
@@ -64,7 +65,8 @@
              ============================================ -->
         <div class="form-section">
           <div class="section-header">
-            <ion-icon name="scale-outline" color="primary"></ion-icon>
+            <!-- ✅ CORREGIDO: scale-outline reemplazado por scale -->
+            <ion-icon name="scale" color="primary" aria-hidden="true"></ion-icon>
             <h3>Datos Físicos</h3>
           </div>
           
@@ -77,11 +79,13 @@
                   type="number" 
                   formControlName="peso"
                   placeholder="70"
-                  (ionInput)="clearError()">
+                  (ionInput)="clearError()"
+                  aria-describedby="peso-errors"
+                  aria-invalid="{{ formControls['peso'].touched && formControls['peso'].errors ? 'true' : 'false' }}">
                 </ion-input>
               </ion-item>
-              <ion-note color="danger" *ngIf="formControls['peso'].touched && formControls['peso'].errors">
-                <ion-icon name="alert-circle"></ion-icon>
+              <ion-note color="danger" id="peso-errors" *ngIf="formControls['peso'].touched && formControls['peso'].errors" role="alert">
+                <ion-icon name="alert-circle" aria-hidden="true"></ion-icon>
                 <span *ngIf="formControls['peso'].errors?.['required']">Requerido</span>
                 <span *ngIf="formControls['peso'].errors?.['min'] || formControls['peso'].errors?.['max']">30-300kg</span>
               </ion-note>
@@ -95,11 +99,13 @@
                   type="number" 
                   formControlName="estatura"
                   placeholder="170"
-                  (ionInput)="clearError()">
+                  (ionInput)="clearError()"
+                  aria-describedby="estatura-errors"
+                  aria-invalid="{{ formControls['estatura'].touched && formControls['estatura'].errors ? 'true' : 'false' }}">
                 </ion-input>
               </ion-item>
-              <ion-note color="danger" *ngIf="formControls['estatura'].touched && formControls['estatura'].errors">
-                <ion-icon name="alert-circle"></ion-icon>
+              <ion-note color="danger" id="estatura-errors" *ngIf="formControls['estatura'].touched && formControls['estatura'].errors" role="alert">
+                <ion-icon name="alert-circle" aria-hidden="true"></ion-icon>
                 <span *ngIf="formControls['estatura'].errors?.['required']">Requerido</span>
                 <span *ngIf="formControls['estatura'].errors?.['min'] || formControls['estatura'].errors?.['max']">100-250cm</span>
               </ion-note>
@@ -107,9 +113,10 @@
           </div>
 
           <!-- IMC Preview -->
-          <div class="imc-card" *ngIf="formControls['peso'].valid && formControls['estatura'].valid">
+          <div class="imc-card" *ngIf="formControls['peso'].valid && formControls['estatura'].valid" role="status" aria-live="polite">
             <div class="imc-icon">
-              <ion-icon name="heart-outline" [color]="getBMIColor(calculateBMI(formControls['peso'].value, formControls['estatura'].value))"></ion-icon>
+              <!-- ✅ CORREGIDO: heart-outline reemplazado por heart -->
+              <ion-icon name="heart" [color]="getBMIColor(calculateBMI(formControls['peso'].value, formControls['estatura'].value))" aria-hidden="true"></ion-icon>
             </div>
             <div class="imc-info">
               <span class="imc-label">Tu IMC</span>
@@ -128,7 +135,8 @@
              ============================================ -->
         <div class="form-section">
           <div class="section-header">
-            <ion-icon name="happy-outline" color="primary"></ion-icon>
+            <!-- ✅ CORREGIDO: happy-outline reemplazado por happy -->
+            <ion-icon name="happy" color="primary" aria-hidden="true"></ion-icon>
             <h3>Estado Emocional</h3>
           </div>
           
@@ -139,7 +147,9 @@
               formControlName="estadoAnimo" 
               placeholder="Selecciona tu estado"
               interface="action-sheet"
-              (ionChange)="clearError()">
+              (ionChange)="clearError()"
+              aria-describedby="estadoAnimo-errors"
+              aria-invalid="{{ formControls['estadoAnimo'].touched && formControls['estadoAnimo'].errors ? 'true' : 'false' }}">
               <ion-select-option value="excelente">😊 Excelente</ion-select-option>
               <ion-select-option value="bueno">🙂 Bueno</ion-select-option>
               <ion-select-option value="regular">😐 Regular</ion-select-option>
@@ -147,8 +157,8 @@
               <ion-select-option value="muy-malo">😢 Muy Malo</ion-select-option>
             </ion-select>
           </ion-item>
-          <ion-note color="danger" *ngIf="formControls['estadoAnimo'].touched && formControls['estadoAnimo'].errors?.['required']">
-            <ion-icon name="alert-circle"></ion-icon>
+          <ion-note color="danger" id="estadoAnimo-errors" *ngIf="formControls['estadoAnimo'].touched && formControls['estadoAnimo'].errors?.['required']" role="alert">
+            <ion-icon name="alert-circle" aria-hidden="true"></ion-icon>
             <span>Selecciona tu estado de ánimo</span>
           </ion-note>
 
@@ -158,61 +168,37 @@
               Emociones que sientes *
             </ion-label>
             
-            <div class="emotions-grid">
+            <div class="emotions-grid" role="group" aria-labelledby="emociones-label">
               <ion-chip
                 *ngFor="let emocion of emocionesDisponibles"
                 [class.chip-selected]="isEmocionSelected(emocion.value)"
                 [color]="isEmocionSelected(emocion.value) ? 'primary' : 'medium'"
                 (click)="toggleEmocion(emocion.value)"
-                class="emotion-chip">
-                <span class="emotion-emoji">{{ emocion.emoji }}</span>
+                class="emotion-chip"
+                role="checkbox"
+                [attr.aria-checked]="isEmocionSelected(emocion.value)"
+                [attr.aria-label]="emocion.label">
+                <span class="emotion-emoji" aria-hidden="true">{{ emocion.emoji }}</span>
                 <ion-label>{{ emocion.label }}</ion-label>
               </ion-chip>
             </div>
             
-            <ion-note color="danger" *ngIf="formControls['emociones'].touched && formControls['emociones'].errors?.['required']">
-              <ion-icon name="alert-circle"></ion-icon>
+            <ion-note color="danger" id="emociones-errors" *ngIf="formControls['emociones'].touched && formControls['emociones'].errors?.['required']" role="alert">
+              <ion-icon name="alert-circle" aria-hidden="true"></ion-icon>
               <span>Selecciona al menos una emoción</span>
             </ion-note>
           </div>
         </div>
 
-        <div class="divider"></div>
-
-        <!-- ============================================
-             HIDRATACIÓN
-             ============================================ -->
-        <div class="form-section">
-          <div class="section-header">
-            <ion-icon name="water-outline" color="primary"></ion-icon>
-            <h3>Hidratación</h3>
-          </div>
-          
-          <ion-item class="form-item">
-            <ion-label position="stacked">Vasos de agua hoy</ion-label>
-            <ion-input 
-              type="number" 
-              formControlName="vasosAgua"
-              placeholder="0"
-              min="0"
-              max="20">
-            </ion-input>
-          </ion-item>
-          
-          <div class="water-tip">
-            <ion-icon name="water-outline" color="primary"></ion-icon>
-            <span>Meta diaria recomendada: 8 vasos</span>
-          </div>
-        </div>
-
-        <div class="divider"></div>
+        
 
         <!-- ============================================
              NOTAS
              ============================================ -->
         <div class="form-section">
           <div class="section-header">
-            <ion-icon name="create-outline" color="primary"></ion-icon>
+            <!-- ✅ CORREGIDO: create-outline reemplazado por create -->
+            <ion-icon name="create" color="primary" aria-hidden="true"></ion-icon>
             <h3>Notas Adicionales</h3>
           </div>
           
@@ -222,7 +208,8 @@
               formControlName="notas"
               placeholder="¿Cómo te sentiste hoy? ¿Algo importante?"
               rows="3"
-              [autoGrow]="true">
+              [autoGrow]="true"
+              aria-label="Observaciones y notas adicionales">
             </ion-textarea>
           </ion-item>
         </div>
@@ -234,9 +221,10 @@
           expand="block" 
           type="submit" 
           [disabled]="!indicatorForm.valid || loading"
-          class="submit-button">
-          <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
-          <ion-icon *ngIf="!loading" name="checkmark-circle" slot="start"></ion-icon>
+          class="submit-button"
+          [attr.aria-label]="loading ? 'Guardando registro, por favor espere' : (esConfiguracionInicial ? 'Completar perfil' : 'Guardar registro')">
+          <ion-spinner *ngIf="loading" name="crescent" aria-hidden="true"></ion-spinner>
+          <ion-icon *ngIf="!loading" name="checkmark-circle" slot="start" aria-hidden="true"></ion-icon>
           <span *ngIf="!loading">
             {{ esConfiguracionInicial ? '✨ Completar Perfil' : '💾 Guardar Registro' }}
           </span>
@@ -262,7 +250,7 @@
 
     <!-- Loading -->
     <div *ngIf="loading" class="loading-container">
-      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <ion-spinner name="crescent" color="primary" aria-label="Cargando registros"></ion-spinner>
       <p>Cargando registros...</p>
     </div>
 
@@ -281,7 +269,8 @@
             <!-- Datos físicos -->
             <div class="indicator-row">
               <div class="indicator-stat">
-                <ion-icon name="scale-outline" color="medium"></ion-icon>
+                <!-- ✅ CORREGIDO: scale-outline reemplazado por scale -->
+                <ion-icon name="scale" color="medium" aria-hidden="true"></ion-icon>
                 <div>
                   <span class="stat-label">Peso</span>
                   <span class="stat-value">{{ indicador.peso }} kg</span>
@@ -289,7 +278,8 @@
               </div>
               
               <div class="indicator-stat">
-                <ion-icon name="resize-outline" color="medium"></ion-icon>
+                <!-- ✅ CORREGIDO: resize-outline reemplazado por resize -->
+                <ion-icon name="resize" color="medium" aria-hidden="true"></ion-icon>
                 <div>
                   <span class="stat-label">Estatura</span>
                   <span class="stat-value">{{ indicador.estatura }} cm</span>
@@ -300,7 +290,7 @@
             <!-- Estado emocional -->
             <div class="indicator-row">
               <div class="indicator-mood">
-                <span class="mood-emoji">{{ getMoodEmoji(indicador.estadoAnimo) }}</span>
+                <span class="mood-emoji" aria-hidden="true">{{ getMoodEmoji(indicador.estadoAnimo) }}</span>
                 <span class="mood-text">{{ indicador.estadoAnimo }}</span>
               </div>
             </div>
@@ -315,7 +305,8 @@
             <!-- Agua y notas -->
             <div class="indicator-extras">
               <div class="water-count" *ngIf="indicador.vasosAgua > 0">
-                <ion-icon name="water-outline" color="primary"></ion-icon>
+                <!-- ✅ CORREGIDO: water-outline reemplazado por water -->
+                <ion-icon name="water" color="primary" aria-hidden="true"></ion-icon>
                 <span>{{ indicador.vasosAgua }} vasos</span>
               </div>
             </div>
@@ -332,7 +323,8 @@
     <ion-card *ngIf="!loading && userIndicators.length === 0" class="empty-state">
       <ion-card-content>
         <div class="empty-content">
-          <ion-icon name="document-outline" color="medium" class="empty-icon"></ion-icon>
+          <!-- ✅ CORREGIDO: document-outline reemplazado por document -->
+          <ion-icon name="document" color="medium" class="empty-icon" aria-hidden="true"></ion-icon>
           <h3>No hay registros aún</h3>
           <p>¡Agrega tu primer indicador arriba!</p>
         </div>

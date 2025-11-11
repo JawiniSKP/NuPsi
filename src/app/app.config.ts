@@ -8,49 +8,92 @@ import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { environment } from '../environments/environment';
 import { addIcons } from 'ionicons';
 import { 
-  // Iconos existentes
+  // Iconos existentes (sin duplicados)
   personCircle, home, calendar, chatbubble, people, person,
-  bulbOutline, waterOutline, eyeOutline, eyeOffOutline, hourglass,
+  bulbOutline, waterOutline, hourglass,
   create, trash, refresh, time, bed, repeat, trophy, play,
   
-  // Nuevos iconos
+  // Nuevos iconos (sin duplicados)
   arrowBack, fitness, barbell, checkmarkCircle, save, close,
   addCircle, flame, statsChart, swapHorizontal,
   fastFood, informationCircle, restaurant, timer, folder, flash,
-  warning, trendingUp, flagOutline, flameOutline, scaleOutline,
-  happyOutline, createOutline, pricetagsOutline,
-  cartOutline, fitnessOutline, speedometerOutline, lockClosedOutline,
-  mailOutline, personOutline, logoGoogle, alertCircle, logInOutline,
-  personAddOutline, heart, camera, key, shieldCheckmark, ban,
-  checkmark, chevronForward, resizeOutline, documentOutline,
-  heartOutline, trendingUpOutline, settingsOutline, closeCircle
+  warning, trendingUp, flameOutline, scaleOutline,
+  happyOutline, pricetagsOutline,
+  cartOutline, fitnessOutline, speedometerOutline,
+  personOutline, logoGoogle, alertCircle, personAddOutline, heart,
+  camera, key, shieldCheckmark, ban, checkmark, chevronForward,
+  resizeOutline, documentOutline,
+  heartOutline, trendingUpOutline, settingsOutline, closeCircle,
+
+  // ✅ NUEVOS ICONOS OUTLINE FALTANTES (sin duplicados):
+  personCircleOutline,
+  removeCircleOutline,
+  addCircleOutline,
+  rocketOutline,
+  gridOutline,
+  eyeOutline,
+  eyeOffOutline,
+  mailOutline,
+  lockClosedOutline,
+  logInOutline,
+  cameraOutline,
+  createOutline,
+  chevronForwardOutline,
+  flagOutline,
+  calendarOutline,
+  swapHorizontalOutline,
+  timeOutline,
+  pause,
+  playOutline,
+  stopOutline
 } from 'ionicons/icons';
 
-// Configurar TODOS los iconos globalmente
+// Configurar TODOS los iconos globalmente (sin duplicados)
 addIcons({
   // Iconos existentes
   personCircle, home, calendar, chatbubble, people, person,
-  bulbOutline, waterOutline, eyeOutline, eyeOffOutline, hourglass,
+  bulbOutline, waterOutline, hourglass,
   create, trash, refresh, time, bed, repeat, trophy, play,
   
   // Nuevos iconos
   arrowBack, fitness, barbell, checkmarkCircle, save, close,
   addCircle, flame, statsChart, swapHorizontal, fastFood,
   informationCircle, restaurant, timer, folder, flash, warning,
-  trendingUp, flagOutline, flameOutline, scaleOutline, happyOutline,
-  createOutline, pricetagsOutline, cartOutline, fitnessOutline,
-  speedometerOutline, lockClosedOutline, mailOutline, personOutline,
-  logoGoogle, alertCircle, logInOutline, personAddOutline, heart,
-  camera, key, shieldCheckmark, ban, checkmark, chevronForward,
-  resizeOutline, documentOutline, heartOutline, trendingUpOutline,
-  settingsOutline, closeCircle
+  trendingUp, flameOutline, scaleOutline, happyOutline,
+  pricetagsOutline, cartOutline, fitnessOutline,
+  speedometerOutline, personOutline, logoGoogle, alertCircle, 
+  personAddOutline, heart, camera, key, shieldCheckmark, ban,
+  checkmark, chevronForward, resizeOutline, documentOutline,
+  heartOutline, trendingUpOutline, settingsOutline, closeCircle,
+
+  // ✅ NUEVOS ICONOS OUTLINE FALTANTES:
+  personCircleOutline,
+  removeCircleOutline,
+  addCircleOutline,
+  rocketOutline,
+  gridOutline,
+  eyeOutline,
+  eyeOffOutline,
+  mailOutline,
+  lockClosedOutline,
+  logInOutline,
+  cameraOutline,
+  createOutline,
+  chevronForwardOutline,
+  flagOutline,
+  calendarOutline,
+  swapHorizontalOutline,
+  timeOutline,
+  pause,
+  playOutline,
+  stopOutline
 });
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
     provideIonicAngular({}),
-    provideFirebaseApp(() => initializeApp(environment.firebase)),
+    provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore())
   ]
