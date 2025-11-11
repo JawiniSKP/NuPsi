@@ -1,5 +1,5 @@
-// src/app/pages/temporizador-ejercicio/temporizador-ejercicio.page.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+// src/app/pages/temporizador-ejercicio/temporizador-ejercicio.page.ts - VERSIÓN CORREGIDA
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, AlertController, ToastController } from '@ionic/angular';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -38,18 +38,18 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
   iniciado: boolean = false;
   pausado: boolean = false;
   tiempoTotalTranscurrido: number = 0;
+  cargando: boolean = true;
   
   // Subscripciones
   private timerSubscription?: Subscription;
-  private subscriptions: Subscription[] = [];
-
-  // Audio (opcional)
   private audioContext?: AudioContext;
+
+  // ✅ CORREGIDO: Usar inject() para servicios
+  private ejerciciosService = inject(EjerciciosService);
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private ejerciciosService: EjerciciosService,
     private alertController: AlertController,
     private toastController: ToastController
   ) {}
@@ -59,7 +59,7 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
     this.ejercicioId = this.route.snapshot.paramMap.get('id') || '';
     
     if (!this.ejercicioId) {
-      this.mostrarToast('Error: No se encontró el ejercicio', 'danger');
+      await this.mostrarToast('Error: No se encontró el ejercicio', 'danger');
       this.router.navigate(['/ejercicios']);
       return;
     }
@@ -69,42 +69,62 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
     
     // 🆕 AGREGADO: Inicializar mensaje motivacional
     this.actualizarMensajeMotivacional();
+    
+    this.cargando = false;
   }
 
   ngOnDestroy() {
     this.detenerTemporizador();
-    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.cerrarAudioContext();
+  }
+
+  // ✅ NUEVO: Método para cerrar AudioContext
+  private cerrarAudioContext() {
+    if (this.audioContext && this.audioContext.state !== 'closed') {
+      this.audioContext.close().catch(console.warn);
+    }
   }
 
   // ==========================================
-  // 📊 CARGA DE DATOS
+  // 📊 CARGA DE DATOS - CORREGIDO
   // ==========================================
 
-  async cargarEjercicio() {
+  private async cargarEjercicio() {
     try {
       this.ejercicio = await this.ejerciciosService.obtenerEjercicioPorId(this.ejercicioId);
       
       if (!this.ejercicio) {
-        this.mostrarToast('No se encontró el ejercicio', 'danger');
+        await this.mostrarToast('No se encontró el ejercicio', 'danger');
         this.router.navigate(['/ejercicios']);
         return;
       }
 
       // Configurar temporizador con los valores del ejercicio
-      this.tiempoTrabajo = this.ejercicio.temporizador.trabajo;
-      this.tiempoDescanso = this.ejercicio.temporizador.descanso;
-      this.totalSeries = this.ejercicio.temporizador.series;
+      this.tiempoTrabajo = this.ejercicio.temporizador?.trabajo || 30;
+      this.tiempoDescanso = this.ejercicio.temporizador?.descanso || 15;
+      this.totalSeries = this.ejercicio.temporizador?.series || 3;
+      
+      // ✅ CORREGIDO: Validar valores mínimos
+      this.validarConfiguracionTemporizador();
       
       console.log('✅ Ejercicio cargado:', this.ejercicio);
     } catch (error) {
       console.error('❌ Error cargando ejercicio:', error);
-      this.mostrarToast('Error al cargar el ejercicio', 'danger');
+      await this.mostrarToast('Error al cargar el ejercicio', 'danger');
       this.router.navigate(['/ejercicios']);
     }
   }
 
+  // ✅ NUEVO: Validar configuración del temporizador
+  private validarConfiguracionTemporizador() {
+    if (this.tiempoTrabajo < 1) this.tiempoTrabajo = 30;
+    if (this.tiempoDescanso < 1) this.tiempoDescanso = 15;
+    if (this.totalSeries < 1) this.totalSeries = 3;
+    if (this.tiempoPreparacion < 1) this.tiempoPreparacion = 5;
+  }
+
   // ==========================================
-  // ⏱️ CONTROL DEL TEMPORIZADOR
+  // ⏱️ CONTROL DEL TEMPORIZADOR - CORREGIDO
   // ==========================================
 
   iniciarTemporizador() {
@@ -119,6 +139,9 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
 
     // 🆕 AGREGADO: Actualizar mensaje al iniciar
     this.actualizarMensajeMotivacional();
+
+    // ✅ CORREGIDO: Detener suscripción anterior si existe
+    this.detenerTemporizador();
 
     this.timerSubscription = interval(1000).subscribe(() => {
       this.tick();
@@ -200,10 +223,13 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
   }
 
   // ==========================================
-  // 🔄 LÓGICA DEL TICK
+  // 🔄 LÓGICA DEL TICK - CORREGIDO
   // ==========================================
 
   private tick() {
+    // ✅ CORREGIDO: Validar que el temporizador esté activo
+    if (!this.timerSubscription || this.pausado) return;
+
     this.tiempoRestante--;
     this.tiempoTotalTranscurrido++;
 
@@ -268,18 +294,23 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
     this.mensajeMotivacional = '';
 
     try {
-      // Guardar en Firestore
-      await this.ejerciciosService.completarEjercicio(
-        this.ejercicioId,
-        this.tiempoTotalTranscurrido,
-        `Completado ${this.totalSeries} series`
-      );
+      // ✅ CORREGIDO: Validar que exista el ejercicio antes de guardar
+      if (this.ejercicio) {
+        // Guardar en Firestore
+        await this.ejerciciosService.completarEjercicio(
+          this.ejercicioId,
+          this.tiempoTotalTranscurrido,
+          `Completado ${this.totalSeries} series`
+        );
 
-      // Mostrar modal de felicitaciones
-      await this.mostrarModalCompletado();
+        // Mostrar modal de felicitaciones
+        await this.mostrarModalCompletado();
+      } else {
+        await this.mostrarToast('Error: No se pudo guardar el progreso', 'danger');
+      }
     } catch (error) {
       console.error('❌ Error guardando ejercicio:', error);
-      this.mostrarToast('Error al guardar el progreso', 'danger');
+      await this.mostrarToast('Error al guardar el progreso', 'danger');
     }
   }
 
@@ -295,7 +326,10 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
         '¡Sigue así!',
         '¡Excelente!',
         '¡No pares!',
-        '¡Eres fuerte!'
+        '¡Eres fuerte!',
+        '¡Vamos!',
+        '¡Tú mandas!',
+        '¡Increíble!'
       ];
       this.mensajeMotivacional = mensajes[Math.floor(Math.random() * mensajes.length)];
     } else if (this.estado === 'descanso') {
@@ -304,20 +338,23 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
         'Recupérate bien',
         'Descansa un poco',
         'Hidrátate',
-        'Relájate'
+        'Relájate',
+        'Toma aire',
+        'Prepara la siguiente serie',
+        'Bebe agua'
       ];
       this.mensajeMotivacional = mensajes[Math.floor(Math.random() * mensajes.length)];
     } else if (this.estado === 'preparacion') {
       this.mensajeMotivacional = 'Prepárate para comenzar';
+    } else if (this.estado === 'pausado') {
+      this.mensajeMotivacional = 'Ejercicio en pausa';
     } else {
       this.mensajeMotivacional = '';
     }
   }
 
-  // ❌ ELIMINADO: getMensajeMotivacional() - Ya no es necesario
-
   // ==========================================
-  // 🎉 MODAL DE COMPLETADO
+  // 🎉 MODAL DE COMPLETADO - CORREGIDO
   // ==========================================
 
   private async mostrarModalCompletado() {
@@ -326,7 +363,7 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
       message: `
         <div style="text-align: center; padding: 20px 0;">
           <p style="font-size: 18px; font-weight: 600; color: #2C3E50; margin-bottom: 12px;">
-            Has completado el ejercicio "${this.ejercicio?.nombre}"
+            Has completado el ejercicio "${this.ejercicio?.nombre || 'el ejercicio'}"
           </p>
           <p style="font-size: 16px; color: #5A6C7D; margin-bottom: 8px;">
             <strong>${this.totalSeries}</strong> series completadas
@@ -357,54 +394,64 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
   }
 
   // ==========================================
-  // 🔊 AUDIO
+  // 🔊 AUDIO - CORREGIDO
   // ==========================================
 
   private configurarAudio() {
     try {
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      // ✅ CORREGIDO: Verificar compatibilidad del navegador
+      if (typeof window !== 'undefined' && (window.AudioContext || (window as any).webkitAudioContext)) {
+        this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
     } catch (e) {
       console.warn('⚠️ AudioContext no disponible');
     }
   }
 
   private reproducirSonido(tipo: 'inicio' | 'trabajo' | 'descanso' | 'pausa' | 'tick' | 'completado' | 'reinicio') {
-    if (!this.audioContext) return;
-
-    const oscillator = this.audioContext.createOscillator();
-    const gainNode = this.audioContext.createGain();
-
-    oscillator.connect(gainNode);
-    gainNode.connect(this.audioContext.destination);
-
-    // Configurar frecuencias según el tipo
-    switch (tipo) {
-      case 'inicio':
-      case 'trabajo':
-        oscillator.frequency.value = 800;
-        gainNode.gain.value = 0.3;
-        break;
-      case 'descanso':
-        oscillator.frequency.value = 600;
-        gainNode.gain.value = 0.3;
-        break;
-      case 'tick':
-        oscillator.frequency.value = 400;
-        gainNode.gain.value = 0.2;
-        break;
-      case 'completado':
-        oscillator.frequency.value = 1000;
-        gainNode.gain.value = 0.4;
-        break;
-      case 'pausa':
-      case 'reinicio':
-        oscillator.frequency.value = 500;
-        gainNode.gain.value = 0.25;
-        break;
+    // ✅ CORREGIDO: Verificar que AudioContext esté disponible
+    if (!this.audioContext || this.audioContext.state === 'closed') {
+      return;
     }
 
-    oscillator.start(this.audioContext.currentTime);
-    oscillator.stop(this.audioContext.currentTime + 0.1);
+    try {
+      const oscillator = this.audioContext.createOscillator();
+      const gainNode = this.audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(this.audioContext.destination);
+
+      // Configurar frecuencias según el tipo
+      switch (tipo) {
+        case 'inicio':
+        case 'trabajo':
+          oscillator.frequency.value = 800;
+          gainNode.gain.value = 0.3;
+          break;
+        case 'descanso':
+          oscillator.frequency.value = 600;
+          gainNode.gain.value = 0.3;
+          break;
+        case 'tick':
+          oscillator.frequency.value = 400;
+          gainNode.gain.value = 0.2;
+          break;
+        case 'completado':
+          oscillator.frequency.value = 1000;
+          gainNode.gain.value = 0.4;
+          break;
+        case 'pausa':
+        case 'reinicio':
+          oscillator.frequency.value = 500;
+          gainNode.gain.value = 0.25;
+          break;
+      }
+
+      oscillator.start(this.audioContext.currentTime);
+      oscillator.stop(this.audioContext.currentTime + 0.1);
+    } catch (error) {
+      console.warn('Error reproduciendo sonido:', error);
+    }
   }
 
   // ==========================================
@@ -419,7 +466,7 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
 
   getPorcentajeProgreso(): number {
     const tiempoTotal = (this.tiempoTrabajo + this.tiempoDescanso) * this.totalSeries + this.tiempoPreparacion;
-    return Math.min((this.tiempoTotalTranscurrido / tiempoTotal) * 100, 100);
+    return tiempoTotal > 0 ? Math.min((this.tiempoTotalTranscurrido / tiempoTotal) * 100, 100) : 0;
   }
 
   getColorEstado(): string {
@@ -468,18 +515,18 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
     let porcentaje = 0;
 
     if (this.estado === 'preparacion') {
-      porcentaje = (this.tiempoRestante / this.tiempoPreparacion) * 100;
+      porcentaje = this.tiempoPreparacion > 0 ? (this.tiempoRestante / this.tiempoPreparacion) * 100 : 0;
     } else if (this.estado === 'trabajo') {
-      porcentaje = (this.tiempoRestante / this.tiempoTrabajo) * 100;
+      porcentaje = this.tiempoTrabajo > 0 ? (this.tiempoRestante / this.tiempoTrabajo) * 100 : 0;
     } else if (this.estado === 'descanso') {
-      porcentaje = (this.tiempoRestante / this.tiempoDescanso) * 100;
+      porcentaje = this.tiempoDescanso > 0 ? (this.tiempoRestante / this.tiempoDescanso) * 100 : 0;
     }
 
     return circunferencia - (porcentaje / 100) * circunferencia;
   }
 
   // ==========================================
-  // 💬 TOAST
+  // 💬 TOAST - CORREGIDO
   // ==========================================
 
   private async mostrarToast(mensaje: string, color: 'success' | 'danger' | 'warning' = 'success') {
@@ -522,5 +569,10 @@ export class TemporizadorEjercicioPage implements OnInit, OnDestroy {
     } else {
       this.router.navigate(['/ejercicios']);
     }
+  }
+
+  // ✅ NUEVO: Método para verificar si está cargando
+  isLoading(): boolean {
+    return this.cargando;
   }
 }

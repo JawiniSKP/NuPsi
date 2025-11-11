@@ -1,0 +1,110 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Función helper para verificar autenticación
+    function estaAutenticado() {
+      return request.auth != null;
+    }
+    
+    // Función helper para verificar propiedad
+    function esPropietario(usuarioId) {
+      return request.auth.uid == usuarioId;
+    }
+    
+    // Colección usuarios
+    match /usuarios/{usuarioId} {
+      allow read: if estaAutenticado();
+      allow create: if estaAutenticado() && request.auth.uid == usuarioId;
+      allow update, delete: if esPropietario(usuarioId);
+      
+      // Subcolecciones - PERMISOS CORREGIDOS
+      match /ejercicios/{ejercicioId} {
+        allow read, write: if esPropietario(usuarioId);
+      }
+      
+      match /indicadores/{indicadorId} {
+        allow read, write: if esPropietario(usuarioId);
+      }
+      
+      match /recetasGuardadas/{recetaId} {
+        allow read, write: if esPropietario(usuarioId);
+      }
+      
+      match /actividadFisica/{actividadId} {
+        allow read, write: if esPropietario(usuarioId);
+      }
+      
+      match /logros/{logroId} {
+        allow read, write: if esPropietario(usuarioId);
+      }
+      
+      match /notificaciones/{notificacionId} {
+        allow read, write: if esPropietario(usuarioId);
+      }
+      
+      match /consultasProfesionales/{consultaId} {
+        allow read, write: if esPropietario(usuarioId);
+      }
+    }
+    
+    // Recetas - lectura pública, escritura restringida
+    match /recetas/{recetaId} {
+      allow read: if estaAutenticado();
+      allow create: if estaAutenticado();
+      allow update, delete: if estaAutenticado() && 
+        (resource.data.creadoPor == request.auth.uid);
+    }
+    
+    // Profesionales - lectura pública
+    match /profesionales/{profesionalId} {
+      allow read: if estaAutenticado();
+      allow write: if false;
+    }
+    
+    // Conversaciones chatbot
+    match /conversacionesChatbot/{conversacionId} {
+      allow read, write: if estaAutenticado() && 
+        resource.data.usuarioId == request.auth.uid;
+    }
+    
+    // Configuración app - solo lectura
+    match /configuracionApp/{configId} {
+      allow read: if estaAutenticado();
+      allow write: if false;
+    }
+    
+    // Planes nutricionales
+    match /planesNutricionales/{planId} {
+      allow read, write: if estaAutenticado() && 
+        resource.data.usuarioId == request.auth.uid;
+    }
+    
+    // DIETAS - NUEVAS REGLAS
+    match /dietas/{dietaId} {
+      allow read: if estaAutenticado();
+      allow write: if false;
+    }
+    
+    // PLANTILLAS - NUEVAS REGLAS  
+    match /plantillas/{plantillaId} {
+      allow read: if estaAutenticado();
+      allow write: if false;
+    }
+    
+    // EJERCICIOS - NUEVAS REGLAS
+    match /ejercicios/{ejercicioId} {
+      allow read: if estaAutenticado();
+      allow create, update: if estaAutenticado() && 
+        request.auth.uid == request.resource.data.usuarioId;
+      allow delete: if estaAutenticado() && 
+        resource.data.usuarioId == request.auth.uid;
+    }
+    
+    // RUTINAS - NUEVAS REGLAS
+    match /rutinas/{rutinaId} {
+      allow read, write: if estaAutenticado() && 
+        resource.data.usuarioId == request.auth.uid;
+    }
+  }
+}

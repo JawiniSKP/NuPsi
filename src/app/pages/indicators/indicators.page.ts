@@ -1,4 +1,3 @@
-// src/app/pages/indicators/indicators.page.ts
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -15,8 +14,10 @@ import { HomeService, Indicador, UltimosValoresFisicos } from '../../services/ho
 import { Timestamp } from '@angular/fire/firestore';
 import { addIcons } from 'ionicons';
 import { 
-  checkmarkCircle, alertCircle, waterOutline, scaleOutline, resizeOutline,
-  happyOutline, heartOutline, trendingUpOutline, createOutline, documentOutline
+  checkmarkCircle, alertCircle, water, scale, resize,
+  happy, heart, trendingUp, create, document,
+  waterOutline, scaleOutline, resizeOutline, happyOutline, 
+  heartOutline, trendingUpOutline, createOutline, documentOutline
 } from 'ionicons/icons';
 
 @Component({
@@ -54,19 +55,22 @@ export class IndicatorsPage implements OnInit {
   private toastController = inject(ToastController);
 
   constructor() {
+    // ✅ CORREGIDO: Formulario SIN vasos de agua
     this.indicatorForm = this.fb.group({
       peso: ['', [Validators.required, Validators.min(30), Validators.max(300)]],
       estatura: ['', [Validators.required, Validators.min(100), Validators.max(250)]],
       estadoAnimo: ['', Validators.required],
       emociones: [[], Validators.required],
-      vasosAgua: [0, [Validators.min(0), Validators.max(20)]],
       notas: ['']
+      // ❌ ELIMINADO: vasosAgua - Ahora solo en home
     });
 
+    // ✅ CORREGIDO: Iconos correctamente importados
     addIcons({
-      alertCircle, trendingUpOutline, scaleOutline, heartOutline,
-      happyOutline, waterOutline, createOutline, checkmarkCircle,
-      resizeOutline, documentOutline
+      alertCircle, trendingUp, scale, heart, happy, water, 
+      create, checkmarkCircle, resize, document,
+      trendingUpOutline, scaleOutline, heartOutline, happyOutline, 
+      waterOutline, createOutline, resizeOutline, documentOutline
     });
   }
 
@@ -137,7 +141,7 @@ export class IndicatorsPage implements OnInit {
   }
 
   // ============================================
-  // ✅ CORREGIDO: GUARDAR INDICADOR
+  // ✅ CORREGIDO: GUARDAR INDICADOR (SIN VASOS DE AGUA)
   // ============================================
   async submitIndicator() {
     this.errorMessage = '';
@@ -170,7 +174,7 @@ export class IndicatorsPage implements OnInit {
         imc: imc,
         estadoAnimo: formData.estadoAnimo,
         emociones: formData.emociones || [],
-        vasosAgua: Number(formData.vasosAgua) || 0,
+        // ❌ ELIMINADO: vasosAgua - Ahora solo en home
         notas: formData.notas || '',
         esConfiguracionInicial: this.esConfiguracionInicial,
         fecha: Timestamp.fromDate(new Date()),
@@ -194,8 +198,8 @@ export class IndicatorsPage implements OnInit {
               this.indicatorForm.patchValue({
                 estadoAnimo: '',
                 emociones: [],
-                vasosAgua: 0,
                 notas: ''
+                // ❌ ELIMINADO: vasosAgua
               });
               
               await this.loadUserIndicators();

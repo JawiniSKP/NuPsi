@@ -1,5 +1,5 @@
 // src/app/pages/ejercicios/ejercicios.page.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ToastController, AlertController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
@@ -41,14 +41,12 @@ export class EjerciciosPage implements OnInit, OnDestroy {
     }
   };
 
+  private ejerciciosService = inject(EjerciciosService);
+  private router = inject(Router);
+  private toastController = inject(ToastController);
+  private alertController = inject(AlertController);
+  private ngZone = inject(NgZone);
   private subscriptions: Subscription[] = [];
-
-  constructor(
-    private ejerciciosService: EjerciciosService,
-    private router: Router,
-    private toastController: ToastController,
-    private alertController: AlertController
-  ) {}
 
   async ngOnInit() {
     await this.cargarDatosIniciales();
@@ -59,7 +57,7 @@ export class EjerciciosPage implements OnInit, OnDestroy {
   }
 
   // ==========================================
-  // 📊 CARGA DE DATOS
+  // 📊 CARGA DE DATOS - CORREGIDO CON NgZone
   // ==========================================
 
   async cargarDatosIniciales() {
@@ -89,12 +87,16 @@ export class EjerciciosPage implements OnInit, OnDestroy {
         .obtenerEjerciciosUsuario()
         .subscribe({
           next: (ejercicios: EjercicioUsuario[]) => {
-            this.ejercicios = ejercicios;
-            console.log('✅ Ejercicios cargados:', ejercicios.length);
+            this.ngZone.run(() => {
+              this.ejercicios = ejercicios;
+              console.log('✅ Ejercicios cargados:', ejercicios.length);
+            });
           },
           error: (error: any) => {
-            console.error('Error cargando ejercicios:', error);
-            this.mostrarToast('Error al cargar los ejercicios', 'danger');
+            this.ngZone.run(() => {
+              console.error('Error cargando ejercicios:', error);
+              this.mostrarToast('Error al cargar los ejercicios', 'danger');
+            });
           }
         });
       
@@ -110,11 +112,15 @@ export class EjerciciosPage implements OnInit, OnDestroy {
         .obtenerPlantillasEjercicio()
         .subscribe({
           next: (plantillas: PlantillaEjercicio[]) => {
-            this.plantillasEjercicio = plantillas;
-            console.log('✅ Plantillas cargadas:', plantillas.length);
+            this.ngZone.run(() => {
+              this.plantillasEjercicio = plantillas;
+              console.log('✅ Plantillas cargadas:', plantillas.length);
+            });
           },
           error: (error: any) => {
-            console.error('Error cargando plantillas:', error);
+            this.ngZone.run(() => {
+              console.error('Error cargando plantillas:', error);
+            });
           }
         });
       
@@ -126,15 +132,20 @@ export class EjerciciosPage implements OnInit, OnDestroy {
 
   async cargarEstadisticas() {
     try {
-      this.estadisticas = await this.ejerciciosService.obtenerEstadisticas();
-      console.log('✅ Estadísticas cargadas:', this.estadisticas);
+      const estadisticas = await this.ejerciciosService.obtenerEstadisticas();
+      this.ngZone.run(() => {
+        this.estadisticas = estadisticas;
+        console.log('✅ Estadísticas cargadas:', this.estadisticas);
+      });
     } catch (error: any) {
-      console.error('Error cargando estadísticas:', error);
+      this.ngZone.run(() => {
+        console.error('Error cargando estadísticas:', error);
+      });
     }
   }
 
   // ==========================================
-  // 💪 CRUD DE EJERCICIOS
+  // 💪 CRUD DE EJERCICIOS - CORREGIDO CON NgZone
   // ==========================================
 
   async crearEjercicio() {
@@ -153,26 +164,33 @@ export class EjerciciosPage implements OnInit, OnDestroy {
         categoria: 'personalizado'
       });
 
-      this.resetFormEjercicio();
-      this.mostrarToast('Ejercicio creado exitosamente', 'success');
+      this.ngZone.run(() => {
+        this.resetFormEjercicio();
+        this.mostrarToast('Ejercicio creado exitosamente', 'success');
+      });
+      
       await this.cargarEstadisticas();
 
     } catch (error: any) {
-      console.error('Error creando ejercicio:', error);
-      this.mostrarToast('Error al crear el ejercicio', 'danger');
+      this.ngZone.run(() => {
+        console.error('Error creando ejercicio:', error);
+        this.mostrarToast('Error al crear el ejercicio', 'danger');
+      });
     } finally {
       this.cargando = false;
     }
   }
 
   editarEjercicio(ejercicio: EjercicioUsuario) {
-    this.ejercicioEditando = { ...ejercicio };
-    this.nuevoEjercicio = {
-      nombre: ejercicio.nombre,
-      descripcion: ejercicio.descripcion,
-      temporizador: { ...ejercicio.temporizador }
-    };
-    this.modoEdicion = true;
+    this.ngZone.run(() => {
+      this.ejercicioEditando = { ...ejercicio };
+      this.nuevoEjercicio = {
+        nombre: ejercicio.nombre,
+        descripcion: ejercicio.descripcion,
+        temporizador: { ...ejercicio.temporizador }
+      };
+      this.modoEdicion = true;
+    });
 
     // Scroll al formulario
     setTimeout(() => {
@@ -198,12 +216,16 @@ export class EjerciciosPage implements OnInit, OnDestroy {
         temporizador: this.nuevoEjercicio.temporizador
       });
 
-      this.mostrarToast('Ejercicio actualizado exitosamente', 'success');
-      this.cancelarEdicion();
+      this.ngZone.run(() => {
+        this.mostrarToast('Ejercicio actualizado exitosamente', 'success');
+        this.cancelarEdicion();
+      });
 
     } catch (error: any) {
-      console.error('Error actualizando ejercicio:', error);
-      this.mostrarToast('Error al actualizar el ejercicio', 'danger');
+      this.ngZone.run(() => {
+        console.error('Error actualizando ejercicio:', error);
+        this.mostrarToast('Error al actualizar el ejercicio', 'danger');
+      });
     } finally {
       this.cargando = false;
     }
@@ -227,11 +249,15 @@ export class EjerciciosPage implements OnInit, OnDestroy {
           handler: async () => {
             try {
               await this.ejerciciosService.eliminarEjercicio(ejercicio.id!);
-              this.mostrarToast('Ejercicio eliminado', 'success');
+              this.ngZone.run(() => {
+                this.mostrarToast('Ejercicio eliminado', 'success');
+              });
               await this.cargarEstadisticas();
             } catch (error: any) {
-              console.error('Error eliminando ejercicio:', error);
-              this.mostrarToast('Error al eliminar el ejercicio', 'danger');
+              this.ngZone.run(() => {
+                console.error('Error eliminando ejercicio:', error);
+                this.mostrarToast('Error al eliminar el ejercicio', 'danger');
+              });
             }
           }
         }
@@ -242,9 +268,11 @@ export class EjerciciosPage implements OnInit, OnDestroy {
   }
 
   cancelarEdicion() {
-    this.modoEdicion = false;
-    this.ejercicioEditando = null;
-    this.resetFormEjercicio();
+    this.ngZone.run(() => {
+      this.modoEdicion = false;
+      this.ejercicioEditando = null;
+      this.resetFormEjercicio();
+    });
   }
 
   resetFormEjercicio() {
@@ -260,21 +288,23 @@ export class EjerciciosPage implements OnInit, OnDestroy {
   }
 
   // ==========================================
-  // 🎯 PLANTILLAS
+  // 🎯 PLANTILLAS - CORREGIDO CON NgZone
   // ==========================================
 
   usarPlantillaEjercicio(plantilla: PlantillaEjercicio) {
-    this.nuevoEjercicio = {
-      nombre: plantilla.nombre,
-      descripcion: plantilla.descripcion,
-      temporizador: {
-        trabajo: 30,
-        descanso: 15,
-        series: 3
-      }
-    };
-    
-    this.mostrarToast('Plantilla cargada. Personaliza los tiempos si lo deseas.', 'success');
+    this.ngZone.run(() => {
+      this.nuevoEjercicio = {
+        nombre: plantilla.nombre,
+        descripcion: plantilla.descripcion,
+        temporizador: {
+          trabajo: 30,
+          descanso: 15,
+          series: 3
+        }
+      };
+      
+      this.mostrarToast('Plantilla cargada. Personaliza los tiempos si lo deseas.', 'success');
+    });
 
     // Scroll al formulario
     setTimeout(() => {
@@ -286,12 +316,14 @@ export class EjerciciosPage implements OnInit, OnDestroy {
   }
 
   // ==========================================
-  // ⏱️ INICIAR EJERCICIO
+  // ⏱️ INICIAR EJERCICIO - CORREGIDO CON NgZone
   // ==========================================
 
   async iniciarEjercicio(ejercicio: EjercicioUsuario) {
     if (ejercicio.id) {
-      this.router.navigate(['/temporizador-ejercicio', ejercicio.id]);
+      this.ngZone.run(() => {
+        this.router.navigate(['/temporizador-ejercicio', ejercicio.id]);
+      });
     }
   }
 
@@ -312,10 +344,14 @@ export class EjerciciosPage implements OnInit, OnDestroy {
           handler: async () => {
             try {
               await this.ejerciciosService.resetearEjercicio(ejercicio.id!);
-              this.mostrarToast('Ejercicio reiniciado', 'success');
+              this.ngZone.run(() => {
+                this.mostrarToast('Ejercicio reiniciado', 'success');
+              });
             } catch (error: any) {
-              console.error('Error reseteando ejercicio:', error);
-              this.mostrarToast('Error al reiniciar el ejercicio', 'danger');
+              this.ngZone.run(() => {
+                console.error('Error reseteando ejercicio:', error);
+                this.mostrarToast('Error al reiniciar el ejercicio', 'danger');
+              });
             }
           }
         }
@@ -332,7 +368,9 @@ export class EjerciciosPage implements OnInit, OnDestroy {
       const historial = await this.ejerciciosService.obtenerHistorialEjercicio(ejercicio.id);
       
       if (historial.length === 0) {
-        this.mostrarToast('Este ejercicio no tiene historial aún', 'warning');
+        this.ngZone.run(() => {
+          this.mostrarToast('Este ejercicio no tiene historial aún', 'warning');
+        });
         return;
       }
 
@@ -357,8 +395,10 @@ export class EjerciciosPage implements OnInit, OnDestroy {
 
       await alert.present();
     } catch (error: any) {
-      console.error('Error obteniendo historial:', error);
-      this.mostrarToast('Error al cargar el historial', 'danger');
+      this.ngZone.run(() => {
+        console.error('Error obteniendo historial:', error);
+        this.mostrarToast('Error al cargar el historial', 'danger');
+      });
     }
   }
 
@@ -391,7 +431,7 @@ export class EjerciciosPage implements OnInit, OnDestroy {
   }
 
   // ==========================================
-  // 🎨 TOAST
+  // 🎨 TOAST - CORREGIDO CON NgZone
   // ==========================================
 
   private async mostrarToast(mensaje: string, color: 'success' | 'danger' | 'warning' = 'success') {
@@ -405,10 +445,12 @@ export class EjerciciosPage implements OnInit, OnDestroy {
   }
 
   // ==========================================
-  // 🧭 NAVEGACIÓN
+  // 🧭 NAVEGACIÓN - CORREGIDO CON NgZone
   // ==========================================
 
   goBack() {
-    this.router.navigate(['/planes']);
+    this.ngZone.run(() => {
+      this.router.navigate(['/planes']);
+    });
   }
 }

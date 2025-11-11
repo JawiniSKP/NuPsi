@@ -12,7 +12,6 @@ import {
   limit,
   getDocs,
   Timestamp,
-  onSnapshot,
   addDoc,
   collectionData
 } from '@angular/fire/firestore';
@@ -70,12 +69,12 @@ export interface UltimosValoresFisicos {
   providedIn: 'root'
 })
 export class HomeService {
-  // ✅ CORRECTO: Inyección de dependencias al inicio
+  // ✅ CORREGIDO: Inyección simple sin NgZone innecesario
   private firestore = inject(Firestore);
   private auth = inject(Auth);
 
   // ============================================
-  // ✅ CORREGIDO: Obtener usuario una sola vez
+  // ✅ CORREGIDO: Obtener usuario una sola vez - SIN NgZone
   // ============================================
   async getUsuarioDataOnce(uid: string): Promise<Usuario | null> {
     try {
@@ -85,42 +84,68 @@ export class HomeService {
       if (userDoc.exists()) {
         return userDoc.data() as Usuario;
       }
-      return null;
+      
+      // ✅ NUEVO: Crear usuario automáticamente si no existe
+      console.log('📝 Usuario no encontrado, creando documento automáticamente...');
+      return await this.crearUsuarioAutomaticamente(uid);
     } catch (error) {
       console.error('❌ Error obteniendo datos del usuario:', error);
       throw error;
     }
   }
 
+  // ✅ CORREGIDO: Crear usuario automáticamente - SIN NgZone
+  private async crearUsuarioAutomaticamente(uid: string): Promise<Usuario | null> {
+    try {
+      const currentUser = this.auth.currentUser;
+      if (!currentUser) {
+        console.error('❌ No hay usuario autenticado para crear documento');
+        return null;
+      }
+
+      const userData: Usuario = {
+        nombreUsuario: currentUser.displayName || currentUser.email?.split('@')[0] || 'Usuario',
+        correo: currentUser.email || '',
+        proveedorAuth: currentUser.providerData[0]?.providerId === 'google.com' ? 'google' : 'email',
+        fotoURL: currentUser.photoURL || '',
+        haCompletadoConfiguracionInicial: false,
+        creadoEn: Timestamp.now(),
+        ultimoAcceso: Timestamp.now(),
+        actualizadoEn: Timestamp.now()
+      };
+
+      const userDocRef = doc(this.firestore, `usuarios/${uid}`);
+      await setDoc(userDocRef, userData);
+      console.log('✅ Usuario creado automáticamente en Firestore');
+      return userData;
+    } catch (error) {
+      console.error('❌ Error creando usuario automáticamente:', error);
+      return null;
+    }
+  }
+
   // ============================================
-  // ✅ CORREGIDO: Obtener usuario con observable
+  // ✅ CORREGIDO: Obtener usuario con observable - SIN onSnapshot problemático
   // ============================================
   getUsuario(uid: string): Observable<Usuario | null> {
     const userDocRef = doc(this.firestore, `usuarios/${uid}`);
     
-    return new Observable<Usuario | null>(observer => {
-      // ✅ CORRECTO: onSnapshot dentro del contexto del observable
-      const unsubscribe = onSnapshot(
-        userDocRef,
-        (docSnap) => {
-          if (docSnap.exists()) {
-            observer.next(docSnap.data() as Usuario);
-          } else {
-            observer.next(null);
-          }
-        },
-        (error) => {
-          console.error('❌ Error observando usuario:', error);
-          observer.error(error);
+    return from(getDoc(userDocRef)).pipe(
+      map(docSnap => {
+        if (docSnap.exists()) {
+          return docSnap.data() as Usuario;
         }
-      );
-
-      return () => unsubscribe();
-    });
+        return null;
+      }),
+      catchError(error => {
+        console.error('❌ Error obteniendo usuario:', error);
+        return of(null);
+      })
+    );
   }
 
   // ============================================
-  // ✅ CORREGIDO: Obtener indicador de hoy usando collectionData
+  // ✅ CORREGIDO: Obtener indicador de hoy usando collectionData - SIN NgZone
   // ============================================
   getIndicadorHoy(uid: string): Observable<Indicador | null> {
     const today = new Date();
@@ -140,7 +165,7 @@ export class HomeService {
       limit(1)
     );
 
-    // ✅ CORRECTO: Usando collectionData que está dentro del contexto de inyección
+    // ✅ CORREGIDO: collectionData directo sin wrappers innecesarios
     return collectionData(q, { idField: 'id' }).pipe(
       map(docs => {
         if (docs.length > 0) {
@@ -164,7 +189,7 @@ export class HomeService {
   }
 
   // ============================================
-  // ✅ CORREGIDO: Obtener últimos valores físicos
+  // ✅ CORREGIDO: Obtener últimos valores físicos - SIN NgZone
   // ============================================
   async obtenerUltimosValoresFisicos(uid: string): Promise<UltimosValoresFisicos> {
     try {
@@ -206,7 +231,7 @@ export class HomeService {
   }
 
   // ============================================
-  // ✅ CORREGIDO: Guardar/actualizar indicador diario
+  // ✅ CORREGIDO: Guardar/actualizar indicador diario - SIN NgZone
   // ============================================
   guardarIndicadorDiario(
     uid: string,
@@ -226,12 +251,12 @@ export class HomeService {
       creadoEn: Timestamp.now()
     };
 
-    // ✅ CORRECTO: Usando from() para convertir promesas en observables
-    return from(
-      indicadorId 
-        ? updateDoc(doc(indicadoresRef, indicadorId), data)
-        : addDoc(indicadoresRef, data)
-    ).pipe(
+    // ✅ CORREGIDO: Operaciones Firestore directas
+    const operation = indicadorId 
+      ? updateDoc(doc(indicadoresRef, indicadorId), data)
+      : addDoc(indicadoresRef, data);
+
+    return from(operation).pipe(
       map(() => {
         console.log('✅ Indicador guardado correctamente');
         return true;
@@ -244,7 +269,7 @@ export class HomeService {
   }
 
   // ============================================
-  // ✅ CORREGIDO: Actualizar vasos de agua
+  // ✅ CORREGIDO: Actualizar vasos de agua - SIN NgZone
   // ============================================
   actualizarVasosAgua(
     uid: string,
@@ -257,9 +282,7 @@ export class HomeService {
 
     const indicadorRef = doc(this.firestore, `usuarios/${uid}/indicadores/${indicadorId}`);
     
-    return from(
-      updateDoc(indicadorRef, { vasosAgua })
-    ).pipe(
+    return from(updateDoc(indicadorRef, { vasosAgua })).pipe(
       map(() => {
         console.log('✅ Vasos de agua actualizados:', vasosAgua);
         return true;
@@ -312,7 +335,7 @@ export class HomeService {
   }
 
   // ============================================
-  // ✅ CORREGIDO: Obtener historial
+  // ✅ CORREGIDO: Obtener historial - SIN NgZone
   // ============================================
   getHistorialIndicadores(uid: string, dias: number = 30): Observable<Indicador[]> {
     const indicadoresRef = collection(this.firestore, `usuarios/${uid}/indicadores`);
@@ -323,7 +346,6 @@ export class HomeService {
       limit(dias)
     );
 
-    // ✅ CORRECTO: Usando from() para getDocs
     return from(getDocs(q)).pipe(
       map((querySnapshot) => {
         const indicadores = querySnapshot.docs
@@ -344,16 +366,14 @@ export class HomeService {
   }
 
   // ============================================
-  // ✅ CORREGIDO: Actualizar último acceso
+  // ✅ CORREGIDO: Actualizar último acceso - SIN NgZone
   // ============================================
   actualizarUltimoAcceso(uid: string): Observable<boolean> {
     const userDocRef = doc(this.firestore, `usuarios/${uid}`);
     
-    return from(
-      updateDoc(userDocRef, {
-        ultimoAcceso: Timestamp.now()
-      })
-    ).pipe(
+    return from(updateDoc(userDocRef, {
+      ultimoAcceso: Timestamp.now()
+    })).pipe(
       map(() => {
         console.log('✅ Último acceso actualizado');
         return true;
@@ -366,7 +386,7 @@ export class HomeService {
   }
 
   // ============================================
-  // ✅ CORREGIDO: Verificar configuración inicial
+  // ✅ CORREGIDO: Verificar configuración inicial - SIN NgZone
   // ============================================
   async necesitaConfiguracionInicial(uid: string): Promise<boolean> {
     try {
@@ -396,7 +416,7 @@ export class HomeService {
   }
 
   // ============================================
-  // ✅ CORREGIDO: Guardar indicador completo
+  // ✅ CORREGIDO: Guardar indicador completo - SIN NgZone
   // ============================================
   guardarIndicadorCompleto(
     uid: string,
@@ -424,19 +444,17 @@ export class HomeService {
   }
 
   // ============================================
-  // ✅ CORREGIDO: Marcar configuración inicial completada
+  // ✅ CORREGIDO: Marcar configuración inicial completada - SIN NgZone
   // ============================================
   marcarConfiguracionInicialCompleta(uid: string): Observable<boolean> {
     const userDocRef = doc(this.firestore, `usuarios/${uid}`);
     
     console.log('✅ Marcando configuración inicial como completada para:', uid);
     
-    return from(
-      updateDoc(userDocRef, {
-        haCompletadoConfiguracionInicial: true,
-        actualizadoEn: Timestamp.now()
-      })
-    ).pipe(
+    return from(updateDoc(userDocRef, {
+      haCompletadoConfiguracionInicial: true,
+      actualizadoEn: Timestamp.now()
+    })).pipe(
       map(() => {
         console.log('✅ Configuración inicial marcada correctamente en Firestore');
         return true;

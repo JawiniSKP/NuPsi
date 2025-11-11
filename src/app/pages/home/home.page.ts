@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, OnDestroy, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { Auth } from '@angular/fire/auth';
 import { User } from 'firebase/auth';
@@ -24,69 +24,6 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { addIcons } from 'ionicons';
-import {
-  locationOutline,
-  createOutline,
-  statsChartOutline,
-  addOutline,
-  removeCircleOutline,
-  addCircleOutline,
-  personCircleOutline,
-  waterOutline,
-  bulbOutline,
-  personOutline,
-  logOutOutline,
-  closeOutline,
-  menu,
-  home,
-  statsChart,
-  chatbubble,
-  analytics,
-  settingsOutline,
-  close,
-  heartOutline,
-  trendingUpOutline,
-  calendarNumber,
-  rocketOutline,
-  sparkles,
-  gridOutline,
-  water,
-  addCircle,
-  trendingUp
-} from 'ionicons/icons';
-
-// Registrar todos los iconos necesarios
-addIcons({
-  locationOutline,
-  createOutline,
-  statsChartOutline,
-  addOutline,
-  removeCircleOutline,
-  addCircleOutline,
-  personCircleOutline,
-  waterOutline,
-  bulbOutline,
-  personOutline,
-  logOutOutline,
-  closeOutline,
-  menu,
-  home,
-  statsChart,
-  chatbubble,
-  analytics,
-  settingsOutline,
-  close,
-  heartOutline,
-  trendingUpOutline,
-  calendarNumber,
-  rocketOutline,
-  sparkles,
-  gridOutline,
-  water,
-  addCircle,
-  trendingUp
-});
 
 @Component({
   selector: 'app-home',
@@ -150,11 +87,12 @@ export class HomePage implements OnInit, OnDestroy {
 
   private auth = inject(Auth);
   private homeService = inject(HomeService);
+  private authService = inject(AuthService); // ✅ MOVIDO: Inyección correcta
+  private router = inject(Router);
+  private ngZone = inject(NgZone);
   private destroy$ = new Subject<void>();
 
   constructor(
-    private authService: AuthService,
-    private router: Router,
     private firestore: Firestore = inject(Firestore)
   ) {
     this.onLogoError = this.onLogoError.bind(this);
@@ -163,18 +101,20 @@ export class HomePage implements OnInit, OnDestroy {
   ngOnInit() {
     console.log('🚀 HomePage initialized');
 
-    // ✅ CORREGIDO: Suscribirse una sola vez al usuario
+    // ✅ OPTIMIZADO: Suscripción más limpia
     this.authService.user
       .pipe(takeUntil(this.destroy$))
-      .subscribe(async (user) => {
-        console.log('Auth state changed:', user);
-        this.user = user;
-        
-        if (user) {
-          await this.loadAllUserData(user.uid);
-        } else {
-          this.resetUserData();
-        }
+      .subscribe((user) => {
+        this.ngZone.run(() => {
+          console.log('Auth state changed:', user);
+          this.user = user;
+          
+          if (user) {
+            this.loadAllUserData(user.uid);
+          } else {
+            this.resetUserData();
+          }
+        });
       });
 
     // Cargar frase motivacional
@@ -182,7 +122,6 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    // ✅ CORREGIDO: Limpiar suscripciones
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -193,50 +132,87 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   /**
-   * ✅ CORREGIDO: Cargar todos los datos del usuario
+   * ✅ OPTIMIZADO: Carga de datos más eficiente
    */
   async loadAllUserData(uid: string) {
     console.log('📊 Cargando datos del usuario:', uid);
 
     try {
-      // ✅ CORREGIDO: Usar el servicio en lugar de getDoc directo
       const usuario = await this.homeService.getUsuarioDataOnce(uid);
       
       if (usuario) {
-        this.usuarioData = usuario;
-        this.userName = usuario.nombreUsuario || 'Usuario';
+        this.ngZone.run(() => {
+          this.usuarioData = usuario;
+          this.userName = usuario.nombreUsuario || 'Usuario';
+          
+          console.log('✅ Usuario cargado:', usuario);
+          console.log('📋 haCompletadoConfiguracionInicial:', usuario.haCompletadoConfiguracionInicial);
+
+          // Validar configuración inicial
+          if (!usuario.haCompletadoConfiguracionInicial) {
+            console.log('🔄 Redirigiendo a configuración inicial...');
+            setTimeout(() => {
+              this.ngZone.run(() => {
+                this.router.navigate(['/indicators'], { 
+                  queryParams: { setupInicial: 'true' },
+                  replaceUrl: true
+                });
+              });
+            }, 300);
+            return;
+          }
+
+          console.log('✅ Usuario ya completó configuración inicial, continuando...');
+        });
         
-        console.log('✅ Usuario cargado:', usuario);
-        console.log('📋 haCompletadoConfiguracionInicial:', usuario.haCompletadoConfiguracionInicial);
-
-        // Validar configuración inicial
-        if (!usuario.haCompletadoConfiguracionInicial) {
-          console.log('🔄 Redirigiendo a configuración inicial...');
-          setTimeout(() => {
-            this.router.navigate(['/indicators'], { 
-              queryParams: { setupInicial: 'true' },
-              replaceUrl: true
-            });
-          }, 300);
-          return;
-        }
-
-        console.log('✅ Usuario ya completó configuración inicial, continuando...');
+        // Cargar indicador y actualizar acceso en paralelo
+        await Promise.all([
+          this.subscribeToTodayIndicator(uid),
+          this.actualizarUltimoAcceso(uid)
+        ]);
         
       } else {
         console.error('❌ Usuario no encontrado en Firestore');
-        return;
       }
 
     } catch (error) {
       console.error('❌ Error cargando usuario:', error);
-      return;
     }
+  }
 
-    // ✅ CORREGIDO: Suscribirse al indicador de hoy
-    this.subscribeToTodayIndicator(uid);
+  /**
+   * ✅ OPTIMIZADO: Suscribirse al indicador de hoy
+   */
+  private async subscribeToTodayIndicator(uid: string) {
+    this.homeService.getIndicadorHoy(uid)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (indicador) => {
+          this.ngZone.run(() => {
+            if (indicador) {
+              this.indicadorHoy = indicador;
+              this.selectedEmotions = indicador.emociones || [];
+              this.vasosAgua = indicador.vasosAgua || 0;
+              this.updateEmotionButtons();
+              console.log('✅ Indicador de hoy cargado:', indicador);
+            } else {
+              console.log('ℹ️ No hay indicador para hoy');
+              this.resetDailyData();
+            }
+          });
+        },
+        error: (error) => {
+          this.ngZone.run(() => {
+            console.error('❌ Error cargando indicador:', error);
+          });
+        }
+      });
+  }
 
-    // Actualizar último acceso
+  /**
+   * ✅ NUEVO: Método separado para actualizar último acceso
+   */
+  private async actualizarUltimoAcceso(uid: string) {
     this.homeService.actualizarUltimoAcceso(uid)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -249,40 +225,17 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   /**
-   * ✅ NUEVO: Suscribirse al indicador de hoy
-   */
-  subscribeToTodayIndicator(uid: string) {
-    this.homeService.getIndicadorHoy(uid)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (indicador) => {
-          if (indicador) {
-            this.indicadorHoy = indicador;
-            this.selectedEmotions = indicador.emociones || [];
-            this.vasosAgua = indicador.vasosAgua || 0;
-            this.updateEmotionButtons();
-            console.log('✅ Indicador de hoy cargado:', indicador);
-          } else {
-            console.log('ℹ️ No hay indicador para hoy');
-            this.resetDailyData();
-          }
-        },
-        error: (error) => {
-          console.error('❌ Error cargando indicador:', error);
-        }
-      });
-  }
-
-  /**
    * Cargar frase motivacional desde Firebase
    */
-  loadFraseMotivacional() {
+  private loadFraseMotivacional() {
     this.homeService.getFraseMotivacional()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (frase) => {
-          this.fraseMotivacional = frase;
-          console.log('💡 Frase motivacional:', frase);
+          this.ngZone.run(() => {
+            this.fraseMotivacional = frase;
+            console.log('💡 Frase motivacional:', frase);
+          });
         },
         error: (error) => {
           console.error('Error cargando frase:', error);
@@ -293,7 +246,7 @@ export class HomePage implements OnInit, OnDestroy {
   /**
    * Actualizar el estado de los botones de emociones
    */
-  updateEmotionButtons() {
+  private updateEmotionButtons() {
     this.emotionButtons.forEach(button => {
       button.selected = this.selectedEmotions.includes(button.value);
     });
@@ -302,7 +255,7 @@ export class HomePage implements OnInit, OnDestroy {
   /**
    * Resetear datos cuando no hay usuario
    */
-  resetUserData() {
+  private resetUserData() {
     this.userName = 'Usuario';
     this.usuarioData = null;
     this.resetDailyData();
@@ -311,7 +264,7 @@ export class HomePage implements OnInit, OnDestroy {
   /**
    * Resetear datos diarios
    */
-  resetDailyData() {
+  private resetDailyData() {
     this.selectedEmotions = [];
     this.vasosAgua = 0;
     this.indicadorHoy = null;
@@ -321,7 +274,7 @@ export class HomePage implements OnInit, OnDestroy {
   /**
    * Resetear estado de botones de emociones
    */
-  resetEmotionButtons() {
+  private resetEmotionButtons() {
     this.emotionButtons.forEach(button => button.selected = false);
   }
 
@@ -355,7 +308,7 @@ export class HomePage implements OnInit, OnDestroy {
   /**
    * Guardar emociones en Firebase
    */
-  async guardarEmociones() {
+  private async guardarEmociones() {
     if (!this.user) return;
 
     if (this.selectedEmotions.length === 0) {
@@ -363,7 +316,6 @@ export class HomePage implements OnInit, OnDestroy {
       return;
     }
 
-    // Calcular estado de ánimo general
     const estadoAnimo = this.homeService.calcularEstadoAnimo(this.selectedEmotions);
 
     console.log('💾 Guardando emociones:', {
@@ -396,7 +348,7 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   /**
-   * Incrementar vasos de agua
+   * ✅ OPTIMIZADO: Incrementar vasos de agua - SOLO ACTUALIZA AGUA
    */
   async incrementarVasosAgua() {
     if (!this.user) {
@@ -409,6 +361,7 @@ export class HomePage implements OnInit, OnDestroy {
       
       console.log('💧 Incrementando vasos de agua a:', this.vasosAgua);
 
+      // ✅ SOLO ACTUALIZA EL AGUA, NO TODO EL INDICADOR
       this.homeService.actualizarVasosAgua(
         this.user.uid, 
         this.vasosAgua, 
@@ -435,7 +388,7 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   /**
-   * Decrementar vasos de agua
+   * ✅ OPTIMIZADO: Decrementar vasos de agua - SOLO ACTUALIZA AGUA
    */
   async decrementarVasosAgua() {
     if (!this.user) return;
@@ -445,6 +398,7 @@ export class HomePage implements OnInit, OnDestroy {
       
       console.log('💧 Decrementando vasos de agua a:', this.vasosAgua);
 
+      // ✅ SOLO ACTUALIZA EL AGUA, NO TODO EL INDICADOR
       this.homeService.actualizarVasosAgua(
         this.user.uid, 
         this.vasosAgua, 
@@ -472,21 +426,27 @@ export class HomePage implements OnInit, OnDestroy {
         text: 'Inicio',
         icon: 'home',
         handler: () => {
-          this.router.navigate(['/home']);
+          this.ngZone.run(() => {
+            this.router.navigate(['/home']);
+          });
         }
       },
       {
         text: 'Indicadores',
         icon: 'stats-chart',
         handler: () => {
-          this.router.navigate(['/indicators']);
+          this.ngZone.run(() => {
+            this.router.navigate(['/indicators']);
+          });
         }
       },
       {
         text: 'Chatbot',
         icon: 'chatbubble',
         handler: () => {
-          this.router.navigate(['/chat']);
+          this.ngZone.run(() => {
+            this.router.navigate(['/chat']);
+          });
         }
       },
       {
@@ -579,8 +539,10 @@ export class HomePage implements OnInit, OnDestroy {
       await loading.dismiss();
       await this.showToast('Sesión cerrada correctamente', 'success');
       
-      this.resetUserData();
-      this.router.navigate(['/login']);
+      this.ngZone.run(() => {
+        this.resetUserData();
+        this.router.navigate(['/login']);
+      });
       
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
@@ -607,10 +569,14 @@ export class HomePage implements OnInit, OnDestroy {
   openDailyRegister() {
     if (this.usuarioData && !this.usuarioData.haCompletadoConfiguracionInicial) {
       console.log('📝 Redirigiendo a configuración inicial');
-      this.router.navigate(['/indicators']);
+      this.ngZone.run(() => {
+        this.router.navigate(['/indicators']);
+      });
     } else {
       console.log('📝 Redirigiendo a registro diario');
-      this.router.navigate(['/indicators']);
+      this.ngZone.run(() => {
+        this.router.navigate(['/indicators']);
+      });
     }
   }
 

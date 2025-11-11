@@ -1,5 +1,4 @@
-// src/app/pages/register/register.page.ts
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, NgZone } from '@angular/core'; // ✅ NgZone AGREGADO
 import { AuthService } from '../../services/auth.service';
 import { HomeService } from '../../services/home.service';
 import { Router } from '@angular/router';
@@ -18,25 +17,15 @@ import {
   IonButton,
   IonIcon,
   IonNote,
-  IonSpinner,
-  IonText
+  IonSpinner
 } from '@ionic/angular/standalone';
 import { LoadingController, ToastController } from '@ionic/angular';
-import { addIcons } from 'ionicons';
-import { 
-  eye, 
-  eyeOff, 
-  logoGoogle, 
-  mailOutline, 
-  lockClosedOutline, 
-  personOutline,
-  personAddOutline,
-  heart,
-  checkmarkCircle,
-  alertCircle
-} from 'ionicons/icons';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import type { AbstractControl } from '@angular/forms';
+
+// ✅ ELIMINADO: addIcons individual - Ya está en el servicio global
+// import { addIcons } from 'ionicons';
+// import { ... } from 'ionicons/icons';
 
 @Component({
   selector: 'app-register',
@@ -58,8 +47,7 @@ import type { AbstractControl } from '@angular/forms';
     IonButton,
     IonIcon,
     IonNote,
-    IonSpinner,
-    IonText
+    IonSpinner
   ]
 })
 export class RegisterPage implements OnInit {
@@ -77,6 +65,7 @@ export class RegisterPage implements OnInit {
   private loadingController = inject(LoadingController);
   private toastController = inject(ToastController);
   private router = inject(Router);
+  private ngZone = inject(NgZone); // ✅ NgZone AGREGADO
 
   constructor() {
     this.registerForm = this.fb.group({
@@ -86,18 +75,7 @@ export class RegisterPage implements OnInit {
       confirmPassword: ['', [Validators.required]]
     }, { validators: this.passwordMatchValidator });
 
-    addIcons({ 
-      eye, 
-      eyeOff, 
-      logoGoogle, 
-      mailOutline, 
-      lockClosedOutline, 
-      personOutline,
-      personAddOutline,
-      heart,
-      checkmarkCircle,
-      alertCircle
-    });
+    // ✅ ELIMINADO: addIcons individual - Usa servicio global
   }
 
   ngOnInit() {
@@ -184,8 +162,10 @@ export class RegisterPage implements OnInit {
         await this.showToast('¡Cuenta creada exitosamente! 🎉', 'success');
         await new Promise(resolve => setTimeout(resolve, 800));
         
-        // 🎯 SIEMPRE REDIRIGIR A INDICADORES EN REGISTRO
-        await this.redirectAfterRegister(result.user.uid);
+        // ✅ CORREGIDO: Navegación dentro de NgZone
+        this.ngZone.run(() => {
+          this.redirectAfterRegister(result.user.uid);
+        });
       }
     } catch (error: any) {
       console.error('❌ Error en registro:', error);
@@ -214,8 +194,10 @@ export class RegisterPage implements OnInit {
         await this.showToast('¡Bienvenido! 🎉', 'success');
         await new Promise(resolve => setTimeout(resolve, 600));
         
-        // 🎯 VERIFICAR SI ES NUEVO O EXISTENTE
-        await this.redirectAfterRegister(result.user.uid);
+        // ✅ CORREGIDO: Navegación dentro de NgZone
+        this.ngZone.run(() => {
+          this.redirectAfterRegister(result.user.uid);
+        });
       }
     } catch (error: any) {
       console.error('❌ Error en registro con Google:', error);
@@ -242,22 +224,28 @@ export class RegisterPage implements OnInit {
       if (necesitaConfig) {
         console.log('📝 Usuario NUEVO → Ir a configuración inicial');
         
-        // Usuario nuevo SIEMPRE va a indicators con setupInicial=true
-        this.router.navigate(['/indicators'], { 
-          queryParams: { setupInicial: 'true' }
+        // ✅ CORREGIDO: Navegación dentro de NgZone
+        this.ngZone.run(() => {
+          this.router.navigate(['/indicators'], { 
+            queryParams: { setupInicial: 'true' }
+          });
         });
       } else {
         console.log('✅ Usuario EXISTENTE (Google) → Ya tiene configuración, ir al home');
         
-        // Usuario que ya existe (ej: Google login de alguien que ya se registró antes)
-        this.router.navigate(['/home']);
+        // ✅ CORREGIDO: Navegación dentro de NgZone
+        this.ngZone.run(() => {
+          this.router.navigate(['/home']);
+        });
       }
     } catch (error) {
       console.error('❌ Error verificando configuración, enviando a indicators por seguridad');
       
-      // En caso de error, enviar a indicators para que complete el setup
-      this.router.navigate(['/indicators'], { 
-        queryParams: { setupInicial: 'true' }
+      // ✅ CORREGIDO: Navegación dentro de NgZone
+      this.ngZone.run(() => {
+        this.router.navigate(['/indicators'], { 
+          queryParams: { setupInicial: 'true' }
+        });
       });
     }
   }
@@ -312,7 +300,10 @@ export class RegisterPage implements OnInit {
   }
 
   goToLogin() {
-    this.router.navigate(['/login']);
+    // ✅ CORREGIDO: Navegación dentro de NgZone
+    this.ngZone.run(() => {
+      this.router.navigate(['/login']);
+    });
   }
 
   clearError() {
