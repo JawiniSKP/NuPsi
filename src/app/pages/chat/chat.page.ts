@@ -1,4 +1,4 @@
-import { Component, ViewChild, OnInit } from '@angular/core';
+import { Component, OnInit, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
@@ -10,8 +10,7 @@ import { ChatService } from './chat.service';
 import { addIcons } from 'ionicons';
 import { 
   arrowUpCircle, ellipsisVertical, chatbubbles } from 'ionicons/icons';
-// ¡¡¡ ESTE ES EL IMPORT CLAVE QUE FALTABA !!!
-import { MarkdownComponent } from "ngx-markdown"; // <-- Importa el componente Markdown
+import { MarkdownModule } from 'ngx-markdown'; // <-- Importa el módulo Markdown
 
 interface Message {
   id: string;
@@ -51,12 +50,12 @@ interface MessageDateGroup {
     IonIcon,
     IonFooter,
     IonTextarea,
-    // ¡¡¡ AÑADE MarkdownComponent AQUÍ !!!
-    MarkdownComponent // <-- Añade el componente Markdown a los imports
+     // ¡¡¡ AÑADE MarkdownModule AQUÍ !!!
+     MarkdownModule // <-- Importa el módulo Markdown correctamente
   ]
 })
 export class ChatPage implements OnInit {
-  @ViewChild(IonContent) content!: IonContent;
+  readonly content = viewChild.required(IonContent);
 
   messages: Message[] = [];
   groupedMessages: MessageDateGroup[] = [];
@@ -194,7 +193,7 @@ export class ChatPage implements OnInit {
 
   scrollToBottom(duration: number = 300) {
     setTimeout(() => {
-      this.content?.scrollToBottom(duration);
+      this.content()?.scrollToBottom(duration);
     }, 50);
   }
 
