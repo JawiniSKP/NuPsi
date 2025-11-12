@@ -21,8 +21,11 @@ intents:
   - ask_cardio_benefits
   - ask_strength_training
   - ask_progress_tracking
-  - ask_motivation_support # <-- Asegúrate de que este intent esté aquí
+  - ask_motivation_support
+  # NUEVO: Intent para capturar consultas médicas
+  - ask_medical_diagnosis 
   - out_of_scope
+  # Dominio emocional
   - express_sadness
   - express_anxiety
   - express_anger
@@ -31,18 +34,18 @@ intents:
   - ask_stress_management
   - ask_emotional_eating
   - ask_healthy_snacks
-  # Fallback + modo avanzado
+  # Fallback + modo avanzado (Se mantiene 'ask_gemini' para preguntas directas complejas)
   - nlu_fallback
   - ask_gemini
-  - open_chat
-  - stop_chat
-  # (opcional) comodín para modo Gemini
-  - free_text
+  # NUEVOS INTENTS PARA BÚSQUEDA
+  - ask_for_professional_near # <-- Se usará en rules.yml
+  - provide_location # <-- Se usará en stories.yml
 
 entities:
   - macronutrient
   - muscle_group
   - goal
+  - region # <-- Asegúrate que esta entidad esté definida en tu nlu.yml
 
 slots:
   macronutrient:
@@ -66,15 +69,52 @@ slots:
       - type: from_entity
         entity: goal
 
-  # Control del modo avanzado (Gemini)
-  gemini_active:
+  # SE ELIMINÓ: gemini_active
+
+  # NUEVO: Slot para manejar el flujo de centros de salud
+  asked_for_health_center:
     type: bool
     initial_value: false
     influence_conversation: false
     mappings:
       - type: custom
 
-  # —— Slots del formulario de perfil ——
+  # NUEVO: Slot para la región (si se logra detectar o pedir)
+  user_region:
+    type: text
+    influence_conversation: true # Se cambió a true para que la ubicación se mantenga en el slot
+    mappings:
+      - type: from_entity
+        entity: region # <-- Mapeo desde la entidad 'region'
+      - type: custom
+
+  # 🟢 NUEVOS: Slots para la Geolocalización (Escalable)
+  latitude:
+    type: float
+    influence_conversation: false
+    mappings:
+      - type: custom
+  longitude:
+    type: float
+    influence_conversation: false
+    mappings:
+      - type: custom
+
+  # 🟢 NUEVOS: Slots de Control del Flujo de Búsqueda de Profesionales
+  asked_for_location:
+    type: bool
+    initial_value: false
+    influence_conversation: false
+    mappings:
+      - type: custom
+  is_searching_professional:
+    type: bool
+    initial_value: false
+    influence_conversation: false
+    mappings:
+      - type: custom
+      
+  # —— Slots del formulario de perfil (EXISTENTES) ——
   user_goal:
     type: text
     influence_conversation: false
@@ -102,7 +142,7 @@ slots:
           - active_loop: nutrition_profile_form
             requested_slot: activity_level
 
-  # —— Datos para IMC/recetas ——
+  # —— Datos para IMC/recetas (EXISTENTES) ——
   weight_kg:
     type: text
     influence_conversation: false
@@ -188,7 +228,7 @@ responses:
     - text: "Distingamos entre hambre física y emocional. ¿Quieres alternativas de snack y un plan anti-antojos?"
   utter_ask_healthy_snacks:
     - text: "Ideas: yogur + fruta, frutos secos, hummus + zanahoria, avena con leche, sándwich integral de pavo."
-  utter_ask_motivation_support: # <--- ¡ESTA ES LA RESPUESTA CORREGIDA QUE FALTABA!
+  utter_ask_motivation_support: 
     - text: "La motivación es clave. Recuerda tu 'por qué'. Pequeños avances constantes son mejor que grandes saltos esporádicos. ¡Confío en ti!"
 
   # Form
@@ -201,12 +241,6 @@ responses:
   utter_submit_nutrition_profile_form:
     - text: "¡Perfecto! Con esto puedo proponerte pautas personalizadas. ¿Quieres un plan semanal base?"
 
-  # Modo avanzado (Gemini)
-  utter_activate_gemini_mode:
-    - text: "¡Has activado el modo avanzado! Pregúntame lo que quieras dentro de nutrición, ejercicio y bienestar."
-  utter_deactivate_gemini_mode:
-    - text: "Volviendo al modo normal del asistente."
-
 actions:
   # Acciones de dominio
   - action_answer_specific_food
@@ -215,11 +249,16 @@ actions:
   - action_track_progress_tip
   - action_calculate_bmi
   - action_provide_recipe
+  # NUEVAS ACCIONES MÉDICAS
+  - action_handle_medical_query
+  - action_provide_health_centers
   # Acciones Gemini
   - action_fallback_to_gemini
   - action_call_gemini_chat
-  - action_toggle_gemini_mode
-  - action_stop_gemini_mode
+  # NUEVAS ACCIONES DE BÚSQUEDA
+  - action_search_nearby_professional # <-- ¡NUEVA ACCIÓN!
+  # Formularios
+  - nutrition_profile_form
 
 session_config:
   session_expiration_time: 60

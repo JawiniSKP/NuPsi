@@ -1,7 +1,7 @@
 # ============================================================
 # actions/actions.py
 # Bot de Nutrición, Cambios Físicos y Bienestar
-# Integración: Rasa + Google Gemini
+# Integración: Rasa + Google Gemini (MODO DINÁMICO)
 # ============================================================
 from typing import Any, Text, Dict, List
 from rasa_sdk import Action, Tracker
@@ -10,6 +10,12 @@ from rasa_sdk.events import SlotSet, EventType
 import os, asyncio
 from dotenv import load_dotenv
 import google.generativeai as genai
+
+# 🟢 NUEVOS IMPORTS PARA LA BÚSQUEDA ESCALABLE
+# Si implementas Firebase Admin para la memoria:
+# import firebase_admin
+# from firebase_admin import credentials, firestore
+# db = None # Variable global para la conexión a Firestore
 # ============================================================
 # 🔹 Cargar variables de entorno
 # ============================================================
@@ -31,7 +37,8 @@ SYSTEM_PERSONA = (
     "Eres un asistente experto en NUTRICIÓN, CAMBIOS FÍSICOS, APOYO EMOCIONAL, "
     "RUTINAS DE EJERCICIO, RECETAS, CONSEJOS DE HÁBITOS y BIENESTAR. "
     "Responde SOLO sobre estos temas. "
-    "Si el usuario pide algo fuera de este alcance (por ejemplo política, trámites, vuelos, temas médicos o financieros), "
+    "**BAJO NINGUNA CIRCUNSTANCIA DEBES PROPORCIONAR DIAGNÓSTICOS MÉDICOS, TRATAMIENTOS O CONSEJOS FARMACÉUTICOS.**"
+    "Si el usuario pide algo fuera de este alcance (por ejemplo política, trámites, vuelos o temas financieros), "
     "indica amablemente que está fuera de tu ámbito y redirígelo al bienestar/nutrición/entrenamiento. "
     "Responde SIEMPRE en español, de manera empática, con pasos prácticos y tono motivador. "
     "Evita lenguaje técnico innecesario y ofrece soluciones aplicables."
@@ -51,7 +58,7 @@ async def _call_gemini_async(model, prompt: str, history=None, timeout=18):
     return await asyncio.wait_for(_inner(), timeout=timeout)
 
 # ============================================================
-# 🔹 Acción: chat directo con Gemini
+# 🔹 Acción: chat directo con Gemini (para ask_gemini)
 # ============================================================
 class ActionCallGeminiChat(Action):
     def name(self) -> Text:
@@ -67,20 +74,12 @@ class ActionCallGeminiChat(Action):
         model = genai.GenerativeModel("gemini-2.5-flash")
 
         user_message = tracker.latest_message.get("text", "")
-        history = []
-
-        # Construir historial de conversación
-        for ev in tracker.events_after_latest_restart():
-            if ev.get("event") == "user" and ev.get("text"):
-                history.append({"role": "user", "parts": [ev.get("text")]})
-            elif ev.get("event") == "bot" and ev.get("text"):
-                if "error" not in ev.get("text", "").lower():
-                    history.append({"role": "model", "parts": [ev.get("text")]})
-
+        
         prompt = f"{SYSTEM_PERSONA}\n\nUsuario: {user_message}"
 
         try:
-            text = await _call_gemini_async(model, prompt, history=history, timeout=18)
+            # Llama a Gemini sin historial para una respuesta fresca y rápida
+            text = await _call_gemini_async(model, prompt, history=None, timeout=18)
             dispatcher.utter_message(text=text)
         except asyncio.TimeoutError:
             dispatcher.utter_message(text="El modo avanzado tardó demasiado. ¿Intentamos de nuevo?")
@@ -90,7 +89,7 @@ class ActionCallGeminiChat(Action):
         return []
 
 # ============================================================
-# 🔹 Acción: fallback automático → Gemini
+# 🔹 Acción: fallback automático → Gemini (MODO DINÁMICO)
 # ============================================================
 class ActionFallbackToGemini(Action):
     def name(self) -> Text:
@@ -108,6 +107,7 @@ class ActionFallbackToGemini(Action):
         prompt = f"{SYSTEM_PERSONA}\n\nUsuario: {user_message}"
 
         try:
+            # Llama a Gemini en el fallback
             text = await _call_gemini_async(model, prompt, history=None, timeout=30)
             dispatcher.utter_message(text=text)
         except asyncio.TimeoutError:
@@ -118,18 +118,116 @@ class ActionFallbackToGemini(Action):
         return []
 
 # ============================================================
-# 🔹 Acciones para activar/desactivar modo Gemini
+# 🔹 Bloqueo y Redirección de Consultas Médicas
 # ============================================================
-class ActionToggleGeminiMode(Action):
-    def name(self) -> Text: return "action_toggle_gemini_mode"
-    async def run(self, d, t, dom): return [SlotSet("gemini_active", True)]
+class ActionHandleMedicalQuery(Action):
+    def name(self) -> Text:
+        return "action_handle_medical_query"
 
-class ActionStopGeminiMode(Action):
-    def name(self) -> Text: return "action_stop_gemini_mode"
-    async def run(self, d, t, dom): return [SlotSet("gemini_active", False)]
+    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[EventType]:
+        # 1. Mensaje de negativa ética (y bloqueo a Gemini)
+        dispatcher.utter_message(
+            text="🚨 Lo siento, pero como asistente de bienestar, no estoy autorizado ni calificado para dar diagnósticos, tratar o evaluar condiciones médicas. Esta información debe ser siempre revisada por un profesional de la salud."
+        )
+
+        # 2. Pregunta para redireccionar (Usamos el flujo médico general)
+        dispatcher.utter_message(
+            text="Si te sientes mal, te recomiendo buscar ayuda profesional. ¿Necesitas que te ayude a encontrar centros de salud cercanos a tu ubicación actual?",
+            buttons=[
+                {"title": "Sí, por favor", "payload": "/affirm"},
+                {"title": "No, gracias", "payload": "/deny"}
+            ]
+        )
+        return [SlotSet("asked_for_health_center", True)]
+
 
 # ============================================================
-# 🔹 Acciones del dominio nutricional
+# 🟢 Acción: Búsqueda de Profesionales Cercanos (ESCALABLE)
+# ============================================================
+class ActionSearchNearbyProfessional(Action):
+    def name(self) -> Text:
+        return "action_search_nearby_professional"
+
+    async def run(
+        self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]
+    ) -> List[EventType]:
+        if not GEMINI_API_KEY:
+            dispatcher.utter_message(text="No puedo realizar la búsqueda avanzada (falta la clave API).")
+            return []
+
+        user_message = tracker.latest_message.get("text", "")
+        
+        # 🟢 LÓGICA DE UBICACIÓN ESCALABLE
+        lat = tracker.get_slot("latitude")
+        lon = tracker.get_slot("longitude")
+        region = tracker.get_slot("user_region")
+        
+        # 1. Determinar el contexto de búsqueda
+        if lat and lon:
+            # Si hay coordenadas (MÉTODO ESCALABLE/GPS)
+            location_context = f"cerca de la ubicación GPS ({lat}, {lon})."
+        elif region:
+            # Si hay región por NLU (MÉTODO SIMPLE)
+            location_context = f"en la región de {region}."
+        else:
+            # Si no hay nada, pedir la ubicación.
+            dispatcher.utter_message(
+                text="Para buscarte un profesional, necesito saber dónde estás. ¿Podrías decirme tu ciudad o comuna?"
+            )
+            # Marcar que se preguntó y pausar el flujo de búsqueda
+            return [SlotSet("asked_for_location", True), SlotSet("is_searching_professional", True)]
+        
+        # 2. PROMPT para Gemini
+        professional_prompt = (
+            f"El usuario necesita ayuda para encontrar un profesional de la salud o bienestar {location_context}. "
+            f"La consulta exacta es: '{user_message}'. "
+            "Tu objetivo es dar 3-4 ejemplos de dónde buscar en Google Maps o directorios web (Colegios Profesionales, Directorio de Clínicas)."
+            "NO inventes nombres de profesionales. Utiliza ejemplos de centros GÉNERICOS (ej: 'Clínica X de la Universidad Y'). "
+            "Finaliza la respuesta con un mensaje de apoyo y motivación para dar el paso de buscar ayuda."
+        )
+
+        model = genai.GenerativeModel("gemini-2.5-flash")
+        
+        try:
+            text = await _call_gemini_async(model, professional_prompt, history=None, timeout=25)
+            dispatcher.utter_message(text=text)
+        except Exception as e:
+            print(f"Error Búsqueda Profesional: {e}")
+            dispatcher.utter_message(text="Ocurrió un error al buscar el profesional. Por favor, intenta de nuevo.")
+            
+        # Limpiar slots de control
+        return [SlotSet("asked_for_location", None), SlotSet("is_searching_professional", None)]
+
+
+# ============================================================
+# 🔹 Acción: Proporcionar lista de centros de salud (EXISTENTE)
+# ============================================================
+class ActionProvideHealthCenters(Action):
+    def name(self) -> Text:
+        return "action_provide_health_centers"
+
+    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[EventType]:
+        # Usamos el slot si fue seteado, sino un valor por defecto
+        region = tracker.get_slot("user_region") or "Región Metropolitana de Chile"
+        
+        centros = [
+            "🏥 Hospital Clínico. Dirección: Calle Falsa 123.",
+            "🩺 Centro de Salud Familiar (CESFAM) Central. Dirección: Av. Siempre Viva 456.",
+            "🚑 Clínica Wellness. Dirección: El Bosque Norte 300.",
+        ]
+
+        response = f"Claro, aquí tienes algunos centros de salud en tu zona ({region}):\n\n"
+        response += "\n".join(centros)
+        response += "\n\nPor favor, dirígete al más cercano si es una urgencia."
+
+        dispatcher.utter_message(text=response)
+
+        # Limpiamos el slot de la pregunta
+        return [SlotSet("asked_for_health_center", None)]
+
+
+# ============================================================
+# 🔹 Acciones del dominio nutricional (EXISTENTES)
 # ============================================================
 
 # 1️⃣ Calcular IMC
@@ -156,7 +254,7 @@ class ActionCalculateBmi(Action):
             d.utter_message(text=msg)
         except Exception:
             d.utter_message(text="Necesito peso (kg) y estatura (m) válidos para calcular tu IMC.")
-        return []
+        return [SlotSet("weight_kg", None), SlotSet("height_m", None)] # Limpiar slots
 
 # 2️⃣ Respuesta genérica sobre alimento específico
 class ActionAnswerSpecificFood(Action):

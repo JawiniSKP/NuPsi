@@ -2,39 +2,7 @@ version: "3.1"
 
 nlu:
 
-  # --- Intent para activar Gemini ---
-  - intent: open_chat
-    examples: |
-      - quiero hablar con gemini
-      - activar gemini
-      - chatear con la ia
-      - preguntarle algo a gemini
-      - necesito una respuesta avanzada
-      - hablar con tu cerebro avanzado
-      - iniciar chat avanzado
-      - quiero usar la inteligencia artificial
-      - cambia a modo avanzado
-      - puedes responder esto?
-      - quiero que me ayudes con algo complejo
-      - háblame de algo que no sepa
-      - cerebro avanzado
-
-  # --- Intent para salir del chat con Gemini ---
-  - intent: stop_chat
-    examples: |
-      - salir del chat
-      - terminar chat
-      - basta de gemini
-      - volver a lo normal
-      - no más ia
-      - cancelar gemini
-      - volver a mis funciones
-      - desconectar ia
-      - desactiva gemini
-      - quiero mi bot normal
-      - modo normal
-
-  # --- Intent para preguntar directamente a Gemini ---
+  # --- Intent para preguntar directamente a Gemini (Se mantiene para preguntas complejas) ---
   - intent: ask_gemini
     examples: |
       - ¿Qué es la inteligencia artificial?
@@ -79,6 +47,9 @@ nlu:
       - correcto
       - así es
       - vale
+      - sí quiero
+      - por favor
+      - adelante
 
   - intent: deny
     examples: |
@@ -87,6 +58,7 @@ nlu:
       - incorrecto
       - no es eso
       - no quiero
+      - no gracias
 
   - intent: bot_challenge
     examples: |
@@ -229,13 +201,63 @@ nlu:
       - consejos para no rendirse
       - ayúdame a seguir adelante
 
+  # NUEVO: Intent para consultas/síntomas médicos
+  - intent: ask_medical_diagnosis
+    examples: |
+      - ¿Tengo gripe?
+      - creo que tengo [apendicitis](goal)
+      - ¿Qué hago si tengo un resfriado?
+      - me duele mucho el [estómago](muscle_group)
+      - ¿Cual es el [tratamiento](goal) para la diabetes?
+      - ¿Me puedes dar un [diagnóstico](goal)?
+      - tengo fiebre y me duele la cabeza
+      - me siento muy mal
+      - necesito un doctor
+      - tengo un sarpullido en el brazo
+      - me duele la garganta
+      - creo que tengo COVID
+      - tengo un síntoma médico
+      - qué es la [tos](goal) seca
+      - me pica el cuerpo
+      - creo que tengo una enfermedad
+      - mi hijo tiene dolor de cabeza
+
+  # 🟢 NUEVO: Intent para disparar la búsqueda de profesionales
+  - intent: ask_for_professional_near
+    examples: |
+      - me ayudas a conseguir un psicólogo cerca?
+      - busco un nutricionista en [Santiago](region)
+      - dónde puedo encontrar un terapeuta
+      - necesito el contacto de un profesional de la salud mental
+      - dónde hay psicólogos cerca de mi casa
+      - centros de atención psicológica en [Providencia](region)
+      - busca un buen nutricionista en [Viña del Mar](region)
+      - busco un sicólogo
+      - necesito un nutricionista
+
+  # 🟢 NUEVO: Intent para que el usuario responda con una ubicación
+  - intent: provide_location
+    examples: |
+      - estoy en [Santiago](region)
+      - cerca de [Providencia](region)
+      - mi región es [Metropolitana](region)
+      - en [Viña del Mar](region)
+      - por [Las Condes](region)
+      - la [comuna](region) es [Ñuñoa](region)
+      - mi ciudad es [Concepción](region)
+      - mi comuna es [Talca](region)
+
   - intent: out_of_scope
     examples: |
       - puedes reservarme un vuelo?
       - haz mis deberes de la universidad
       - cuál es tu opinión sobre temas controvertidos
-      - dame un diagnóstico médico
+      - dame un [diagnóstico médico](goal)
       - esto no tiene que ver contigo
+      - háblame de física cuántica
+      - cuánto cuesta el petróleo
+      - cómo funciona la economía
+      - haz mi tarea
 
   # --- APOYO EMOCIONAL ---
   - intent: express_sadness

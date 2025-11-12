@@ -1,5 +1,22 @@
 version: "3.1"
 stories:
+
+  # 🟢 LÓGICA AÑADIDA: Flujo de Afirmación (El usuario quiere centros de salud)
+  - story: Proporcionar lista de centros de salud
+    steps:
+      - action: action_handle_medical_query 
+      - intent: affirm 
+      - action: action_provide_health_centers
+      - action: action_listen 
+
+  # 🟢 LÓGICA AÑADIDA: Flujo de Negación (El usuario NO quiere centros de salud)
+  - story: Negación a la sugerencia de centros de salud
+    steps:
+      - action: action_handle_medical_query
+      - intent: deny 
+      - action: utter_thanks 
+      
+  # --- Historias Existentes (Mantenidas) ---
   - story: happy path
     steps:
       - intent: greet
@@ -39,8 +56,6 @@ stories:
       - action: utter_ask_cardio_benefits
       - intent: goodbye
       - action: utter_goodbye
-
-  # ⛔ Se eliminó la story 'out of scope conversation' para no contradecir las rules
 
   - story: user feels sad
     steps:
@@ -103,3 +118,17 @@ stories:
       - action: action_track_progress_tip
       - intent: thanks
       - action: utter_thanks
+      
+  # 🟢 NUEVO STORY: Flujo de Respuesta después de que el bot pide la ubicación
+  # Nota: El reintento de la acción se maneja en rules.yml.
+  # Esta historia es redundante si la regla funciona, pero ayuda al entrenamiento.
+  - story: Usuario proporciona ubicación después de ser preguntado
+    steps:
+      - action: action_search_nearby_professional # Se ejecuta (y pide ubicación)
+      - slot_was_set:
+          - asked_for_location: True # Se establece el slot de control
+      - intent: provide_location # El usuario responde
+      - action: action_search_nearby_professional # La regla re-ejecuta la acción
+      - slot_was_set:
+          - is_searching_professional: null # La acción limpia el slot
+      - action: action_listen

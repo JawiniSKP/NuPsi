@@ -2,37 +2,58 @@ version: "3.1"
 
 rules:
 
-  # 🔹 Activa el modo Gemini (por intención del usuario)
-  - rule: Activar modo Gemini
-    steps:
-      - intent: open_chat
-      - action: action_toggle_gemini_mode
-      - action: utter_activate_gemini_mode
-
-  # 🔹 Desactiva el modo Gemini
-  - rule: Desactivar modo Gemini
-    steps:
-      - intent: stop_chat
-      - action: action_stop_gemini_mode
-      - action: utter_deactivate_gemini_mode
-
-  # 🔹 Pregunta directa al modo avanzado (por ejemplo "qué es la inteligencia artificial")
+  # 🔹 Pregunta directa a Gemini (Se mantiene 'ask_gemini' para preguntas directas complejas)
   - rule: Pregunta directa a Gemini
     steps:
       - intent: ask_gemini
       - action: action_call_gemini_chat
 
-  # 🔹 Fallback automático (si Rasa no reconoce la intención)
+  # 🔹 Fallback automático → Gemini (MODO DINÁMICO: La clave para la IA)
   - rule: Baja confianza → Fallback con Gemini
     steps:
       - intent: nlu_fallback
       - action: action_fallback_to_gemini
 
-  # 🔹 Out of scope (por ejemplo si detecta que el tema no es del dominio)
+  # 🔹 Out of scope → Gemini (MODO DINÁMICO: Temas fuera del dominio)
   - rule: Tema fuera de alcance → Gemini
     steps:
       - intent: out_of_scope
       - action: action_fallback_to_gemini
+
+  # 🟢 NUEVA REGLA: Disparo de la Búsqueda de Profesionales
+  - rule: Búsqueda de Profesionales Cercanos
+    steps:
+      - intent: ask_for_professional_near
+      - action: action_search_nearby_professional
+      - action: action_listen
+
+  # 🟢 NUEVA REGLA: Extracción y Almacenamiento de Región (Siempre que no esté en un formulario)
+  - rule: Extracción de Región
+    condition:
+      - active_loop: null # No queremos que esto interrumpa la recogida de datos de un formulario
+    steps:
+      - intent: provide_location # Cuando el usuario da la ubicación
+      - slot_was_set:
+          - user_region # El NLU extrajo la región de la frase
+      - action: action_listen # Escuchar para el siguiente paso (que estará en stories.yml)
+
+  # 🟢 NUEVA REGLA DE RECUPERACIÓN: Si el usuario da la ubicación justo después de que la acción la pidió
+  - rule: Reintentar búsqueda con ubicación proporcionada
+    condition:
+      - slot_was_set:
+          - is_searching_professional: True # El bot está esperando una ubicación
+    steps:
+      - intent: provide_location # El usuario da la ubicación (y se setea user_region por Slot Filling)
+      - action: action_search_nearby_professional # Vuelve a ejecutar la acción (ahora con ubicación)
+      - action: action_listen
+
+
+  # 🟢 NUEVA REGLA: Bloqueo Ético de Diagnóstico y Redirección
+  - rule: Bloqueo Médico y Pregunta de Centros
+    steps:
+      - intent: ask_medical_diagnosis
+      - action: action_handle_medical_query
+      - action: action_listen 
 
   # 🔹 Despedida
   - rule: Despedida amable
