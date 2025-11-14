@@ -17,7 +17,7 @@ export interface RasaResponse {
 export class ChatService {
 
   // 👇 AHORA se obtiene desde environment.ts
-private rasaUrl = 'https://capstone-rasa.onrender.com/webhooks/rest/webhook';
+  private rasaUrl = environment.rasaUrl; 
 
 
   constructor(private http: HttpClient) {}
