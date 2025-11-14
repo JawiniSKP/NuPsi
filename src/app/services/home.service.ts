@@ -69,23 +69,27 @@ export interface UltimosValoresFisicos {
   providedIn: 'root'
 })
 export class HomeService {
-  // ✅ CORREGIDO: Inyección simple sin NgZone innecesario
+  // ✅ Inyección simple
   private firestore = inject(Firestore);
   private auth = inject(Auth);
 
   // ============================================
-  // ✅ CORREGIDO: Obtener usuario una sola vez - SIN NgZone
+  // ✅ Obtener usuario una sola vez
   // ============================================
   async getUsuarioDataOnce(uid: string): Promise<Usuario | null> {
     try {
-      const userDocRef = doc(this.firestore, `usuarios/${uid}`);
+      if (!uid) {
+        console.error('❌ getUsuarioDataOnce llamado sin uid');
+        return null;
+      }
+
+      const userDocRef = doc(this.firestore, 'usuarios', uid);
       const userDoc = await getDoc(userDocRef);
       
       if (userDoc.exists()) {
         return userDoc.data() as Usuario;
       }
       
-      // ✅ NUEVO: Crear usuario automáticamente si no existe
       console.log('📝 Usuario no encontrado, creando documento automáticamente...');
       return await this.crearUsuarioAutomaticamente(uid);
     } catch (error) {
@@ -94,7 +98,7 @@ export class HomeService {
     }
   }
 
-  // ✅ CORREGIDO: Crear usuario automáticamente - SIN NgZone
+  // ✅ Crear usuario automáticamente
   private async crearUsuarioAutomaticamente(uid: string): Promise<Usuario | null> {
     try {
       const currentUser = this.auth.currentUser;
@@ -114,7 +118,7 @@ export class HomeService {
         actualizadoEn: Timestamp.now()
       };
 
-      const userDocRef = doc(this.firestore, `usuarios/${uid}`);
+      const userDocRef = doc(this.firestore, 'usuarios', uid);
       await setDoc(userDocRef, userData);
       console.log('✅ Usuario creado automáticamente en Firestore');
       return userData;
@@ -125,10 +129,15 @@ export class HomeService {
   }
 
   // ============================================
-  // ✅ CORREGIDO: Obtener usuario con observable - SIN onSnapshot problemático
+  // ✅ Obtener usuario como observable
   // ============================================
   getUsuario(uid: string): Observable<Usuario | null> {
-    const userDocRef = doc(this.firestore, `usuarios/${uid}`);
+    if (!uid) {
+      console.error('❌ getUsuario llamado sin uid');
+      return of(null);
+    }
+
+    const userDocRef = doc(this.firestore, 'usuarios', uid);
     
     return from(getDoc(userDocRef)).pipe(
       map(docSnap => {
@@ -145,9 +154,14 @@ export class HomeService {
   }
 
   // ============================================
-  // ✅ CORREGIDO: Obtener indicador de hoy usando collectionData - SIN NgZone
+  // ✅ Obtener indicador de hoy
   // ============================================
   getIndicadorHoy(uid: string): Observable<Indicador | null> {
+    if (!uid) {
+      console.error('❌ getIndicadorHoy llamado sin uid');
+      return of(null);
+    }
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const todayTimestamp = Timestamp.fromDate(today);
@@ -156,7 +170,7 @@ export class HomeService {
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowTimestamp = Timestamp.fromDate(tomorrow);
 
-    const indicadoresRef = collection(this.firestore, `usuarios/${uid}/indicadores`);
+    const indicadoresRef = collection(this.firestore, 'usuarios', uid, 'indicadores');
     
     const q = query(
       indicadoresRef,
@@ -165,16 +179,15 @@ export class HomeService {
       limit(1)
     );
 
-    // ✅ CORREGIDO: collectionData directo sin wrappers innecesarios
     return collectionData(q, { idField: 'id' }).pipe(
       map(docs => {
         if (docs.length > 0) {
-          const doc = docs[0] as any;
-          const data = doc as Indicador;
+          const docData = docs[0] as any;
+          const data = docData as Indicador;
           
           if (!data.esConfiguracionInicial) {
             return {
-              id: doc.id,
+              id: docData.id,
               ...data
             };
           }
@@ -189,11 +202,16 @@ export class HomeService {
   }
 
   // ============================================
-  // ✅ CORREGIDO: Obtener últimos valores físicos - SIN NgZone
+  // ✅ Obtener últimos valores físicos
   // ============================================
   async obtenerUltimosValoresFisicos(uid: string): Promise<UltimosValoresFisicos> {
     try {
-      const indicadoresRef = collection(this.firestore, `usuarios/${uid}/indicadores`);
+      if (!uid) {
+        console.error('❌ obtenerUltimosValoresFisicos llamado sin uid');
+        return {};
+      }
+
+      const indicadoresRef = collection(this.firestore, 'usuarios', uid, 'indicadores');
       
       const q = query(
         indicadoresRef,
@@ -231,7 +249,7 @@ export class HomeService {
   }
 
   // ============================================
-  // ✅ CORREGIDO: Guardar/actualizar indicador diario - SIN NgZone
+  // ✅ Guardar/actualizar indicador diario
   // ============================================
   guardarIndicadorDiario(
     uid: string,
@@ -240,7 +258,12 @@ export class HomeService {
     vasosAgua: number = 0,
     indicadorId?: string
   ): Observable<boolean> {
-    const indicadoresRef = collection(this.firestore, `usuarios/${uid}/indicadores`);
+    if (!uid) {
+      console.error('❌ guardarIndicadorDiario llamado sin uid');
+      return of(false);
+    }
+
+    const indicadoresRef = collection(this.firestore, 'usuarios', uid, 'indicadores');
     
     const data: Partial<Indicador> = {
       emociones,
@@ -251,7 +274,6 @@ export class HomeService {
       creadoEn: Timestamp.now()
     };
 
-    // ✅ CORREGIDO: Operaciones Firestore directas
     const operation = indicadorId 
       ? updateDoc(doc(indicadoresRef, indicadorId), data)
       : addDoc(indicadoresRef, data);
@@ -269,18 +291,23 @@ export class HomeService {
   }
 
   // ============================================
-  // ✅ CORREGIDO: Actualizar vasos de agua - SIN NgZone
+  // ✅ Actualizar vasos de agua
   // ============================================
   actualizarVasosAgua(
     uid: string,
     vasosAgua: number,
     indicadorId?: string
   ): Observable<boolean> {
+    if (!uid) {
+      console.error('❌ actualizarVasosAgua llamado sin uid');
+      return of(false);
+    }
+
     if (!indicadorId) {
       return this.guardarIndicadorDiario(uid, [], 'regular', vasosAgua);
     }
 
-    const indicadorRef = doc(this.firestore, `usuarios/${uid}/indicadores/${indicadorId}`);
+    const indicadorRef = doc(this.firestore, 'usuarios', uid, 'indicadores', indicadorId);
     
     return from(updateDoc(indicadorRef, { vasosAgua })).pipe(
       map(() => {
@@ -295,7 +322,7 @@ export class HomeService {
   }
 
   // ============================================
-  // ✅ MÉTODOS SINCRÓNICOS (No requieren corrección)
+  // MÉTODOS SINCRÓNICOS
   // ============================================
   calcularEstadoAnimo(emociones: string[]): string {
     if (emociones.length === 0) return 'regular';
@@ -335,10 +362,15 @@ export class HomeService {
   }
 
   // ============================================
-  // ✅ CORREGIDO: Obtener historial - SIN NgZone
+  // ✅ Historial de indicadores
   // ============================================
   getHistorialIndicadores(uid: string, dias: number = 30): Observable<Indicador[]> {
-    const indicadoresRef = collection(this.firestore, `usuarios/${uid}/indicadores`);
+    if (!uid) {
+      console.error('❌ getHistorialIndicadores llamado sin uid');
+      return of([]);
+    }
+
+    const indicadoresRef = collection(this.firestore, 'usuarios', uid, 'indicadores');
     
     const q = query(
       indicadoresRef,
@@ -349,9 +381,9 @@ export class HomeService {
     return from(getDocs(q)).pipe(
       map((querySnapshot) => {
         const indicadores = querySnapshot.docs
-          .map(doc => ({
-            id: doc.id,
-            ...doc.data()
+          .map(docSnap => ({
+            id: docSnap.id,
+            ...docSnap.data()
           } as Indicador))
           .filter(ind => !ind.esConfiguracionInicial);
 
@@ -366,10 +398,15 @@ export class HomeService {
   }
 
   // ============================================
-  // ✅ CORREGIDO: Actualizar último acceso - SIN NgZone
+  // ✅ Actualizar último acceso
   // ============================================
   actualizarUltimoAcceso(uid: string): Observable<boolean> {
-    const userDocRef = doc(this.firestore, `usuarios/${uid}`);
+    if (!uid) {
+      console.error('❌ actualizarUltimoAcceso llamado sin uid');
+      return of(false);
+    }
+
+    const userDocRef = doc(this.firestore, 'usuarios', uid);
     
     return from(updateDoc(userDocRef, {
       ultimoAcceso: Timestamp.now()
@@ -386,13 +423,18 @@ export class HomeService {
   }
 
   // ============================================
-  // ✅ CORREGIDO: Verificar configuración inicial - SIN NgZone
+  // ✅ Verificar configuración inicial
   // ============================================
   async necesitaConfiguracionInicial(uid: string): Promise<boolean> {
     try {
+      if (!uid) {
+        console.error('❌ necesitaConfiguracionInicial llamado sin uid');
+        return true;
+      }
+
       console.log('🔍 Verificando configuración inicial para:', uid);
       
-      const userDocRef = doc(this.firestore, `usuarios/${uid}`);
+      const userDocRef = doc(this.firestore, 'usuarios', uid);
       const userDoc = await getDoc(userDocRef);
       
       if (!userDoc.exists()) {
@@ -405,7 +447,7 @@ export class HomeService {
       
       console.log('📊 Estado configuración:', {
         haCompletadoConfiguracionInicial: usuario.haCompletadoConfiguracionInicial,
-        necesitaConfig: necesitaConfig
+        necesitaConfig
       });
 
       return necesitaConfig;
@@ -416,19 +458,24 @@ export class HomeService {
   }
 
   // ============================================
-  // ✅ CORREGIDO: Guardar indicador completo - SIN NgZone
+  // ✅ Guardar indicador completo (config inicial / diario)
   // ============================================
   guardarIndicadorCompleto(
     uid: string,
     indicadorData: Partial<Indicador>
   ): Observable<boolean> {
-    const indicadoresRef = collection(this.firestore, `usuarios/${uid}/indicadores`);
+    if (!uid) {
+      console.error('❌ guardarIndicadorCompleto llamado sin uid');
+      return of(false);
+    }
+
+    const indicadoresRef = collection(this.firestore, 'usuarios', uid, 'indicadores');
     
-    const dataCompleta = {
+    const dataCompleta: Partial<Indicador> = {
       ...indicadorData,
-      esConfiguracionInicial: false,
-      creadoEn: Timestamp.now(),
-      fecha: Timestamp.fromDate(new Date())
+      esConfiguracionInicial: indicadorData.esConfiguracionInicial ?? false,
+      creadoEn: indicadorData.creadoEn ?? Timestamp.now(),
+      fecha: indicadorData.fecha ?? Timestamp.fromDate(new Date())
     };
 
     return from(addDoc(indicadoresRef, dataCompleta)).pipe(
@@ -444,10 +491,15 @@ export class HomeService {
   }
 
   // ============================================
-  // ✅ CORREGIDO: Marcar configuración inicial completada - SIN NgZone
+  // ✅ Marcar configuración inicial completada
   // ============================================
   marcarConfiguracionInicialCompleta(uid: string): Observable<boolean> {
-    const userDocRef = doc(this.firestore, `usuarios/${uid}`);
+    if (!uid) {
+      console.error('❌ marcarConfiguracionInicialCompleta llamado sin uid');
+      return of(false);
+    }
+
+    const userDocRef = doc(this.firestore, 'usuarios', uid);
     
     console.log('✅ Marcando configuración inicial como completada para:', uid);
     
@@ -463,7 +515,7 @@ export class HomeService {
         console.error('❌ Error marcando configuración:', error);
         console.error('Código de error:', error?.code);
         console.error('Mensaje:', error?.message);
-        throw error;
+        return of(false);
       })
     );
   }

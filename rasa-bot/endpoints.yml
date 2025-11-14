@@ -1,4 +1,2 @@
 action_endpoint:
-  url: "action_endpoint:
   url: "https://capstone-rasa-actions.onrender.com/webhook"
-"
