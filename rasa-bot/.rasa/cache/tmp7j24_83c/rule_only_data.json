@@ -1,0 +1,6 @@
+{
+  "rule_only_slots": [
+    "user_region"
+  ],
+  "rule_only_loops": []
+}
