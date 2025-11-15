@@ -1,0 +1,11 @@
+# Dockerfile.rasa (Servidor Principal)
+FROM rasa/rasa:3.6.0-full
+
+WORKDIR /app
+# Copia el contenido del subdirectorio rasa-bot
+COPY rasa-bot/ /app/
+
+EXPOSE 5005
+
+# Comando de inicio del servidor Rasa (El modelo más nuevo se carga por defecto)
+CMD ["rasa", "run", "--enable-api", "--cors", "*", "--port", "5005"]

@@ -10,6 +10,6 @@ export const environment = {
     appId: "1:1097015901539:web:fefe10dad49ba223d36756"
   },
 
-  // 👇 AQUI VA LA URL DE TU RASA EN RENDER
-  rasaUrl: "https://capstone-rasa.onrender.com/webhooks/rest/webhook"
+  rasaUrl: "https://jisella12-capstone-rasa.hf.space/webhooks/rest/webhook"
+
 };

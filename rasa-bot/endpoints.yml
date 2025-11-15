@@ -1,2 +1,2 @@
 action_endpoint:
-  url: "https://capstone-rasa-actions.onrender.com/webhook"
+  url: "https://jisella12-action-server.hf.space/webhook"

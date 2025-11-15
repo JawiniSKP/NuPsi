@@ -17,7 +17,7 @@ export interface RasaResponse {
 export class ChatService {
 
   // 👇 AHORA se obtiene desde environment.ts
-  private rasaUrl = environment.rasaUrl; 
+  private rasaUrl = environment.rasaUrl;
 
 
   constructor(private http: HttpClient) {}

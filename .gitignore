@@ -75,8 +75,8 @@ venv/
 env/
 
 # Modelos entrenados de Rasa
-models/
-.rasa/
+#models/
+#.rasa/
 
 # Caché y logs de Python
 __pycache__/

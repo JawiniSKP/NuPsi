@@ -1,0 +1,17 @@
+# Dockerfile.actions
+FROM rasa/rasa-sdk:3.6.0
+
+WORKDIR /app
+# ✅ CORRECCIÓN: Apunta al archivo en la carpeta principal de rasa-bot
+COPY rasa-bot/requirements.txt /app/requirements.txt 
+
+USER root
+# ✅ CORRECCIÓN: Asegúrate de instalar el archivo que copiaste (ahora /app/requirements.txt)
+RUN pip install --no-cache-dir -r requirements.txt 
+USER 1001
+
+# Copia el código de las acciones (lo cual ya está bien)
+COPY rasa-bot/actions /app/actions
+
+EXPOSE 5055
+CMD ["rasa", "run", "actions", "--port", "5055"]

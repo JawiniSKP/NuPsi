@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">NuPsi</string>
+    <string name="title_activity_main">NuPsi</string>
+    <string name="package_name">io.nupsi.app</string>
+    <string name="custom_url_scheme">io.nupsi.app</string>
+</resources>
