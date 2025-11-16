@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.10.0'  # Node.js 20 para Angular 20
+          node-version: '20.11.1'  # Versión superior a 20.10.0
           cache: 'npm'
       
       - name: Install dependencies
