@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, AlertController, ToastController, LoadingController } from '@ionic/angular';
@@ -8,6 +8,10 @@ import { Router } from '@angular/router';
 import { User } from 'firebase/auth';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+
+// ✅ IMPORTS COMPLETOS DE CAPACITOR
+import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 @Component({
   selector: 'app-perfil',
@@ -33,7 +37,6 @@ export class PerfilPage implements OnInit, OnDestroy {
     }
   };
 
-  // ✅ PROPIEDADES PARA INPUTS
   nuevoAlimentoFavorito: string = '';
   nuevoAlimentoEvitar: string = '';
 
@@ -42,7 +45,6 @@ export class PerfilPage implements OnInit, OnDestroy {
   originalUserData: any;
   currentUser: User | null = null;
 
-  // Opciones para selects
   nivelesActividad = [
     { value: 'sedentario', label: 'Sedentario' },
     { value: 'ligero', label: 'Ligero' },
@@ -59,14 +61,12 @@ export class PerfilPage implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  constructor(
-    public authService: AuthService,
-    private firestore: Firestore,
-    private alertController: AlertController,
-    private toastController: ToastController,
-    private loadingController: LoadingController,
-    private router: Router
-  ) {}
+  private authService = inject(AuthService);
+  private firestore = inject(Firestore);
+  private alertController = inject(AlertController);
+  private toastController = inject(ToastController);
+  private loadingController = inject(LoadingController);
+  private router = inject(Router);
 
   async ngOnInit() {
     await this.loadUserData();
@@ -79,7 +79,6 @@ export class PerfilPage implements OnInit, OnDestroy {
 
   async loadUserData() {
     try {
-      // ✅ CORREGIDO: Suscribirse al Observable y obtener el User real
       this.authService.user
         .pipe(takeUntil(this.destroy$))
         .subscribe(async (user) => {
@@ -97,34 +96,30 @@ export class PerfilPage implements OnInit, OnDestroy {
     }
   }
 
-  // ✅ NUEVO MÉTODO: Cargar datos desde Firestore usando el UID real
   private async loadUserDataFromFirestore(uid: string) {
     try {
       const userDoc = doc(this.firestore, 'usuarios', uid);
       docData(userDoc).subscribe({
         next: (userData: any) => {
           console.log('📊 Datos del usuario cargados:', userData);
-          
+
           this.user = {
             nombreUsuario: userData.nombreUsuario || '',
             correo: userData.correo || '',
             fotoURL: userData.fotoURL || '',
             proveedorAuth: userData.proveedorAuth || 'google',
             configuracionPlanes: {
-              // ✅ CARGAR CAMPOS EXISTENTES Y NUEVOS
               nivelActividad: userData.configuracionPlanes?.nivelActividad || 'moderado',
               objetivoCaloricoPersonalizado: userData.configuracionPlanes?.objetivoCaloricoPersonalizado || 2000,
               dificultadEjercicio: userData.configuracionPlanes?.dificultadEjercicio || 'principiante',
               metaEjercicioSemanal: userData.configuracionPlanes?.metaEjercicioSemanal || 150,
-              
-              // ✅ CARGAR ARRAYS DE ALIMENTOS (pueden no existir aún)
               alimentosFavoritos: userData.configuracionPlanes?.alimentosFavoritos || [],
               alimentosEvitar: userData.configuracionPlanes?.alimentosEvitar || [],
               restriccionesAlimentarias: userData.configuracionPlanes?.restriccionesAlimentarias || [],
               tiposEjercicioPreferidos: userData.configuracionPlanes?.tiposEjercicioPreferidos || []
             }
           };
-          
+
           this.originalUserData = JSON.parse(JSON.stringify(this.user));
           this.isLoading = false;
           console.log('✅ Usuario cargado correctamente:', this.user);
@@ -153,30 +148,23 @@ export class PerfilPage implements OnInit, OnDestroy {
 
     try {
       const userDoc = doc(this.firestore, 'usuarios', this.currentUser.uid);
-      
-      // ✅ CORREGIDO: Estructura que mantiene campos existentes y agrega nuevos
+
       const updateData: any = {
         ultimaActualizacion: new Date()
       };
 
-      // Actualizar nombre si cambió
       if (this.user.nombreUsuario !== this.originalUserData.nombreUsuario) {
         updateData.nombreUsuario = this.user.nombreUsuario;
-        // También actualizar en Auth
         await this.authService.updateUserProfile(this.user.nombreUsuario, this.user.fotoURL);
       }
 
-      // ✅ ESTRUCTURA COMPLETA DE configuracionPlanes
       updateData.configuracionPlanes = {
-        // ✅ MANTENER campos existentes de Firebase
         activo: this.originalUserData.configuracionPlanes?.activo ?? true,
         dietaSeleccionada: this.originalUserData.configuracionPlanes?.dietaSeleccionada || 'alta_proteina',
         duracionPlan: this.originalUserData.configuracionPlanes?.duracionPlan || '70',
         fechaInicio: this.originalUserData.configuracionPlanes?.fechaInicio || new Date(),
         objetivoCaloricoPersonalizado: this.user.configuracionPlanes.objetivoCaloricoPersonalizado,
         progreso: this.originalUserData.configuracionPlanes?.progreso || {},
-        
-        // ✅ AGREGAR nuevos campos del perfil
         nivelActividad: this.user.configuracionPlanes.nivelActividad,
         dificultadEjercicio: this.user.configuracionPlanes.dificultadEjercicio,
         metaEjercicioSemanal: this.user.configuracionPlanes.metaEjercicioSemanal,
@@ -189,18 +177,49 @@ export class PerfilPage implements OnInit, OnDestroy {
 
       console.log('💾 Guardando datos:', updateData);
       await updateDoc(userDoc, updateData);
-      
+
       await loading.dismiss();
+      
+      // ✅ AGREGAR FEEDBACK HÁPTICO EN MÓVIL PARA ÉXITO
+      if (Capacitor.isNativePlatform()) {
+        await Haptics.impact({ style: ImpactStyle.Light });
+      }
+      
       await this.presentToast('Perfil actualizado correctamente', 'success');
       this.isEditing = false;
     } catch (error) {
       await loading.dismiss();
       console.error('❌ Error guardando perfil:', error);
+      
+      // ✅ AGREGAR FEEDBACK HÁPTICO PARA ERROR
+      if (Capacitor.isNativePlatform()) {
+        await Haptics.impact({ style: ImpactStyle.Heavy });
+      }
+      
       await this.presentToast('Error al actualizar el perfil', 'error');
     }
   }
 
-  // ✅ MÉTODOS PARA ALIMENTOS
+  async presentToast(message: string, type: 'success' | 'error') {
+    // ✅ AGREGAR FEEDBACK HÁPTICO EN MÓVIL
+    if (Capacitor.isNativePlatform()) {
+      await Haptics.impact({ 
+        style: type === 'success' ? ImpactStyle.Light : ImpactStyle.Heavy 
+      });
+    }
+
+    const toast = await this.toastController.create({
+      message,
+      duration: 3000,
+      color: type === 'success' ? 'success' : 'danger',
+      position: 'bottom'
+    });
+    await toast.present();
+  }
+
+  // ... (el resto de los métodos se mantienen igual)
+
+  // MÉTODOS PARA ALIMENTOS
   agregarAlimentoFavorito() {
     if (this.nuevoAlimentoFavorito.trim()) {
       const alimento = this.nuevoAlimentoFavorito.trim();
@@ -229,7 +248,6 @@ export class PerfilPage implements OnInit, OnDestroy {
     this.user.configuracionPlanes.alimentosEvitar.splice(index, 1);
   }
 
-  // ✅ MÉTODOS DE SEGURIDAD
   async changePassword() {
     if (!this.currentUser) {
       await this.presentToast('No hay usuario autenticado', 'error');
@@ -281,9 +299,21 @@ export class PerfilPage implements OnInit, OnDestroy {
     try {
       await this.authService.updatePassword(newPassword);
       await loading.dismiss();
+      
+      // ✅ AGREGAR FEEDBACK HÁPTICO EN MÓVIL
+      if (Capacitor.isNativePlatform()) {
+        await Haptics.impact({ style: ImpactStyle.Light });
+      }
+      
       await this.presentToast('Contraseña actualizada correctamente', 'success');
     } catch (error: any) {
       await loading.dismiss();
+      
+      // ✅ AGREGAR FEEDBACK HÁPTICO PARA ERROR
+      if (Capacitor.isNativePlatform()) {
+        await Haptics.impact({ style: ImpactStyle.Heavy });
+      }
+      
       await this.presentToast(`Error: ${error.message}`, 'error');
     }
   }
@@ -353,7 +383,6 @@ export class PerfilPage implements OnInit, OnDestroy {
     }
   }
 
-  // ✅ MÉTODOS DE NAVEGACIÓN Y UI
   goBack() {
     this.router.navigate(['/home']);
   }
@@ -365,17 +394,6 @@ export class PerfilPage implements OnInit, OnDestroy {
     this.nuevoAlimentoEvitar = '';
   }
 
-  async presentToast(message: string, type: 'success' | 'error') {
-    const toast = await this.toastController.create({
-      message,
-      duration: 3000,
-      color: type === 'success' ? 'success' : 'danger',
-      position: 'bottom'
-    });
-    await toast.present();
-  }
-
-  // ✅ MÉTODOS HELPER
   getNivelActividadLabel(value: string): string {
     const nivel = this.nivelesActividad.find(n => n.value === value);
     return nivel ? nivel.label : value;
@@ -395,7 +413,6 @@ export class PerfilPage implements OnInit, OnDestroy {
     await alert.present();
   }
 
-  // ✅ MÉTODOS ADICIONALES PARA RESTRICCIONES Y TIPOS DE EJERCICIO
   agregarRestriccionAlimentaria(restriccion: string) {
     if (restriccion && !this.user.configuracionPlanes.restriccionesAlimentarias.includes(restriccion)) {
       this.user.configuracionPlanes.restriccionesAlimentarias.push(restriccion);

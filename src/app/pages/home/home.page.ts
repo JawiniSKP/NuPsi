@@ -17,13 +17,21 @@ import {
   IonCard,
   IonCardHeader,
   IonCardTitle,
-  IonCardContent
+  IonCardContent,
+  ActionSheetController,
+  ToastController,
+  AlertController,
+  LoadingController
 } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+
+// ✅ AGREGAR IMPORTS DE CAPACITOR
+import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 @Component({
   selector: 'app-home',
@@ -60,11 +68,11 @@ export class HomePage implements OnInit, OnDestroy {
   // Datos de Firebase
   usuarioData: Usuario | null = null;
   indicadorHoy: Indicador | null = null;
-  
+
   // Hidratación
   vasosAgua: number = 0;
   metaVasosAgua: number = 8;
-  
+
   // Motivación
   fraseMotivacional: string = 'Recuerda que pequeños cambios generan grandes resultados. ¡Tú puedes!';
 
@@ -87,9 +95,16 @@ export class HomePage implements OnInit, OnDestroy {
 
   private auth = inject(Auth);
   private homeService = inject(HomeService);
-  private authService = inject(AuthService); // ✅ MOVIDO: Inyección correcta
+  private authService = inject(AuthService);
   private router = inject(Router);
   private ngZone = inject(NgZone);
+  
+  // ✅ CORREGIDO: Inyectar controles de Ionic
+  private actionSheetController = inject(ActionSheetController);
+  private toastController = inject(ToastController);
+  private alertController = inject(AlertController);
+  private loadingController = inject(LoadingController);
+
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -101,14 +116,13 @@ export class HomePage implements OnInit, OnDestroy {
   ngOnInit() {
     console.log('🚀 HomePage initialized');
 
-    // ✅ OPTIMIZADO: Suscripción más limpia
     this.authService.user
       .pipe(takeUntil(this.destroy$))
       .subscribe((user) => {
         this.ngZone.run(() => {
           console.log('Auth state changed:', user);
           this.user = user;
-          
+
           if (user) {
             this.loadAllUserData(user.uid);
           } else {
@@ -117,7 +131,6 @@ export class HomePage implements OnInit, OnDestroy {
         });
       });
 
-    // Cargar frase motivacional
     this.loadFraseMotivacional();
   }
 
@@ -139,12 +152,12 @@ export class HomePage implements OnInit, OnDestroy {
 
     try {
       const usuario = await this.homeService.getUsuarioDataOnce(uid);
-      
+
       if (usuario) {
         this.ngZone.run(() => {
           this.usuarioData = usuario;
           this.userName = usuario.nombreUsuario || 'Usuario';
-          
+
           console.log('✅ Usuario cargado:', usuario);
           console.log('📋 haCompletadoConfiguracionInicial:', usuario.haCompletadoConfiguracionInicial);
 
@@ -153,7 +166,7 @@ export class HomePage implements OnInit, OnDestroy {
             console.log('🔄 Redirigiendo a configuración inicial...');
             setTimeout(() => {
               this.ngZone.run(() => {
-                this.router.navigate(['/indicators'], { 
+                this.router.navigate(['/indicators'], {
                   queryParams: { setupInicial: 'true' },
                   replaceUrl: true
                 });
@@ -164,13 +177,13 @@ export class HomePage implements OnInit, OnDestroy {
 
           console.log('✅ Usuario ya completó configuración inicial, continuando...');
         });
-        
+
         // Cargar indicador y actualizar acceso en paralelo
         await Promise.all([
           this.subscribeToTodayIndicator(uid),
           this.actualizarUltimoAcceso(uid)
         ]);
-        
+
       } else {
         console.error('❌ Usuario no encontrado en Firestore');
       }
@@ -358,13 +371,13 @@ export class HomePage implements OnInit, OnDestroy {
 
     if (this.vasosAgua < 20) {
       this.vasosAgua++;
-      
+
       console.log('💧 Incrementando vasos de agua a:', this.vasosAgua);
 
       // ✅ SOLO ACTUALIZA EL AGUA, NO TODO EL INDICADOR
       this.homeService.actualizarVasosAgua(
-        this.user.uid, 
-        this.vasosAgua, 
+        this.user.uid,
+        this.vasosAgua,
         this.indicadorHoy?.id
       )
       .pipe(takeUntil(this.destroy$))
@@ -372,7 +385,7 @@ export class HomePage implements OnInit, OnDestroy {
         next: (success) => {
           if (success) {
             console.log('✅ Vasos de agua actualizados:', this.vasosAgua);
-            
+
             if (this.vasosAgua === this.metaVasosAgua) {
               this.showToast('¡Felicitaciones! Alcanzaste tu meta de agua 🎉', 'success');
             }
@@ -395,13 +408,13 @@ export class HomePage implements OnInit, OnDestroy {
 
     if (this.vasosAgua > 0) {
       this.vasosAgua--;
-      
+
       console.log('💧 Decrementando vasos de agua a:', this.vasosAgua);
 
       // ✅ SOLO ACTUALIZA EL AGUA, NO TODO EL INDICADOR
       this.homeService.actualizarVasosAgua(
-        this.user.uid, 
-        this.vasosAgua, 
+        this.user.uid,
+        this.vasosAgua,
         this.indicadorHoy?.id
       )
       .pipe(takeUntil(this.destroy$))
@@ -415,143 +428,151 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   /**
-   * 🍔 ABRIR MENÚ HAMBURGUESA PRINCIPAL
+   * 🍔 ABRIR MENÚ HAMBURGUESA PRINCIPAL - CORREGIDO
    */
   async openMainMenu() {
-    const actionSheet = document.createElement('ion-action-sheet');
-    
-    actionSheet.header = 'Navegación';
-    actionSheet.buttons = [
-      {
-        text: 'Inicio',
-        icon: 'home',
-        handler: () => {
-          this.ngZone.run(() => {
-            this.router.navigate(['/home']);
-          });
-        }
-      },
-      {
-        text: 'Indicadores',
-        icon: 'stats-chart',
-        handler: () => {
-          this.ngZone.run(() => {
-            this.router.navigate(['/indicators']);
-          });
-        }
-      },
-      {
-        text: 'Chatbot',
-        icon: 'chatbubble',
-        handler: () => {
-          this.ngZone.run(() => {
-            this.router.navigate(['/chat']);
-          });
-        }
-      },
-      {
-        text: 'Estadísticas',
-        icon: 'analytics',
-        handler: () => {
-          this.showComingSoon('Estadísticas');
-        }
-      },
-      {
-        text: 'Configuración',
-        icon: 'settings-outline',
-        handler: () => {
-          this.showComingSoon('Configuración');
-        }
-      },
-      {
-        text: 'Cerrar Sesión',
-        icon: 'log-out-outline',
-        role: 'destructive',
-        handler: () => {
-          this.logout();
-        }
-      },
-      {
-        text: 'Cancelar',
-        icon: 'close',
-        role: 'cancel'
-      }
-    ];
+    // ✅ FEEDBACK HÁPTICO EN MÓVIL
+    if (Capacitor.isNativePlatform()) {
+      await Haptics.impact({ style: ImpactStyle.Light });
+    }
 
-    document.body.appendChild(actionSheet);
+    const actionSheet = await this.actionSheetController.create({
+      header: 'Navegación',
+      buttons: [
+        {
+          text: 'Inicio',
+          icon: 'home',
+          handler: () => {
+            this.ngZone.run(() => {
+              this.router.navigate(['/home']);
+            });
+          }
+        },
+        {
+          text: 'Indicadores',
+          icon: 'stats-chart',
+          handler: () => {
+            this.ngZone.run(() => {
+              this.router.navigate(['/indicators']);
+            });
+          }
+        },
+        {
+          text: 'Chatbot',
+          icon: 'chatbubble',
+          handler: () => {
+            this.ngZone.run(() => {
+              this.router.navigate(['/chat']);
+            });
+          }
+        },
+        {
+          text: 'Estadísticas',
+          icon: 'analytics',
+          handler: () => {
+            this.showComingSoon('Estadísticas');
+          }
+        },
+        {
+          text: 'Configuración',
+          icon: 'settings-outline',
+          handler: () => {
+            this.showComingSoon('Configuración');
+          }
+        },
+        {
+          text: 'Cerrar Sesión',
+          icon: 'log-out-outline',
+          role: 'destructive',
+          handler: () => {
+            this.logout();
+          }
+        },
+        {
+          text: 'Cancelar',
+          icon: 'close',
+          role: 'cancel'
+        }
+      ]
+    });
+
     await actionSheet.present();
   }
 
   /**
-   * 👤 ABRIR MENÚ DE PERFIL
+   * 👤 ABRIR MENÚ DE PERFIL - CORREGIDO
    */
   async openProfileMenu(event: any) {
-    const actionSheet = document.createElement('ion-action-sheet');
-    
-    actionSheet.header = this.userName || 'Usuario';
-    actionSheet.subHeader = this.user?.email || '';
-    actionSheet.buttons = [
-      {
-        text: 'Ver Perfil',
-        icon: 'person-outline',
-        handler: () => {
-          this.openProfile();
-        }
-      },
-      {
-        text: 'Configuración',
-        icon: 'settings-outline',
-        handler: () => {
-          this.showComingSoon('Configuración');
-        }
-      },
-      {
-        text: 'Cerrar Sesión',
-        icon: 'log-out-outline',
-        role: 'destructive',
-        handler: () => {
-          this.logout();
-        }
-      },
-      {
-        text: 'Cancelar',
-        icon: 'close',
-        role: 'cancel'
-      }
-    ];
+    // ✅ FEEDBACK HÁPTICO EN MÓVIL
+    if (Capacitor.isNativePlatform()) {
+      await Haptics.impact({ style: ImpactStyle.Light });
+    }
 
-    document.body.appendChild(actionSheet);
+    const actionSheet = await this.actionSheetController.create({
+      header: this.userName || 'Usuario',
+      subHeader: this.user?.email || '',
+      buttons: [
+        {
+          text: 'Ver Perfil',
+          icon: 'person-outline',
+          handler: () => {
+            this.openProfile();
+          }
+        },
+        {
+          text: 'Configuración',
+          icon: 'settings-outline',
+          handler: () => {
+            this.showComingSoon('Configuración');
+          }
+        },
+        {
+          text: 'Cerrar Sesión',
+          icon: 'log-out-outline',
+          role: 'destructive',
+          handler: () => {
+            this.logout();
+          }
+        },
+        {
+          text: 'Cancelar',
+          icon: 'close',
+          role: 'cancel'
+        }
+      ]
+    });
+
     await actionSheet.present();
   }
 
   /**
-   * Cerrar sesión
+   * Cerrar sesión - CORREGIDO
    */
   async logout() {
     try {
-      const loading = document.createElement('ion-loading');
-      loading.message = 'Cerrando sesión...';
-      document.body.appendChild(loading);
+      const loading = await this.loadingController.create({
+        message: 'Cerrando sesión...'
+      });
       await loading.present();
 
       await this.authService.logout();
-      
+
       await loading.dismiss();
       await this.showToast('Sesión cerrada correctamente', 'success');
-      
+
       this.ngZone.run(() => {
         this.resetUserData();
         this.router.navigate(['/login']);
       });
-      
+
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
-      
-      const loading = document.querySelector('ion-loading');
+
+      const loading = await this.loadingController.getTop();
       if (loading) {
         await loading.dismiss();
       }
-      
+
       await this.showAlert('Error', 'No se pudo cerrar la sesión');
     }
   }
@@ -581,33 +602,43 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   /**
-   * UTILIDADES PARA MOSTRAR MENSAJES
+   * UTILIDADES PARA MOSTRAR MENSAJES - CORREGIDAS
    */
   private async showToast(message: string, color: string = 'success') {
-    const toast = document.createElement('ion-toast');
-    toast.message = message;
-    toast.duration = 2000;
-    toast.position = 'top';
-    toast.color = color;
+    // ✅ FEEDBACK HÁPTICO EN MÓVIL
+    if (Capacitor.isNativePlatform()) {
+      await Haptics.impact({ style: ImpactStyle.Light });
+    }
 
-    document.body.appendChild(toast);
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+      position: 'top',
+      color: color
+    });
     await toast.present();
   }
 
   private async showAlert(header: string, message: string) {
-    const alert = document.createElement('ion-alert');
-    alert.header = header;
-    alert.message = message;
-    alert.buttons = ['OK'];
-
-    document.body.appendChild(alert);
+    const alert = await this.alertController.create({
+      header: header,
+      message: message,
+      buttons: ['OK']
+    });
     await alert.present();
   }
 
   private async showComingSoon(feature: string) {
-    await this.showAlert(
-      'Próximamente', 
-      `${feature} estará disponible en la próxima actualización.`
-    );
+    // ✅ FEEDBACK HÁPTICO EN MÓVIL
+    if (Capacitor.isNativePlatform()) {
+      await Haptics.impact({ style: ImpactStyle.Medium });
+    }
+
+    const alert = await this.alertController.create({
+      header: 'Próximamente',
+      message: `${feature} estará disponible en la próxima actualización.`,
+      buttons: ['OK']
+    });
+    await alert.present();
   }
 }

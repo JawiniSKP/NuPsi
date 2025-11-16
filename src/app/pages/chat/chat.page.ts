@@ -1,16 +1,21 @@
-import { Component, OnInit, viewChild } from '@angular/core';
+import { Component, OnInit, viewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { 
-  IonContent, IonHeader, IonToolbar, IonTitle, 
-  IonAvatar, IonButton, IonIcon, IonFooter, 
-  IonTextarea, IonButtons, IonBackButton 
+import {
+  IonContent, IonHeader, IonToolbar, IonTitle,
+  IonAvatar, IonButton, IonIcon, IonFooter,
+  IonTextarea, IonButtons, IonBackButton
 } from '@ionic/angular/standalone';
 import { ChatService } from './chat.service';
 import { addIcons } from 'ionicons';
-import { 
-  arrowUpCircle, ellipsisVertical, chatbubbles } from 'ionicons/icons';
-import { MarkdownModule } from 'ngx-markdown'; // <-- Importa el módulo Markdown
+import {
+  arrowUpCircle, ellipsisVertical, chatbubbles 
+} from 'ionicons/icons';
+import { MarkdownModule } from 'ngx-markdown';
+
+// ✅ IMPORTS COMPLETOS DE CAPACITOR
+import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 interface Message {
   id: string;
@@ -50,8 +55,7 @@ interface MessageDateGroup {
     IonIcon,
     IonFooter,
     IonTextarea,
-     // ¡¡¡ AÑADE MarkdownModule AQUÍ !!!
-     MarkdownModule // <-- Importa el módulo Markdown correctamente
+    MarkdownModule
   ]
 })
 export class ChatPage implements OnInit {
@@ -62,8 +66,10 @@ export class ChatPage implements OnInit {
   newMessage: string = '';
   botIsTyping: boolean = false;
 
-  constructor(private chatService: ChatService) {
-    addIcons({ellipsisVertical,chatbubbles,arrowUpCircle});
+  private chatService = inject(ChatService);
+
+  constructor() {
+    addIcons({ellipsisVertical, chatbubbles, arrowUpCircle});
   }
 
   ngOnInit() {
@@ -80,19 +86,31 @@ export class ChatPage implements OnInit {
     }
   }
 
-  sendMessage() {
+  // ✅ CORREGIDO: Método async con manejo de conexión y háptica
+  async sendMessage() {
     const text = this.newMessage.trim();
     if (!text) return;
+
+    // ✅ AGREGAR FEEDBACK HÁPTICO EN MÓVIL AL ENVIAR
+    if (Capacitor.isNativePlatform()) {
+      await Haptics.impact({ style: ImpactStyle.Light });
+    }
 
     this.addMessage('user', text);
     this.newMessage = '';
     this.scrollToBottom(100);
 
     this.botIsTyping = true;
-    
+
     this.chatService.sendMessage(text).subscribe({
-      next: (responses) => {
+      next: async (responses) => {
         this.botIsTyping = false;
+        
+        // ✅ AGREGAR FEEDBACK HÁPTICO PARA RESPUESTA EXITOSA
+        if (Capacitor.isNativePlatform() && responses.length > 0) {
+          await Haptics.impact({ style: ImpactStyle.Medium });
+        }
+
         responses.forEach((response, index) => {
           setTimeout(() => {
             if (response.text) {
@@ -102,10 +120,17 @@ export class ChatPage implements OnInit {
           }, index * 500);
         });
       },
-      error: (err) => {
+      error: async (err) => {
         this.botIsTyping = false;
         console.error('Error:', err);
-        this.addMessage('bot', 'Lo siento, tengo problemas de conexión. Inténtalo más tarde.');
+        
+        // ✅ AGREGAR FEEDBACK HÁPTICO PARA ERROR
+        if (Capacitor.isNativePlatform()) {
+          await Haptics.impact({ style: ImpactStyle.Heavy });
+        }
+
+        // ✅ USAR MENSAJE DE ERROR MEJORADO DEL SERVICIO
+        this.addMessage('bot', err.message || 'Lo siento, tengo problemas de conexión. Inténtalo más tarde.');
         this.scrollToBottom(100);
       }
     });
@@ -118,25 +143,25 @@ export class ChatPage implements OnInit {
       text,
       timestamp: new Date()
     };
-    
+
     this.messages.push(message);
     this.groupMessages();
   }
 
   groupMessages() {
     const groups: MessageDateGroup[] = [];
-    
+
     this.messages.forEach((msg) => {
       const dateStr = this.formatDate(msg.timestamp);
-      
+
       let dateGroup = groups.find(g => g.date === dateStr);
       if (!dateGroup) {
         dateGroup = { date: dateStr, clusters: [] };
         groups.push(dateGroup);
       }
-      
+
       const lastCluster = dateGroup.clusters[dateGroup.clusters.length - 1];
-      
+
       if (lastCluster && lastCluster.sender === msg.sender) {
         msg.isFirst = lastCluster.messages.length === 0;
         lastCluster.messages.push(msg);
@@ -150,7 +175,7 @@ export class ChatPage implements OnInit {
         });
       }
     });
-    
+
     this.groupedMessages = groups;
   }
 
@@ -158,23 +183,23 @@ export class ChatPage implements OnInit {
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    
+
     if (this.isSameDay(date, today)) {
       return 'Hoy';
     } else if (this.isSameDay(date, yesterday)) {
       return 'Ayer';
     } else {
-      return date.toLocaleDateString('es-ES', { 
-        day: 'numeric', 
-        month: 'short' 
+      return date.toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'short'
       });
     }
   }
 
   formatTime(date: Date): string {
-    return date.toLocaleTimeString('es-ES', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    return date.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit'
     });
   }
 

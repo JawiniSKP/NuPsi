@@ -22,6 +22,8 @@ import { Observable, from, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { switchMap } from 'rxjs/operators';
 
+// ✅ AGREGAR IMPORTS DE CAPACITOR
+import { Capacitor } from '@capacitor/core';
 
 export interface Usuario {
   uid: string;
@@ -52,7 +54,7 @@ export class AuthService {
   private auth = inject(Auth);
   private firestore = inject(Firestore);
   private ngZone = inject(NgZone);
-  
+
   user = user(this.auth);
   authState = authState(this.auth);
   private authStateInitialized = false;
@@ -63,7 +65,7 @@ export class AuthService {
 
   private initializeAuthState() {
     if (this.authStateInitialized) return;
-    
+
     this.ngZone.run(() => {
       onAuthStateChanged(this.auth, (user) => {
         console.log('🔐 Auth state changed:', user?.uid || 'No user');
@@ -91,7 +93,7 @@ export class AuthService {
   async getCurrentUserName(): Promise<string> {
     const currentUser = this.auth.currentUser;
     if (!currentUser) return 'Usuario';
-    
+
     return currentUser.displayName || currentUser.email?.split('@')[0] || 'Usuario';
   }
 
@@ -101,8 +103,6 @@ export class AuthService {
   }
 
   // ✅ CORREGIDO: Obtener datos del usuario actual como Observable
-  // ✅ ALTERNATIVA MÁS SIMPLE:
-// ✅ CORREGIDO COMPLETAMENTE:
   getCurrentUserData(): Observable<Usuario | null> {
     return this.getCurrentUser().pipe(
       switchMap(user => {
@@ -117,6 +117,7 @@ export class AuthService {
       })
     );
   }
+
   // ✅ CORREGIDO: Actualizar perfil del usuario
   async updateUserProfile(displayName: string, photoURL?: string): Promise<void> {
     const user = this.auth.currentUser;
@@ -181,7 +182,7 @@ export class AuthService {
       await deleteDoc(userDocRef);
 
       await deleteUser(user);
-      
+
       console.log('✅ Cuenta eliminada correctamente');
     } catch (error: any) {
       console.error('❌ Error eliminando cuenta:', error);
@@ -303,9 +304,9 @@ export class AuthService {
         console.log('🔐 Iniciando login...');
         return signInWithEmailAndPassword(this.auth, email, password).then(async (result) => {
           console.log('✅ Login exitoso:', result.user.uid);
-          
+
           await this.updateLastAccess();
-          
+
           return result;
         });
       } catch (error) {
@@ -315,26 +316,31 @@ export class AuthService {
     });
   }
 
-  // ✅ CORREGIDO: Login con Google
+  // ✅ CORREGIDO: Login con Google - MEJORADO PARA MÓVIL
   async googleLogin(): Promise<any> {
     return this.ngZone.run(() => {
       try {
         const provider = new GoogleAuthProvider();
         provider.addScope('profile');
         provider.addScope('email');
-        
+
         console.log('🔐 Iniciando Google login...');
-        
+
+        // ✅ DETECTAR SI ES MÓVIL Y MOSTRAR MENSAJE
+        if (Capacitor.isNativePlatform()) {
+          console.log('📱 Ejecutando en app nativa - Google Sign-In puede abrir navegador');
+        }
+
         return signInWithPopup(this.auth, provider).then(async (result) => {
           if (result.user) {
             console.log('✅ Google login exitoso:', result.user.uid);
-            
+
             const userDocRef = doc(this.firestore, `usuarios/${result.user.uid}`);
             const userDoc = await getDoc(userDocRef);
-            
+
             if (!userDoc.exists()) {
               console.log('📝 Usuario nuevo, creando documento...');
-              
+
               await setDoc(userDocRef, {
                 nombreUsuario: result.user.displayName || 'Usuario',
                 correo: result.user.email || '',
@@ -355,7 +361,7 @@ export class AuthService {
                   tiposEjercicioPreferidos: []
                 }
               });
-              
+
               console.log('💾 Usuario de Google creado en usuarios/', result.user.uid);
             } else {
               console.log('👤 Usuario existente, actualizando último acceso...');
@@ -365,12 +371,18 @@ export class AuthService {
               console.log('✅ Último acceso actualizado');
             }
           }
-          
+
           return result;
         });
       } catch (error: any) {
         console.error('❌ Error en Google login:', error);
         console.error('Código de error:', error.code);
+        
+        // ✅ MEJOR MANEJO DE ERRORES PARA MÓVIL
+        if (error.code === 'auth/popup-blocked' && Capacitor.isNativePlatform()) {
+          throw new Error('El login con Google fue bloqueado. En dispositivos móviles, esto es normal y puede requerir que permitas ventanas emergentes.');
+        }
+        
         throw error;
       }
     });
@@ -388,7 +400,7 @@ export class AuthService {
             });
 
             const userDocRef = doc(this.firestore, `usuarios/${result.user.uid}`);
-            
+
             try {
               await setDoc(userDocRef, {
                 nombreUsuario: name,
@@ -413,8 +425,8 @@ export class AuthService {
               console.log('✅ Registro exitoso y guardado en usuarios/', result.user.uid);
             } catch (firestoreError: any) {
               console.error('❌ Error guardando usuario en Firestore:', firestoreError);
-              
-              if (firestoreError?.code === 'unavailable' || 
+
+              if (firestoreError?.code === 'unavailable' ||
                   firestoreError?.message?.includes('blocked')) {
                 console.warn('⚠️ Error de conexión, pero registro exitoso');
               } else {
@@ -422,7 +434,7 @@ export class AuthService {
               }
             }
           }
-          
+
           return result;
         });
       } catch (error) {
