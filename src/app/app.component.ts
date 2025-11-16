@@ -8,6 +8,13 @@ import { Subject } from 'rxjs';
 // ✅ Servicio de íconos
 import { IconService } from './services/icon.service';
 
+// ✅ IMPORTS DE CAPACITOR (AGREGAR ESTOS)
+import { Capacitor } from '@capacitor/core';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { Keyboard } from '@capacitor/keyboard';
+import { App } from '@capacitor/app';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
+
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
@@ -38,16 +45,83 @@ export class AppComponent implements OnInit, OnDestroy {
 
   constructor() {
     console.log('🚀 AppComponent inicializado con íconos globales');
+    this.initializeCapacitor(); // ✅ INICIALIZAR CAPACITOR
   }
 
   ngOnInit() {
     this.initializeAuthGuard();
     this.setupRouteListener();
+    this.setupBackButton(); // ✅ CONFIGURAR BOTÓN ATRÁS DE ANDROID
   }
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  /**
+   * 📱 INICIALIZAR CAPACITOR - NUEVO MÉTODO
+   */
+  private async initializeCapacitor() {
+    if (Capacitor.isNativePlatform()) {
+      console.log('📱 Ejecutando en plataforma nativa');
+      
+      try {
+        // Configurar Status Bar
+        await StatusBar.setStyle({ style: Style.Dark });
+        await StatusBar.setBackgroundColor({ color: '#3880ff' });
+        
+        // Configurar Keyboard
+        await Keyboard.setAccessoryBarVisible({ isVisible: false });
+        
+        console.log('✅ Capacitor configurado correctamente');
+      } catch (error) {
+        console.warn('⚠️ Error configurando Capacitor:', error);
+      }
+    } else {
+      console.log('🌐 Ejecutando en navegador web');
+    }
+  }
+
+  /**
+   * 🔙 CONFIGURAR BOTÓN ATRÁS DE ANDROID - NUEVO MÉTODO
+   */
+  private setupBackButton() {
+    if (Capacitor.isNativePlatform()) {
+      App.addListener('backButton', ({ canGoBack }) => {
+        if (!canGoBack) {
+          // Si no puede ir atrás, mostrar confirmación para salir
+          this.showExitConfirmation();
+        } else {
+          // Navegar atrás normalmente
+          window.history.back();
+        }
+      });
+    }
+  }
+
+  /**
+   * 🚪 CONFIRMACIÓN PARA SALIR DE LA APP - NUEVO MÉTODO
+   */
+  private async showExitConfirmation() {
+    const alert = await this.alertController.create({
+      header: 'Salir',
+      message: '¿Estás seguro de que quieres salir de la aplicación?',
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Salir',
+          handler: () => {
+            App.exitApp();
+          }
+        }
+      ]
+    });
+
+    await alert.present();
   }
 
   /**
@@ -154,6 +228,11 @@ export class AppComponent implements OnInit, OnDestroy {
    * 🍔 ABRIR MENÚ HAMBURGUESA PRINCIPAL
    */
   async openMainMenu() {
+    // ✅ FEEDBACK HÁPTICO EN MÓVIL
+    if (Capacitor.isNativePlatform()) {
+      await Haptics.impact({ style: ImpactStyle.Light });
+    }
+
     const actionSheet = await this.actionSheetController.create({
       header: 'Navegación',
       buttons: [
@@ -229,6 +308,11 @@ export class AppComponent implements OnInit, OnDestroy {
    * 👤 ABRIR MENÚ DE PERFIL
    */
   async openProfileMenu(event: any) {
+    // ✅ FEEDBACK HÁPTICO EN MÓVIL
+    if (Capacitor.isNativePlatform()) {
+      await Haptics.impact({ style: ImpactStyle.Light });
+    }
+
     const actionSheet = await this.actionSheetController.create({
       header: 'Mi Perfil',
       buttons: [
@@ -317,6 +401,11 @@ export class AppComponent implements OnInit, OnDestroy {
    * 🚧 MOSTRAR "PRÓXIMAMENTE"
    */
   private async showComingSoon(feature: string) {
+    // ✅ FEEDBACK HÁPTICO EN MÓVIL
+    if (Capacitor.isNativePlatform()) {
+      await Haptics.impact({ style: ImpactStyle.Medium });
+    }
+
     const alert = await this.alertController.create({
       header: 'Próximamente',
       message: `${feature} estará disponible en la próxima actualización.`,
