@@ -61,7 +61,7 @@ export class PerfilPage implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  private authService = inject(AuthService);
+  public authService = inject(AuthService);
   private firestore = inject(Firestore);
   private alertController = inject(AlertController);
   private toastController = inject(ToastController);
