@@ -99,11 +99,12 @@ export class IndicatorsPage implements OnInit {
   }
 
   // ============================================
-  // 🎯 CARGAR ÚLTIMOS VALORES FÍSICOS
+  // 🎯 CARGAR ÚLTIMOS VALORES FÍSICOS - CORREGIDO
   // ============================================
   async cargarUltimosValoresFisicos() {
     try {
-      this.ultimosValores = await this.homeService.obtenerUltimosValoresFisicos(this.currentUserId);
+      // ✅ CORREGIDO: Sin parámetros
+      this.ultimosValores = await this.homeService.obtenerUltimosValoresFisicos();
 
       if (this.ultimosValores.peso && this.ultimosValores.estatura) {
         // Pre-llenar el formulario con los últimos valores
@@ -127,7 +128,8 @@ export class IndicatorsPage implements OnInit {
   async loadUserIndicators() {
     this.loading = true;
     
-    this.homeService.getHistorialIndicadores(this.currentUserId, 30).subscribe({
+    // ✅ CORREGIDO: Solo 1 parámetro (días)
+    this.homeService.getHistorialIndicadores(30).subscribe({
       next: (indicadores) => {
         this.userIndicators = indicadores;
         console.log('✅ Indicadores cargados:', indicadores.length);
@@ -183,7 +185,8 @@ export class IndicatorsPage implements OnInit {
 
       console.log('💾 Guardando indicador:', indicadorData);
 
-      this.homeService.guardarIndicadorCompleto(this.currentUserId, indicadorData).subscribe({
+      // ✅ CORREGIDO: Solo 1 parámetro (indicadorData)
+      this.homeService.guardarIndicadorCompleto(indicadorData).subscribe({
         next: async (success) => {
           if (success) {
             await loading.dismiss();
@@ -237,7 +240,8 @@ export class IndicatorsPage implements OnInit {
     await loading.present();
 
     try {
-      this.homeService.marcarConfiguracionInicialCompleta(this.currentUserId).subscribe({
+      // ✅ CORREGIDO: Sin parámetros
+      this.homeService.marcarConfiguracionInicialCompleta().subscribe({
         next: async (success) => {
           console.log('📡 Respuesta de marcarConfiguracion:', success);
           

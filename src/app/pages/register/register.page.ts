@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, NgZone } from '@angular/core'; // ✅ NgZone AGREGADO
+import { Component, OnInit, inject, NgZone } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { HomeService } from '../../services/home.service';
 import { Router } from '@angular/router';
@@ -23,9 +23,9 @@ import { LoadingController, ToastController } from '@ionic/angular';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import type { AbstractControl } from '@angular/forms';
 
-// ✅ ELIMINADO: addIcons individual - Ya está en el servicio global
-// import { addIcons } from 'ionicons';
-// import { ... } from 'ionicons/icons';
+// ✅ IMPORTS DE CAPACITOR PARA ANDROID
+import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 @Component({
   selector: 'app-register',
@@ -65,7 +65,7 @@ export class RegisterPage implements OnInit {
   private loadingController = inject(LoadingController);
   private toastController = inject(ToastController);
   private router = inject(Router);
-  private ngZone = inject(NgZone); // ✅ NgZone AGREGADO
+  private ngZone = inject(NgZone);
 
   constructor() {
     this.registerForm = this.fb.group({
@@ -74,8 +74,6 @@ export class RegisterPage implements OnInit {
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]]
     }, { validators: this.passwordMatchValidator });
-
-    // ✅ ELIMINADO: addIcons individual - Usa servicio global
   }
 
   ngOnInit() {
@@ -143,7 +141,7 @@ export class RegisterPage implements OnInit {
 
     if (!this.registerForm.valid) {
       this.errorMessage = 'Por favor completa todos los campos correctamente';
-      this.showToast(this.errorMessage, 'warning');
+      await this.showToast(this.errorMessage, 'warning');
       return;
     }
 
@@ -159,6 +157,11 @@ export class RegisterPage implements OnInit {
       if (result && result.user) {
         console.log('✅ Registro exitoso:', result.user.uid);
         
+        // ✅ FEEDBACK HÁPTICO PARA ÉXITO
+        if (Capacitor.isNativePlatform()) {
+          await Haptics.impact({ style: ImpactStyle.Light });
+        }
+        
         await this.showToast('¡Cuenta creada exitosamente! 🎉', 'success');
         await new Promise(resolve => setTimeout(resolve, 800));
         
@@ -169,8 +172,14 @@ export class RegisterPage implements OnInit {
       }
     } catch (error: any) {
       console.error('❌ Error en registro:', error);
+      
+      // ✅ FEEDBACK HÁPTICO PARA ERROR
+      if (Capacitor.isNativePlatform()) {
+        await Haptics.impact({ style: ImpactStyle.Heavy });
+      }
+      
       this.errorMessage = this.getErrorMessage(error.code);
-      this.showToast(this.errorMessage, 'danger');
+      await this.showToast(this.errorMessage, 'danger');
     } finally {
       this.isRegistering = false;
     }
@@ -191,6 +200,11 @@ export class RegisterPage implements OnInit {
       if (result && result.user) {
         console.log('✅ Registro con Google exitoso:', result.user.uid);
         
+        // ✅ FEEDBACK HÁPTICO PARA ÉXITO
+        if (Capacitor.isNativePlatform()) {
+          await Haptics.impact({ style: ImpactStyle.Light });
+        }
+        
         await this.showToast('¡Bienvenido! 🎉', 'success');
         await new Promise(resolve => setTimeout(resolve, 600));
         
@@ -202,10 +216,17 @@ export class RegisterPage implements OnInit {
     } catch (error: any) {
       console.error('❌ Error en registro con Google:', error);
       
+      // ✅ FEEDBACK HÁPTICO PARA ERROR (solo si no fue cancelado por el usuario)
+      if (Capacitor.isNativePlatform() && 
+          error.code !== 'auth/popup-closed-by-user' && 
+          error.code !== 'auth/cancelled-popup-request') {
+        await Haptics.impact({ style: ImpactStyle.Heavy });
+      }
+      
       if (error.code !== 'auth/popup-closed-by-user' && 
           error.code !== 'auth/cancelled-popup-request') {
         this.errorMessage = this.getErrorMessage(error.code);
-        this.showToast(this.errorMessage, 'danger');
+        await this.showToast(this.errorMessage, 'danger');
       }
     } finally {
       this.isRegistering = false;
@@ -213,13 +234,14 @@ export class RegisterPage implements OnInit {
   }
 
   // ============================================
-  // 🎯 REDIRECCIÓN DESPUÉS DEL REGISTRO
+  // 🎯 REDIRECCIÓN DESPUÉS DEL REGISTRO - CORREGIDO
   // ============================================
   private async redirectAfterRegister(uid: string) {
     console.log('🔄 Verificando estado del usuario registrado:', uid);
     
     try {
-      const necesitaConfig = await this.homeService.necesitaConfiguracionInicial(uid);
+      // ✅ CORREGIDO: Remover el parámetro uid - el servicio debe usar el usuario actual
+      const necesitaConfig = await this.homeService.necesitaConfiguracionInicial();
       
       if (necesitaConfig) {
         console.log('📝 Usuario NUEVO → Ir a configuración inicial');
@@ -239,7 +261,12 @@ export class RegisterPage implements OnInit {
         });
       }
     } catch (error) {
-      console.error('❌ Error verificando configuración, enviando a indicators por seguridad');
+      console.error('❌ Error verificando configuración, enviando a indicators por seguridad:', error);
+      
+      // ✅ FEEDBACK HÁPTICO PARA ADVERTENCIA
+      if (Capacitor.isNativePlatform()) {
+        await Haptics.impact({ style: ImpactStyle.Medium });
+      }
       
       // ✅ CORREGIDO: Navegación dentro de NgZone
       this.ngZone.run(() => {
@@ -262,16 +289,30 @@ export class RegisterPage implements OnInit {
       'auth/network-request-failed': 'Error de conexión. Verifica tu internet',
       'auth/invalid-credential': 'Credenciales inválidas',
       'auth/account-exists-with-different-credential': 'Este email ya existe con otro método de registro',
-      'auth/popup-blocked': 'Habilita los popups para continuar'
+      'auth/popup-blocked': 'Habilita los popups para continuar',
+      'auth/popup-closed-by-user': 'Cancelaste el inicio de sesión',
+      'auth/cancelled-popup-request': 'Solicitud cancelada',
+      'auth/user-disabled': 'Esta cuenta ha sido deshabilitada',
+      'auth/user-not-found': 'Usuario no encontrado',
+      'auth/wrong-password': 'Contraseña incorrecta',
+      'auth/too-many-requests': 'Demasiados intentos. Intenta más tarde'
     };
 
     return errorMessages[errorCode] || 'Error al crear la cuenta. Intenta nuevamente';
   }
 
   // ============================================
-  // TOAST MODERNO
+  // TOAST MODERNO CON HÁPTICA
   // ============================================
   private async showToast(message: string, color: 'success' | 'danger' | 'warning' = 'success') {
+    // ✅ FEEDBACK HÁPTICO PARA TOAST
+    if (Capacitor.isNativePlatform()) {
+      const hapticStyle = color === 'success' ? ImpactStyle.Light : 
+                         color === 'warning' ? ImpactStyle.Medium : 
+                         ImpactStyle.Heavy;
+      await Haptics.impact({ style: hapticStyle });
+    }
+
     const toast = await this.toastController.create({
       message: message,
       duration: 3000,
@@ -293,13 +334,28 @@ export class RegisterPage implements OnInit {
   // ============================================
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
+    
+    // ✅ FEEDBACK HÁPTICO SUAVE
+    if (Capacitor.isNativePlatform()) {
+      Haptics.impact({ style: ImpactStyle.Light });
+    }
   }
 
   toggleConfirmPasswordVisibility() {
     this.showConfirmPassword = !this.showConfirmPassword;
+    
+    // ✅ FEEDBACK HÁPTICO SUAVE
+    if (Capacitor.isNativePlatform()) {
+      Haptics.impact({ style: ImpactStyle.Light });
+    }
   }
 
   goToLogin() {
+    // ✅ FEEDBACK HÁPTICO PARA NAVEGACIÓN
+    if (Capacitor.isNativePlatform()) {
+      Haptics.impact({ style: ImpactStyle.Light });
+    }
+    
     // ✅ CORREGIDO: Navegación dentro de NgZone
     this.ngZone.run(() => {
       this.router.navigate(['/login']);
@@ -308,5 +364,12 @@ export class RegisterPage implements OnInit {
 
   clearError() {
     this.errorMessage = '';
+  }
+
+  // ✅ MÉTODO PARA MANEJAR ENTER EN EL FORMULARIO
+  onKeyPress(event: KeyboardEvent) {
+    if (event.key === 'Enter' && this.registerForm.valid) {
+      this.register();
+    }
   }
 }

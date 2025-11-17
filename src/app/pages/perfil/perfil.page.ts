@@ -217,8 +217,6 @@ export class PerfilPage implements OnInit, OnDestroy {
     await toast.present();
   }
 
-  // ... (el resto de los métodos se mantienen igual)
-
   // MÉTODOS PARA ALIMENTOS
   agregarAlimentoFavorito() {
     if (this.nuevoAlimentoFavorito.trim()) {
@@ -374,11 +372,33 @@ export class PerfilPage implements OnInit, OnDestroy {
     await loading.present();
 
     try {
-      await this.authService.deleteUserAccount(currentPassword);
+      // ✅ CORREGIDO: Pasar el parámetro correctamente
+      if (currentPassword) {
+        await this.authService.deleteUserAccount(currentPassword);
+      } else {
+        await this.authService.deleteUserAccount();
+      }
+      
       await loading.dismiss();
+      
+      // ✅ AGREGAR FEEDBACK HÁPTICO EN MÓVIL
+      if (Capacitor.isNativePlatform()) {
+        await Haptics.impact({ style: ImpactStyle.Light });
+      }
+      
       await this.presentToast('Cuenta eliminada correctamente', 'success');
+      
+      // ✅ REDIRIGIR AL LOGIN DESPUÉS DE ELIMINAR CUENTA
+      this.router.navigate(['/login']);
+      
     } catch (error: any) {
       await loading.dismiss();
+      
+      // ✅ AGREGAR FEEDBACK HÁPTICO PARA ERROR
+      if (Capacitor.isNativePlatform()) {
+        await Haptics.impact({ style: ImpactStyle.Heavy });
+      }
+      
       await this.presentToast(`Error: ${error.message}`, 'error');
     }
   }

@@ -1,0 +1,18 @@
+{
+	"appId": "com.jawini.nupsi",
+	"appName": "NuPsi",
+	"webDir": "www",
+	"server": {
+		"androidScheme": "https",
+		"cleartext": true
+	},
+	"plugins": {
+		"Preferences": {},
+		"Haptics": {},
+		"Browser": {}
+	},
+	"android": {
+		"allowMixedContent": true,
+		"webContentsDebuggingEnabled": true
+	}
+}

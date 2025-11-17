@@ -194,13 +194,13 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   /**
-   * ✅ OPTIMIZADO: Suscribirse al indicador de hoy
+   * ✅ CORREGIDO: Suscribirse al indicador de hoy - SIN VERIFICACIÓN EXTRA
    */
   private async subscribeToTodayIndicator(uid: string) {
     this.homeService.getIndicadorHoy(uid)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (indicador) => {
+        next: (indicador: Indicador | null) => {
           this.ngZone.run(() => {
             if (indicador) {
               this.indicadorHoy = indicador;
@@ -214,7 +214,7 @@ export class HomePage implements OnInit, OnDestroy {
             }
           });
         },
-        error: (error) => {
+        error: (error: any) => {
           this.ngZone.run(() => {
             console.error('❌ Error cargando indicador:', error);
           });
@@ -223,18 +223,11 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   /**
-   * ✅ NUEVO: Método separado para actualizar último acceso
+   * ✅ CORREGIDO: Método separado para actualizar último acceso - SIN VERIFICACIÓN EXTRA
    */
   private async actualizarUltimoAcceso(uid: string) {
-    this.homeService.actualizarUltimoAcceso(uid)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (success) => {
-          if (success) {
-            console.log('✅ Último acceso actualizado');
-          }
-        }
-      });
+    this.homeService.actualizarUltimoAcceso(uid);
+    // Este método es void, no necesita subscribe
   }
 
   /**
@@ -244,13 +237,13 @@ export class HomePage implements OnInit, OnDestroy {
     this.homeService.getFraseMotivacional()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (frase) => {
+        next: (frase: string) => {
           this.ngZone.run(() => {
             this.fraseMotivacional = frase;
             console.log('💡 Frase motivacional:', frase);
           });
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Error cargando frase:', error);
         }
       });
@@ -319,7 +312,7 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   /**
-   * Guardar emociones en Firebase
+   * ✅ CORREGIDO COMPLETAMENTE: Guardar emociones - CON PARÁMETROS CORRECTOS
    */
   private async guardarEmociones() {
     if (!this.user) return;
@@ -338,22 +331,23 @@ export class HomePage implements OnInit, OnDestroy {
       indicadorId: this.indicadorHoy?.id
     });
 
-    this.homeService.guardarIndicadorDiario(
-      this.user.uid,
-      this.selectedEmotions,
-      estadoAnimo,
-      this.vasosAgua,
-      this.indicadorHoy?.id
+    // ✅ CORREGIDO: Usar parámetros en el orden correcto
+    this.homeService.guardarIndicadorDiarioConUid(
+      this.user.uid,           // uid: string
+      this.selectedEmotions,    // emociones: string[]
+      estadoAnimo,             // estadoAnimo: string  
+      this.vasosAgua,          // vasosAgua: number
+      this.indicadorHoy?.id    // indicadorId?: string
     )
     .pipe(takeUntil(this.destroy$))
     .subscribe({
-      next: (success) => {
+      next: (success: boolean) => {
         if (success) {
           console.log('✅ Emociones guardadas');
           this.showToast('Emociones guardadas correctamente', 'success');
         }
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('❌ Error guardando emociones:', error);
         this.showToast('Error al guardar las emociones', 'danger');
       }
@@ -361,7 +355,7 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   /**
-   * ✅ OPTIMIZADO: Incrementar vasos de agua - SOLO ACTUALIZA AGUA
+   * ✅ CORREGIDO COMPLETAMENTE: Incrementar vasos de agua - PARÁMETROS CORRECTOS
    */
   async incrementarVasosAgua() {
     if (!this.user) {
@@ -374,15 +368,15 @@ export class HomePage implements OnInit, OnDestroy {
 
       console.log('💧 Incrementando vasos de agua a:', this.vasosAgua);
 
-      // ✅ SOLO ACTUALIZA EL AGUA, NO TODO EL INDICADOR
-      this.homeService.actualizarVasosAgua(
-        this.user.uid,
-        this.vasosAgua,
-        this.indicadorHoy?.id
+      // ✅ CORREGIDO: Usar parámetros en el orden correcto
+      this.homeService.actualizarVasosAguaConUid(
+        this.user.uid,           // uid: string
+        this.vasosAgua,          // vasosAgua: number
+        this.indicadorHoy?.id    // indicadorId?: string
       )
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (success) => {
+        next: (success: boolean) => {
           if (success) {
             console.log('✅ Vasos de agua actualizados:', this.vasosAgua);
 
@@ -391,7 +385,7 @@ export class HomePage implements OnInit, OnDestroy {
             }
           }
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('❌ Error actualizando vasos de agua:', error);
           this.vasosAgua--;
           this.showToast('Error al actualizar el agua', 'danger');
@@ -401,7 +395,7 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   /**
-   * ✅ OPTIMIZADO: Decrementar vasos de agua - SOLO ACTUALIZA AGUA
+   * ✅ CORREGIDO COMPLETAMENTE: Decrementar vasos de agua - PARÁMETROS CORRECTOS
    */
   async decrementarVasosAgua() {
     if (!this.user) return;
@@ -411,15 +405,15 @@ export class HomePage implements OnInit, OnDestroy {
 
       console.log('💧 Decrementando vasos de agua a:', this.vasosAgua);
 
-      // ✅ SOLO ACTUALIZA EL AGUA, NO TODO EL INDICADOR
-      this.homeService.actualizarVasosAgua(
-        this.user.uid,
-        this.vasosAgua,
-        this.indicadorHoy?.id
+      // ✅ CORREGIDO: Usar parámetros en el orden correcto
+      this.homeService.actualizarVasosAguaConUid(
+        this.user.uid,           // uid: string
+        this.vasosAgua,          // vasosAgua: number
+        this.indicadorHoy?.id    // indicadorId?: string
       )
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        error: (error) => {
+        error: (error: any) => {
           console.error('❌ Error actualizando vasos de agua:', error);
           this.vasosAgua++;
         }
@@ -565,7 +559,7 @@ export class HomePage implements OnInit, OnDestroy {
         this.router.navigate(['/login']);
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al cerrar sesión:', error);
 
       const loading = await this.loadingController.getTop();

@@ -1,19 +1,21 @@
-import type { CapacitorConfig } from '@capacitor/cli';
+import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.nupsi.app',
+  appId: 'com.jawini.nupsi', // ✅ ACTUALIZAR con tu package name real
   appName: 'NuPsi',
   webDir: 'www',
   server: {
-    androidScheme: 'https'
+    androidScheme: 'https',
+    cleartext: true
   },
   plugins: {
-    // Preparado para futura integración con Google Auth nativo
-    GoogleAuth: {
-      scopes: ['profile', 'email'],
-      serverClientId: '1097015901539-xxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com',
-      forceCodeForRefreshToken: true
-    }
+    Preferences: {},
+    Haptics: {},
+    Browser: {}
+  },
+  android: {
+    allowMixedContent: true,
+    webContentsDebuggingEnabled: true
   }
 };
 
