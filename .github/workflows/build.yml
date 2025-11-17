@@ -11,7 +11,7 @@ env:
 jobs:
   build-android:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
     
     steps:
     - name: Checkout code
@@ -33,16 +33,11 @@ jobs:
       run: |
         npm ci --no-audit
 
-    - name: Debug - Check files
+    - name: Fix Google Services version
       run: |
-        echo "=== Current directory ==="
-        pwd
-        ls -la
-        echo "=== Android files ==="
-        ls -la android/
-        echo "=== google-services.json ==="
-        ls -la android/app/google-services.json
-        cat android/app/google-services.json | head -5
+        # Corregir la versión incompatible de Google Services
+        sed -i 's/com.google.gms:google-services:4.4.2/com.google.gms:google-services:4.4.0/g' android/build.gradle
+        echo "✅ Fixed Google Services version"
 
     - name: Build Ionic app
       run: |
@@ -52,20 +47,11 @@ jobs:
       run: |
         npx cap sync android
 
-    - name: Debug - Check Android setup
-      run: |
-        cd android
-        echo "=== Gradle version ==="
-        ./gradlew --version
-        echo "=== Android project structure ==="
-        find . -name "*.gradle" -type f | head -10
-
-    - name: Build APK with full logs
+    - name: Build APK
       run: |
         cd android
         chmod +x gradlew
-        echo "🏗️ Starting APK build..."
-        ./gradlew clean assembleDebug --no-daemon --stacktrace --info --warning-mode all
+        ./gradlew clean assembleDebug --no-daemon --stacktrace
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
@@ -73,4 +59,3 @@ jobs:
         name: nupsi-app
         path: android/app/build/outputs/apk/debug/app-debug.apk
         retention-days: 30
-      continue-on-error: true
