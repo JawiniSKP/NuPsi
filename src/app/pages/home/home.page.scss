@@ -1441,3 +1441,93 @@ app-menu {
     font-size: 24px;
   }
 }
+
+/* ===============================
+   🎯 SOLUCIÓN HEADER SUPERPUESTO
+   =============================== */
+
+/* Asegurar que el header tenga posición fija */
+ion-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+/* Compensar el espacio del header en el contenido */
+.home-content {
+  --padding-top: 80px !important; /* Ajusta según la altura de tu header */
+  --padding-bottom: 100px !important; /* Para el menú inferior */
+  padding-top: var(--padding-top);
+  padding-bottom: var(--padding-bottom);
+}
+
+/* Asegurar que el contenido empiece después del header */
+.content-wrapper {
+  margin-top: 0;
+  min-height: calc(100vh - 180px); /* header + footer */
+}
+
+/* Header específico para home con altura consistente */
+ion-header ion-toolbar {
+  --min-height: 70px;
+  height: 70px;
+}
+
+/* Ajustar el welcome-section para que no quede detrás del header */
+.welcome-section {
+  margin-top: 0;
+  padding-top: 80px; /* Compensar el header fijo */
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+/* Para dispositivos con notch/safe areas */
+@supports(padding: max(0px)) {
+  .home-content {
+    --padding-top: max(80px, env(safe-area-inset-top) + 60px) !important;
+    --padding-bottom: max(100px, env(safe-area-inset-bottom) + 80px) !important;
+  }
+  
+  ion-header {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* Responsive para móviles más pequeños */
+@media (max-width: 380px) {
+  .home-content {
+    --padding-top: 70px !important;
+    --padding-bottom: 90px !important;
+  }
+  
+  ion-header ion-toolbar {
+    --min-height: 60px;
+    height: 60px;
+  }
+  
+  .welcome-section {
+    padding-top: 70px;
+  }
+}
+
+/* Asegurar que el scroll funcione correctamente */
+.inner-scroll {
+  scroll-padding-top: 80px;
+}
+
+/* Mejorar la visibilidad del header con backdrop */
+ion-header::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: linear-gradient(to bottom, 
+    rgba(0, 0, 0, 0.1), 
+    transparent
+  );
+  pointer-events: none;
+}
