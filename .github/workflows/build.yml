@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  NODE_VERSION: '18.20.4'
+  NODE_VERSION: '22.21.1'  # Tu versión actual
   JAVA_VERSION: '17'
 
 jobs:
@@ -18,8 +18,6 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Setup Java
       uses: actions/setup-java@v4
@@ -36,9 +34,8 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
       with:
-        api-level: 33
-        build-tools-version: '33.0.2'
-        cmake-version: '3.22.1'
+        cmdline-tools-version: 'latest'
+        accept-android-sdk-licenses: true
 
     - name: Install dependencies
       run: |
@@ -50,23 +47,18 @@ jobs:
 
     - name: Setup Capacitor Android
       run: |
-        # Verificar y configurar Android platform
         if [ ! -d "android" ]; then
           echo "Adding Android platform..."
           npx cap add android
         else
           echo "Android platform already exists"
         fi
-        
-        # Sincronizar cambios
         npx cap sync android
 
     - name: Setup Gradle
       run: |
         cd android
         chmod +x gradlew
-        # Verificar variables de versión
-        cat variables.gradle || echo "No variables.gradle found"
 
     - name: Cache Gradle
       uses: actions/cache@v3
@@ -79,31 +71,27 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
 
-    - name: Check Firebase configuration
+    - name: Install Android SDK components
       run: |
-        cd android/app
-        if [ -f "google-services.json" ]; then
-          echo "✅ Firebase config found - Building with Firebase support"
-          echo "File size: $(wc -c < google-services.json) bytes"
-        else
-          echo "⚠️  Firebase config not found - Building without Firebase"
-        fi
+        yes | sdkmanager "platforms;android-33"
+        yes | sdkmanager "build-tools;33.0.2"
+        yes | sdkmanager "platform-tools"
 
     - name: Build Debug APK
       run: |
         cd android
-        ./gradlew clean assembleDebug --no-daemon --parallel --build-cache --stacktrace --info
+        ./gradlew clean assembleDebug --no-daemon --parallel --build-cache --stacktrace
 
-    - name: Verify and list APK files
+    - name: Verify APK files
       run: |
         echo "=== Generated APK Files ==="
         find android/app/build/outputs -name "*.apk" -type f -exec ls -la {} \;
         
-        echo "=== APK Details ==="
         APK_FILE=$(find android/app/build/outputs -name "app-debug.apk" -type f)
         if [ -f "$APK_FILE" ]; then
-          echo "✅ APK generated successfully: $APK_FILE"
-          echo "File size: $(ls -lh "$APK_FILE" | awk '{print $5}')"
+          echo "✅ APK generated successfully"
+          echo "📱 File: $APK_FILE"
+          echo "📦 Size: $(ls -lh "$APK_FILE" | awk '{print $5}')"
         else
           echo "❌ APK not found!"
           exit 1
@@ -115,36 +103,14 @@ jobs:
         name: nupsi-app-debug
         path: android/app/build/outputs/apk/debug/app-debug.apk
         retention-days: 30
-        if-no-files-found: error
 
     - name: Run tests
       run: |
         npm run test -- --watch=false --browsers=ChromeHeadless --no-progress
       continue-on-error: true
 
-    - name: Security audit
-      run: |
-        npm audit --audit-level=high
-      continue-on-error: true
-
-    - name: Build success notification
+    - name: Build success
       if: success()
       run: |
         echo "🎉 Build completed successfully!"
-        echo "📱 APK available in Artifacts section"
-        echo "🔧 Package: com.jawini.nupsi"
-        echo "📦 Version: 1.0"
-
-  # Job opcional para notificaciones
-  notify:
-    runs-on: ubuntu-latest
-    needs: build-android
-    if: always()
-    steps:
-      - name: Build status
-        run: |
-          if [ "${{ needs.build-android.result }}" == "success" ]; then
-            echo "✅ Build succeeded"
-          else
-            echo "❌ Build failed"
-          fi
+        echo "📱 APK: com.jawini.nupsi v1.0"
