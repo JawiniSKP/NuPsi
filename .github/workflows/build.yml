@@ -7,10 +7,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Setup Java 17
+      - name: Setup Java 21
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
       
       - name: Setup Node.js
@@ -25,13 +25,18 @@ jobs:
       - name: Build web app
         run: npm run build
       
+      - name: Update Gradle Wrapper
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew wrapper --gradle-version 8.4 --distribution-type all
+      
       - name: Sync Capacitor
         run: npx cap sync android
       
       - name: Build Android APK
         run: |
           cd android
-          chmod +x gradlew
           ./gradlew clean assembleDebug --no-daemon
       
       - name: Upload APK
