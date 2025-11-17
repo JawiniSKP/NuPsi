@@ -5,7 +5,7 @@ android {
     namespace "com.jawini.nupsi"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "io.nupsi.app"
+        applicationId "com.jawini.nupsi"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
