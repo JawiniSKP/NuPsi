@@ -5,25 +5,25 @@ on:
     branches: [ main ]
 
 env:
-  NODE_VERSION: '22.21.1'  # ✅ TU VERSIÓN EXACTA
-  JAVA_VERSION: '17'       # ✅ COMPATIBLE CON NODE 22
+  NODE_VERSION: '22.21.1'
+  JAVA_VERSION: '17'
 
 jobs:
   build-android:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup Java 17
+    - name: Setup Java
       uses: actions/setup-java@v4
       with:
         java-version: ${{ env.JAVA_VERSION }}
         distribution: 'temurin'
 
-    - name: Setup Node.js 22
+    - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
@@ -33,22 +33,39 @@ jobs:
       run: |
         npm ci --no-audit
 
+    - name: Debug - Check files
+      run: |
+        echo "=== Current directory ==="
+        pwd
+        ls -la
+        echo "=== Android files ==="
+        ls -la android/
+        echo "=== google-services.json ==="
+        ls -la android/app/google-services.json
+        cat android/app/google-services.json | head -5
+
     - name: Build Ionic app
       run: |
         npm run build -- --configuration=production
 
     - name: Setup Android
       run: |
-        if [ ! -d "android" ]; then
-          npx cap add android
-        fi
         npx cap sync android
 
-    - name: Build APK
+    - name: Debug - Check Android setup
+      run: |
+        cd android
+        echo "=== Gradle version ==="
+        ./gradlew --version
+        echo "=== Android project structure ==="
+        find . -name "*.gradle" -type f | head -10
+
+    - name: Build APK with full logs
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew clean assembleDebug --no-daemon --stacktrace
+        echo "🏗️ Starting APK build..."
+        ./gradlew clean assembleDebug --no-daemon --stacktrace --info --warning-mode all
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
@@ -56,3 +73,4 @@ jobs:
         name: nupsi-app
         path: android/app/build/outputs/apk/debug/app-debug.apk
         retention-days: 30
+      continue-on-error: true
