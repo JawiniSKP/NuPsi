@@ -80,18 +80,25 @@
     </div>
   </div>
 
+  <!-- APP ROOT - DEBE ESTAR ANTES de cualquier script -->
   <app-root></app-root>
 
+  <!-- Scripts - IMPORTANTE: main.ts DEBE IR PRIMERO -->
+  <script type="module" src="src/main.ts"></script>
+  
   <script>
-    // Script para manejar la pantalla de carga y viewport height en móviles
+    // Script de Capacitor - DEBE IR DESPUÉS de main.ts
     document.addEventListener('DOMContentLoaded', function() {
+      console.log('✅ DOM completamente cargado');
+
       // Ocultar pantalla de loading cuando la app esté lista
       setTimeout(function() {
         const loadingScreen = document.getElementById('loadingScreen');
         if (loadingScreen) {
           loadingScreen.style.display = 'none';
+          console.log('✅ Loading screen ocultada');
         }
-      }, 2000);
+      }, 1000);
 
       // Fix para viewport height en móviles
       function setVh() {
@@ -103,10 +110,29 @@
       window.addEventListener('resize', setVh);
       window.addEventListener('orientationchange', setVh);
 
-      // Detectar plataforma Capacitor
+      // DETECTOR DE CAPACITOR
       if (window.Capacitor) {
-        document.body.classList.add('capacitor-platform');
+        console.log('✅ Capacitor detected - Applying mobile fixes');
+        document.body.classList.add('capacitor-app', 'capacitor-platform');
+        
+        // Fix adicional para viewport
+        const fixMobileViewport = () => {
+          const appEl = document.querySelector('ion-app');
+          if (appEl) {
+            appEl.style.height = '100vh';
+            appEl.style.height = 'calc(var(--vh, 1vh) * 100)';
+          }
+        };
+        
+        setTimeout(fixMobileViewport, 100);
+      } else {
+        console.log('🌐 Running in browser mode');
       }
+    });
+
+    // Manejar errores de carga
+    window.addEventListener('error', function(e) {
+      console.error('❌ Error global:', e.error);
     });
   </script>
 </body>

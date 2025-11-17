@@ -1,4 +1,4 @@
-// planes.page.ts - VERSIÓN CORREGIDA CON INYECCIÓN CORRECTA DE FIREBASE
+// planes.page.ts - VERSIÓN FINAL COMPLETA Y CORREGIDA
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ToastController, AlertController } from '@ionic/angular';
@@ -488,11 +488,48 @@ export class PlanesPage implements OnInit, OnDestroy {
   }
 
   // ==========================================
-  // 💪 NAVEGACIÓN A EJERCICIOS
+  // 💪 NAVEGACIÓN A EJERCICIOS - VERSIÓN MEJORADA Y CORREGIDA
   // ==========================================
 
-  irAEjercicios() {
-    this.router.navigate(['/ejercicios']);
+  async irAEjercicios() {
+    try {
+      console.log('🎯 Intentando navegar a ejercicios...');
+      
+      // ✅ FORMA 1: Navegación estándar
+      const navigationResult = await this.router.navigate(['/ejercicios']);
+      
+      if (navigationResult) {
+        console.log('✅ Navegación exitosa');
+        return;
+      }
+      
+      // ✅ FORMA 2: Si falla, intentar con timeout (para móvil)
+      console.warn('⚠️ Primera navegación falló, intentando método alternativo...');
+      
+      setTimeout(() => {
+        this.router.navigate(['/ejercicios']).then(success => {
+          if (success) {
+            console.log('✅ Navegación alternativa exitosa');
+          } else {
+            console.error('❌ Navegación alternativa también falló');
+            this.mostrarToast('No se pudo abrir la sección de ejercicios', 'warning');
+          }
+        });
+      }, 150);
+      
+    } catch (error: any) {
+      console.error('❌ Error crítico en navegación:', error);
+      
+      // ✅ FORMA 3: Fallback final - CORREGIDO: 'warning' en lugar de 'info'
+      this.mostrarToast('Redirigiendo a ejercicios...', 'warning');
+      
+      setTimeout(() => {
+        this.router.navigate(['/ejercicios']).catch(finalError => {
+          console.error('❌ Error final en navegación:', finalError);
+          this.mostrarToast('Error al abrir ejercicios. Intenta nuevamente.', 'danger');
+        });
+      }, 300);
+    }
   }
 
   // ==========================================

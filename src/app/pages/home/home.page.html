@@ -63,6 +63,52 @@
       </div>
 
       <!-- ============================================
+           NUEVA SECCIÓN: ACCESO RÁPIDO A EJERCICIOS Y NUTRICIÓN
+           ============================================ -->
+      <div class="quick-access-section">
+        <h2 class="section-title-improved">
+          <ion-icon name="flash" class="title-icon"></ion-icon>
+          Acceso Rápido
+        </h2>
+        
+        <div class="quick-access-grid">
+          <!-- TARJETA EJERCICIOS -->
+          <ion-card button routerLink="/ejercicios" class="quick-access-card feature-card">
+            <ion-card-header class="quick-access-header">
+              <div class="card-icon-container exercise-icon">
+                <ion-icon name="barbell" class="feature-icon"></ion-icon>
+              </div>
+              <ion-card-title class="card-title-small">Ejercicios</ion-card-title>
+            </ion-card-header>
+            <ion-card-content class="quick-access-content">
+              <p class="feature-description">Rutinas y entrenamientos personalizados</p>
+              <div class="access-indicator">
+                <span class="indicator-text">Comenzar entrenamiento</span>
+                <ion-icon name="arrow-forward" class="arrow-icon"></ion-icon>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- TARJETA NUTRICIÓN -->
+          <ion-card button routerLink="/planes" class="quick-access-card feature-card">
+            <ion-card-header class="quick-access-header">
+              <div class="card-icon-container nutrition-icon">
+                <ion-icon name="nutrition" class="feature-icon"></ion-icon>
+              </div>
+              <ion-card-title class="card-title-small">Nutrición</ion-card-title>
+            </ion-card-header>
+            <ion-card-content class="quick-access-content">
+              <p class="feature-description">Planes alimenticios y recetas saludables</p>
+              <div class="access-indicator">
+                <span class="indicator-text">Ver planes</span>
+                <ion-icon name="arrow-forward" class="arrow-icon"></ion-icon>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </div>
+      </div>
+
+      <!-- ============================================
            TARJETA: ¿CÓMO TE SIENTES HOY?
            ============================================ -->
       <ion-card class="question-card">

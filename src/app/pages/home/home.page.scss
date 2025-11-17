@@ -238,14 +238,87 @@ ion-header {
   }
 }
 
-/* ===============================
-   😊 BOTONES DE EMOCIONES INTERACTIVOS MEJORADOS
-   =============================== */
+/* ============================================
+   😊 FIX CRÍTICO PARA BOTONES EMOCIONALES EN MÓVIL
+   ============================================ */
 .emotions-container {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 14px;
-  margin: 28px 0;
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 8px !important;
+  padding: 12px 8px !important;
+  margin: 0 auto !important;
+  max-width: 100% !important;
+  
+  .emotion-button {
+    margin: 0 !important;
+    height: 70px !important;
+    min-height: 70px !important;
+    --border-radius: 12px !important;
+    --padding-start: 4px !important;
+    --padding-end: 4px !important;
+    
+    .button-content {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 100% !important;
+      height: 100% !important;
+      padding: 4px !important;
+    }
+    
+    .emoji {
+      font-size: 20px !important;
+      margin-bottom: 4px !important;
+    }
+    
+    .button-text {
+      font-size: 11px !important;
+      line-height: 1.1 !important;
+      white-space: normal !important;
+      word-break: break-word !important;
+      text-align: center !important;
+      max-width: 100% !important;
+      display: block !important;
+    }
+    
+    &::part(native) {
+      padding: 6px 2px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      min-height: 70px !important;
+      height: 70px !important;
+    }
+  }
+}
+
+/* ===============================
+   😊 BOTONES DE EMOCIONES INTERACTIVOS MEJORADOS (Desktop)
+   =============================== */
+@media (min-width: 769px) {
+  .emotions-container {
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 14px !important;
+    
+    .emotion-button {
+      height: 92px !important;
+      
+      .emoji {
+        font-size: 26px !important;
+        margin-bottom: 12px !important;
+      }
+      
+      .button-text {
+        font-size: 11px !important;
+      }
+      
+      &::part(native) {
+        min-height: 92px !important;
+        height: 92px !important;
+      }
+    }
+  }
 }
 
 .emotion-button {
@@ -253,11 +326,6 @@ ion-header {
   --background-activated: rgba(0, 198, 178, 0.18);
   --background-hover: rgba(0, 198, 178, 0.15);
   --border-radius: 18px;
-  --padding-start: 4px;
-  --padding-end: 4px;
-  --padding-top: 18px;
-  --padding-bottom: 18px;
-  height: 92px;
   border: 2px solid transparent;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   margin: 0;
@@ -281,33 +349,6 @@ ion-header {
     height: 100%;
     background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
     transition: left 0.5s ease;
-  }
-
-  .button-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    position: relative;
-    z-index: 2;
-
-    .emoji {
-      font-size: 26px;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      filter: grayscale(0.3) brightness(0.9);
-      transform-origin: center;
-    }
-
-    .button-text {
-      font-size: 11px;
-      font-weight: 700;
-      color: #5A6C7D;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      line-height: 1.2;
-      text-align: center;
-      transition: all 0.3s ease;
-    }
   }
 
   &:hover:not(.selected) {
@@ -350,6 +391,81 @@ ion-header {
   &:active:not(.selected) {
     transform: scale(0.95);
     transition: transform 0.1s ease;
+  }
+}
+
+/* ============================================
+   📱 FIX PARA DISPOSITIVOS MUY PEQUEÑOS
+   ============================================ */
+@media (max-width: 360px) {
+  .emotions-container {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px !important;
+    padding: 8px 4px !important;
+    
+    .emotion-button {
+      height: 65px !important;
+      min-height: 65px !important;
+      
+      .button-text {
+        font-size: 10px !important;
+      }
+      
+      .emoji {
+        font-size: 18px !important;
+        margin-bottom: 3px !important;
+      }
+      
+      &::part(native) {
+        min-height: 65px !important;
+        height: 65px !important;
+      }
+    }
+  }
+}
+
+/* ============================================
+   📱 FIX PARA TEXTOS LARGOS EN MÓVIL
+   ============================================ */
+@media (max-width: 768px) {
+  .home-content {
+    --padding-start: 8px !important;
+    --padding-end: 8px !important;
+  }
+  
+  .welcome-section {
+    text-align: center !important;
+    padding: 50px 16px 32px !important;
+    
+    .greeting {
+      font-size: 1.4rem !important;
+      line-height: 1.3 !important;
+      margin-bottom: 8px !important;
+    }
+    
+    .date {
+      font-size: 0.9rem !important;
+      line-height: 1.2 !important;
+    }
+  }
+  
+  .question-card {
+    margin: 16px 0 !important;
+    
+    .card-title-small {
+      font-size: 1rem !important;
+      text-align: center !important;
+    }
+    
+    .question-text {
+      font-size: 1rem !important;
+      text-align: center !important;
+    }
+  }
+  
+  .selection-info {
+    font-size: 0.9rem !important;
+    padding: 12px !important;
   }
 }
 
@@ -1203,25 +1319,6 @@ ion-header {
     padding: 28px 16px 120px;
   }
 
-  .emotions-container {
-    grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
-  }
-
-  .emotion-button {
-    height: 86px;
-    
-    .button-content {
-      .emoji {
-        font-size: 24px;
-      }
-      
-      .button-text {
-        font-size: 10px;
-      }
-    }
-  }
-
   .water-tracker {
     padding: 28px 24px;
     
@@ -1530,4 +1627,243 @@ ion-header::after {
     transparent
   );
   pointer-events: none;
+}
+// ============================================
+// SECCIÓN DE ACCESO RÁPIDO MODERNA Y ELEGANTE
+// ============================================
+
+.quick-access-section {
+  margin-bottom: 32px;
+}
+
+.quick-access-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.quick-access-card {
+  margin: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 20px;
+  background: linear-gradient(145deg, #ffffff, #f8f9ff);
+  box-shadow: 
+    0 4px 20px rgba(123, 97, 255, 0.15),
+    0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(123, 97, 255, 0.2);
+  overflow: hidden;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #8B5CF6, #7C3AED);
+  }
+  
+  &:active {
+    transform: translateY(2px) scale(0.98);
+    box-shadow: 
+      0 2px 10px rgba(123, 97, 255, 0.2),
+      0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.quick-access-header {
+  padding: 24px 16px 12px 16px;
+  text-align: center;
+  
+  .card-icon-container {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px auto;
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    box-shadow: 0 8px 25px rgba(123, 97, 255, 0.4);
+    transition: transform 0.3s ease;
+    
+    .feature-icon {
+      font-size: 30px;
+      color: white;
+    }
+  }
+  
+  ion-card-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1a1a1a;
+    text-align: center;
+    margin: 0;
+    letter-spacing: -0.3px;
+  }
+}
+
+.quick-access-content {
+  padding: 0 20px 24px 20px;
+  text-align: center;
+  
+  .feature-description {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+    line-height: 1.5;
+    font-weight: 500;
+    letter-spacing: -0.2px;
+  }
+  
+  .access-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    border-radius: 14px;
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(123, 97, 255, 0.3);
+    transition: all 0.3s ease;
+    
+    .indicator-text {
+      font-size: 14px;
+      color: white;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+    
+    .arrow-icon {
+      font-size: 16px;
+      color: white;
+      transition: transform 0.3s ease;
+    }
+  }
+}
+
+// Efectos hover para desktop
+@media (min-width: 768px) {
+  .quick-access-card {
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 
+        0 12px 30px rgba(123, 97, 255, 0.25),
+        0 4px 8px rgba(0, 0, 0, 0.1);
+      
+      .card-icon-container {
+        transform: scale(1.05);
+      }
+      
+      .access-indicator {
+        transform: translateX(4px);
+        
+        .arrow-icon {
+          transform: translateX(2px);
+        }
+      }
+    }
+  }
+}
+
+// ============================================
+// MEJORAR VISIBILIDAD DEL TEXTO
+// ============================================
+
+.section-title-improved {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-bottom: 20px;
+  text-align: center;
+  letter-spacing: -0.5px;
+  
+  .title-icon {
+    color: #8B5CF6;
+    font-size: 24px;
+  }
+}
+
+// ============================================
+// RESPONSIVE PARA MÓVILES PEQUEÑOS
+// ============================================
+
+@media (max-width: 360px) {
+  .quick-access-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  
+  .quick-access-header {
+    padding: 20px 16px 10px 16px;
+    
+    .card-icon-container {
+      width: 56px;
+      height: 56px;
+      
+      .feature-icon {
+        font-size: 26px;
+      }
+    }
+    
+    ion-card-title {
+      font-size: 16px;
+    }
+  }
+  
+  .quick-access-content {
+    padding: 0 16px 20px 16px;
+    
+    .feature-description {
+      font-size: 13px;
+    }
+    
+    .access-indicator {
+      padding: 10px 16px;
+      
+      .indicator-text {
+        font-size: 13px;
+      }
+    }
+  }
+}
+
+// ============================================
+// ASEGURAR QUE EL RESTO MANTENGA ESTILOS ORIGINALES
+// ============================================
+
+.home-content {
+  --background: #ffffff !important;
+  background: #ffffff !important;
+}
+
+.content-wrapper {
+  background: #ffffff;
+}
+
+.welcome-section {
+  text-align: center;
+  margin-bottom: 28px;
+  
+  .greeting {
+    font-size: 26px;
+    font-weight: 800;
+    color: #1a1a1a;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+  }
+  
+  .date {
+    font-size: 15px;
+    color: #666;
+    font-weight: 500;
+  }
 }

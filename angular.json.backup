@@ -62,15 +62,7 @@
                   "with": "src/environments/environment.prod.ts"
                 }
               ],
-              "outputHashing": "all",
-              "optimization": {
-                "scripts": true,
-                "styles": {
-                  "minify": true,
-                  "inlineCritical": false
-                },
-                "fonts": true
-              }
+              "outputHashing": "all"
             },
             "development": {
               "optimization": false,
@@ -79,9 +71,7 @@
               "namedChunks": true
             },
             "ci": {
-              "optimization": false,
-              "extractLicenses": false,
-              "sourceMap": true
+              "progress": false
             }
           },
           "defaultConfiguration": "production"
@@ -96,7 +86,7 @@
               "buildTarget": "app:build:development"
             },
             "ci": {
-              "buildTarget": "app:build:ci"
+              "progress": false
             }
           },
           "defaultConfiguration": "development"
@@ -130,6 +120,7 @@
           },
           "configurations": {
             "ci": {
+              "progress": false,
               "watch": false
             }
           }

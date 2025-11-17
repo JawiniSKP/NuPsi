@@ -426,44 +426,67 @@ export class HomePage implements OnInit, OnDestroy {
     }
 
     const actionSheet = await this.actionSheetController.create({
-      header: 'Navegación',
-      buttons: [
-        {
-          text: 'Inicio',
-          icon: 'home',
-          handler: () => {
-            this.router.navigate(['/home']);
+        header: 'Navegación',
+        buttons: [
+          {
+            text: 'Inicio',
+            icon: 'home',
+            handler: () => {
+              // Ya estás en home
+            }
+          },
+          // ✅ AGREGAR EJERCICIOS
+          {
+            text: 'Ejercicios',
+            icon: 'barbell',
+            handler: () => {
+              this.router.navigate(['/ejercicios']);
+            }
+          },
+          // ✅ AGREGAR NUTRICIÓN
+          {
+            text: 'Nutrición',
+            icon: 'nutrition',
+            handler: () => {
+              this.router.navigate(['/planes']);
+            }
+          },
+          {
+            text: 'Indicadores',
+            icon: 'stats-chart',
+            handler: () => {
+              this.router.navigate(['/indicators']);
+            }
+          },
+          {
+            text: 'Chatbot',
+            icon: 'chatbubble',
+            handler: () => {
+              this.router.navigate(['/chat']);
+            }
+          },
+          {
+            text: 'Perfil',
+            icon: 'person-outline',
+            handler: () => {
+              this.router.navigate(['/perfil']);
+            }
+          },
+          {
+            text: 'Cerrar Sesión',
+            icon: 'log-out-outline',
+            role: 'destructive',
+            handler: () => {
+              this.logout();
+            }
+          },
+          {
+            text: 'Cancelar',
+            icon: 'close',
+            role: 'cancel'
           }
-        },
-        {
-          text: 'Indicadores',
-          icon: 'stats-chart',
-          handler: () => {
-            this.router.navigate(['/indicators']);
-          }
-        },
-        {
-          text: 'Chatbot',
-          icon: 'chatbubble',
-          handler: () => {
-            this.router.navigate(['/chat']);
-          }
-        },
-        {
-          text: 'Cerrar Sesión',
-          icon: 'log-out-outline',
-          role: 'destructive',
-          handler: () => {
-            this.logout();
-          }
-        },
-        {
-          text: 'Cancelar',
-          icon: 'close',
-          role: 'cancel'
-        }
-      ]
-    });
+        ]
+      });
 
     await actionSheet.present();
   }

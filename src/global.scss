@@ -47,6 +47,12 @@
 
   /* VIEWPORT HEIGHT VARIABLE PARA MÓVILES */
   --vh: 1vh;
+
+  /* SAFE AREAS PARA CAPACITOR */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
 }
 
 /* ===============================
@@ -82,75 +88,193 @@ body {
 }
 
 /* ===============================
-   📱 CAPACITOR/IOS SPECIFIC FIXES
+   🚨 FIXES CRÍTICOS PARA CAPACITOR
    =============================== */
 
-/* Safe area fixes for notched devices */
-.capacitor-platform {
-  ion-header {
-    padding-top: var(--ion-safe-area-top, 0) !important;
-  }
-
-  ion-tab-bar {
-    padding-bottom: var(--ion-safe-area-bottom, 0) !important;
-  }
-
-  ion-content {
-    --padding-top: var(--ion-safe-area-top, 0);
-    --padding-bottom: var(--ion-safe-area-bottom, 0);
-    --padding-start: var(--ion-safe-area-left, 0);
-    --padding-end: var(--ion-safe-area-right, 0);
-  }
-}
-
-/* Fix for status bar padding */
-ion-header {
-  padding-top: var(--ion-safe-area-top, 0);
-}
-
-/* Fix for home indicator area */
-ion-tab-bar {
-  padding-bottom: var(--ion-safe-area-bottom, 0);
-}
-
-/* Ensure full height on mobile */
-html, body, ion-app, ion-router-outlet, .ion-page {
-  height: 100%;
-  width: 100%;
-}
-
-/* Platform-specific adjustments */
-@media (max-width: 768px) {
-  /* Mobile-specific styles */
-  body {
-    font-size: 14px;
-  }
-  
-  /* Fix for mobile viewport */
-  .ion-content-fixed {
-    height: 100vh;
-    height: calc(var(--vh, 1vh) * 100);
-  }
-
-  /* Mejorar tap targets en móvil */
-  ion-button, ion-item {
-    --min-height: 44px;
-  }
-}
-
-/* Desktop-specific adjustments */
-@media (min-width: 769px) {
-  /* Prevent desktop from looking too stretched */
+/* DETECCIÓN AUTOMÁTICA DE CAPACITOR */
+body.capacitor-app {
+  /* FIX 1: VIEWPORT HEIGHT EN MÓVILES */
   ion-app {
-    max-width: 768px;
-    margin: 0 auto;
-    box-shadow: var(--shadow-medium);
-    border-left: var(--border-light);
-    border-right: var(--border-light);
+    height: 100vh !important;
+    height: calc(var(--vh, 1vh) * 100) !important;
   }
 
-  body {
-    background: var(--bg-card);
+  /* FIX 2: SAFE AREAS PARA NOTCH */
+  ion-header {
+    padding-top: var(--safe-area-top) !important;
+    
+    ion-toolbar {
+      --min-height: 56px;
+      padding-top: 0 !important;
+    }
+  }
+
+  ion-footer {
+    padding-bottom: var(--safe-area-bottom) !important;
+  }
+
+  /* FIX 3: CONTENT PADDING AUTOMÁTICO */
+  ion-content {
+    --padding-top: calc(16px + var(--safe-area-top));
+    --padding-bottom: calc(16px + var(--safe-area-bottom));
+    --padding-start: calc(16px + var(--safe-area-left));
+    --padding-end: calc(16px + var(--safe-area-right));
+  }
+
+  /* FIX 4: BOTONES EMOCIONALES (SOLUCIÓN AL PROBLEMA "YEGULAF") */
+  .emocion-buttons-container {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    padding: 8px 4px !important;
+    
+    ion-button {
+      margin: 0 !important;
+      min-height: 44px !important;
+      --border-radius: 12px !important;
+      --padding-start: 4px !important;
+      --padding-end: 4px !important;
+      
+      /* TEXT FIX - Evita que se corte el texto */
+      .button-native {
+        padding: 8px 4px !important;
+        
+        .button-inner {
+          flex-direction: column !important;
+          font-size: 12px !important;
+          line-height: 1.2 !important;
+          white-space: normal !important;
+          word-break: break-word !important;
+        }
+      }
+    }
+  }
+
+  /* FIX 5: TEXTO EN BOTONES EMOCIONALES */
+  .emocion-btn {
+    --border-radius: 12px !important;
+    height: 60px !important;
+    margin: 4px !important;
+    
+    &::part(native) {
+      padding: 8px 4px !important;
+      font-size: 12px !important;
+      line-height: 1.2 !important;
+      white-space: normal !important;
+      word-break: break-word !important;
+      text-align: center !important;
+    }
+
+    /* Nombres cortos específicos para móvil */
+    &[data-emotion="excelente"]::part(native)::after {
+      content: "Excelente" !important;
+    }
+    &[data-emotion="bueno"]::part(native)::after {
+      content: "Bueno" !important;
+    }
+    &[data-emotion="regular"]::part(native)::after {
+      content: "Regular" !important;
+    }
+    &[data-emotion="malo"]::part(native)::after {
+      content: "Malo" !important;
+    }
+    &[data-emotion="ansioso"]::part(native)::after {
+      content: "Ansioso" !important;
+    }
+  }
+
+  /* FIX 6: CARDS EN PLANES */
+  .plan-card-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    padding: 8px !important;
+    
+    ion-card {
+      margin: 0 !important;
+      min-height: 140px !important;
+      
+      .card-content {
+        padding: 16px 12px !important;
+        
+        h3 {
+          font-size: 1.1rem !important;
+          margin-bottom: 8px !important;
+          line-height: 1.3 !important;
+        }
+        
+        p {
+          font-size: 0.9rem !important;
+          line-height: 1.4 !important;
+          margin-bottom: 4px !important;
+        }
+      }
+    }
+  }
+
+  /* FIX 7: FORMULARIOS EN PERFIL */
+  .profile-form {
+    ion-item {
+      --padding-start: 12px !important;
+      --padding-end: 12px !important;
+      --min-height: 52px !important;
+      margin-bottom: 8px !important;
+      
+      ion-label {
+        font-size: 0.9rem !important;
+        margin-bottom: 4px !important;
+      }
+      
+      ion-input, ion-textarea {
+        font-size: 1rem !important;
+      }
+    }
+  }
+}
+
+/* ===============================
+   📱 MEDIA QUERIES ESPECÍFICAS
+   =============================== */
+
+/* Dispositivos muy pequeños (menos de 360px) */
+@media (max-width: 360px) {
+  body.capacitor-app {
+    /* Reducir tamaños de fuente */
+    h1 { font-size: 1.4rem !important; }
+    h2 { font-size: 1.2rem !important; }
+    h3 { font-size: 1.1rem !important; }
+    
+    /* Ajustar espaciados */
+    .nupsi-card {
+      margin: 12px !important;
+      padding: 12px !important;
+    }
+    
+    /* Botones más compactos */
+    .emocion-buttons-container {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 6px !important;
+    }
+  }
+}
+
+/* Tablets y pantallas grandes */
+@media (min-width: 768px) {
+  body.capacitor-app {
+    .emocion-buttons-container {
+      grid-template-columns: repeat(5, 1fr) !important;
+      gap: 12px !important;
+    }
+    
+    .plan-card-container {
+      flex-direction: row !important;
+      flex-wrap: wrap !important;
+      
+      ion-card {
+        flex: 1 1 calc(50% - 12px) !important;
+        min-width: 300px !important;
+      }
+    }
   }
 }
 

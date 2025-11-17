@@ -1,4 +1,4 @@
-<!-- planes.page.html - CON SISTEMA DE PROGRESO DE DIETAS -->
+<!-- planes.page.html - CON SELECTOR NUTRICIÓN/EJERCICIOS -->
 <ion-header [translucent]="true">
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
@@ -19,7 +19,7 @@
   
   <div class="content-wrapper">
     
-    <!-- SELECTOR DE SECCIÓN -->
+    <!-- ✅ AGREGADO: SELECTOR DE SECCIÓN NUTRICIÓN/EJERCICIOS -->
     <div class="segment-container">
       <ion-segment [value]="seccionActiva" (ionChange)="cambiarSeccion($event)" class="custom-segment" aria-label="Seleccionar sección">
         <ion-segment-button value="nutricion" class="segment-button">
@@ -136,12 +136,10 @@
 
               <div class="progreso-detalles">
                 <div class="detalle-item">
-                  <!-- ✅ CORREGIDO: calendar-outline reemplazado por calendar -->
                   <ion-icon name="calendar" aria-hidden="true"></ion-icon>
                   <span>Inicio: {{formatearFecha(progresoDieta.fechaInicio)}}</span>
                 </div>
                 <div class="detalle-item">
-                  <!-- ✅ CORREGIDO: flag-outline reemplazado por flag -->
                   <ion-icon name="flag" aria-hidden="true"></ion-icon>
                   <span>Fin: {{formatearFecha(progresoDieta.fechaFin)}}</span>
                 </div>
@@ -220,17 +218,14 @@
                   
                   <div class="receta-meta">
                     <div class="meta-item">
-                      <!-- ✅ CORREGIDO: time-outline reemplazado por time -->
                       <ion-icon name="time" aria-hidden="true"></ion-icon>
                       <span>{{ receta.tiempoTotal }} min</span>
                     </div>
                     <div class="meta-item">
-                      <!-- ✅ CORREGIDO: flame-outline reemplazado por flame -->
                       <ion-icon name="flame" aria-hidden="true"></ion-icon>
                       <span>{{ receta.calorias }} cal</span>
                     </div>
                     <div class="meta-item">
-                      <!-- ✅ CORREGIDO: restaurant-outline reemplazado por restaurant -->
                       <ion-icon name="restaurant" aria-hidden="true"></ion-icon>
                       <span>{{ receta.porciones }} porc.</span>
                     </div>
