@@ -28,6 +28,11 @@ jobs:
           npm run build
           npx cap sync android
       
+      - name: Setup Gradle permissions
+        run: |
+          cd android
+          chmod +x gradlew
+      
       - name: Debug - Check Android files
         run: |
           cd android
