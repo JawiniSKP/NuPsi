@@ -81,7 +81,6 @@ export class AuthService {
       await setPersistence(this.auth, browserLocalPersistence);
       console.log('✅ Persistencia LOCAL configurada - Sesión persistirá');
       
-      // ✅ GUARDAR EN PREFERENCES TAMBIÉN
       await Preferences.set({
         key: 'auth_persistence',
         value: 'local'
@@ -100,11 +99,9 @@ export class AuthService {
         this.authStateSubject.next(user);
 
         if (user) {
-          // ✅ GUARDAR EN PREFERENCES PARA PERSISTENCIA
           await this.saveUserToPreferences(user);
           await this.updateLastAccess();
         } else {
-          // ✅ LIMPIAR PREFERENCES AL CERRAR SESIÓN
           await Preferences.remove({ key: 'current_user' });
         }
       });
@@ -112,14 +109,14 @@ export class AuthService {
     this.authStateInitialized = true;
   }
 
-  // ✅ SOLUCIÓN COMPLETA: GOOGLE LOGIN CORREGIDO PARA ANDROID
+  // ✅ SOLUCIÓN COMPLETA CORREGIDA: GOOGLE LOGIN QUE FUNCIONA EN ANDROID
   async googleLogin(): Promise<any> {
     return this.ngZone.run(async () => {
       try {
         console.log('🔐 Iniciando Google login...');
         
         if (Capacitor.isNativePlatform()) {
-          console.log('📱 Ejecutando en app nativa - Usando solución mejorada');
+          console.log('📱 Ejecutando en app nativa - Usando solución Android');
           return await this.googleLoginAndroid();
         } else {
           console.log('🖥️ Ejecutando en web - Usando flujo web normal');
@@ -128,7 +125,6 @@ export class AuthService {
       } catch (error: any) {
         console.error('❌ Error en Google login:', error);
         
-        // ✅ MANEJO MEJORADO DE ERRORES
         if (error.code === 'auth/popup-blocked') {
           throw new Error('El popup fue bloqueado. Permite ventanas emergentes.');
         } else if (error.code === 'auth/popup-closed-by-user') {
@@ -144,21 +140,20 @@ export class AuthService {
     });
   }
 
-  // ✅ SOLUCIÓN ESPECÍFICA PARA ANDROID
+  // ✅ SOLUCIÓN ESPECÍFICA PARA ANDROID - CORREGIDA
   private async googleLoginAndroid(): Promise<any> {
     try {
       console.log('📱 Usando solución Android mejorada...');
       
       const provider = new GoogleAuthProvider();
       
-      // ✅ CONFIGURACIÓN CRÍTICA PARA ANDROID
+      // ✅ CONFIGURACIÓN CRÍTICA PARA ANDROID - USAR 'page' EN LUGAR DE 'popup'
       provider.setCustomParameters({
         prompt: 'select_account',
-        display: 'popup'
+        display: 'page'  // ✅ CAMBIO CLAVE: 'page' en lugar de 'popup'
       });
 
-      // ✅ FORZAR POPUP INCLUSO EN ANDROID - SOLUCIÓN TEMPORAL
-      console.log('🔄 Intentando con popup en Android...');
+      console.log('🔄 Intentando con display: page en Android...');
       const result = await signInWithPopup(this.auth, provider);
 
       if (result.user) {
@@ -170,7 +165,7 @@ export class AuthService {
         try {
           await Browser.close();
         } catch (e) {
-          // Ignorar error si no hay browser abierto
+          console.log('ℹ️ No había browser abierto o ya estaba cerrado');
         }
       }
 
@@ -179,7 +174,7 @@ export class AuthService {
     } catch (error: any) {
       console.error('❌ Error en login Android:', error);
       
-      // ✅ SI FALLA EL POPUP, SUGERIR EMAIL/PASSWORD
+      // ✅ SI FALLA, SUGERIR EMAIL/PASSWORD
       if (error.code === 'auth/popup-blocked' || 
           error.code === 'auth/operation-not-supported-in-this-environment') {
         throw new Error('El inicio con Google no está disponible temporalmente. Usa email y contraseña.');
@@ -303,7 +298,6 @@ export class AuthService {
         return signInWithEmailAndPassword(this.auth, email, password).then(async (result) => {
           console.log('✅ Login exitoso:', result.user.email);
           
-          // ✅ GUARDAR EN PREFERENCES
           await this.saveUserToPreferences(result.user);
           await this.updateLastAccess();
           
@@ -326,7 +320,6 @@ export class AuthService {
               displayName: name
             });
 
-            // ✅ GUARDAR EN PREFERENCES
             await this.saveUserToPreferences(result.user);
 
             const userDocRef = doc(this.firestore, `usuarios/${result.user.uid}`);
@@ -355,7 +348,6 @@ export class AuthService {
               console.log('✅ Registro exitoso y guardado en usuarios/', result.user.uid);
             } catch (firestoreError: any) {
               console.error('❌ Error guardando usuario en Firestore:', firestoreError);
-              // No lanzar error para no interrumpir el registro
             }
           }
 
@@ -373,7 +365,6 @@ export class AuthService {
       try {
         console.log('👋 Cerrando sesión...');
         
-        // ✅ LIMPIAR PREFERENCES
         Preferences.remove({ key: 'current_user' });
         
         return signOut(this.auth).then(() => {
@@ -386,7 +377,7 @@ export class AuthService {
     });
   }
 
-  // ✅ MÉTODOS RESTANTES (MANTENIDOS)
+  // ✅ MÉTODOS RESTANTES
   getCurrentUserId(): string {
     return this.auth.currentUser?.uid || '';
   }
@@ -567,9 +558,6 @@ export class AuthService {
     return user?.providerData[0]?.providerId === 'password';
   }
 
-  // ✅ MÉTODOS NUEVOS AGREGADOS PARA CORREGIR ERRORES
-
-  // Método para actualizar contraseña
   async updatePassword(newPassword: string): Promise<void> {
     const user = await this.auth.currentUser;
     if (!user) {
@@ -582,7 +570,6 @@ export class AuthService {
     } catch (error: any) {
       console.error('❌ Error actualizando contraseña:', error);
       
-      // Manejo específico de errores
       if (error.code === 'auth/requires-recent-login') {
         throw new Error('Por seguridad, debes volver a iniciar sesión antes de cambiar tu contraseña');
       }
@@ -590,7 +577,6 @@ export class AuthService {
     }
   }
 
-  // Método para eliminar cuenta de usuario
   async deleteUserAccount(currentPassword?: string): Promise<void> {
     const user = await this.auth.currentUser;
     if (!user) {
@@ -598,25 +584,21 @@ export class AuthService {
     }
 
     try {
-      // Si es proveedor de email, reautenticar primero
       if (this.isEmailProvider() && currentPassword && user.email) {
         const credential = EmailAuthProvider.credential(user.email, currentPassword);
         await reauthenticateWithCredential(user, credential);
       }
 
-      // Eliminar datos de Firestore primero
       const userDocRef = doc(this.firestore, 'usuarios', user.uid);
       await deleteDoc(userDocRef);
       console.log('✅ Datos de usuario eliminados de Firestore');
 
-      // Eliminar cuenta de autenticación
       await deleteUser(user);
       console.log('✅ Cuenta de autenticación eliminada');
 
     } catch (error: any) {
       console.error('❌ Error eliminando cuenta:', error);
       
-      // Manejo específico de errores
       if (error.code === 'auth/requires-recent-login') {
         throw new Error('Por seguridad, debes volver a iniciar sesión antes de eliminar tu cuenta');
       } else if (error.code === 'auth/wrong-password') {
@@ -626,7 +608,6 @@ export class AuthService {
     }
   }
 
-  // Método auxiliar para reautenticar
   async reauthenticateUser(password: string): Promise<void> {
     const user = this.auth.currentUser;
     if (!user || !user.email) {
