@@ -1,45 +1,114 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
   <meta charset="utf-8" />
-  <title>Ionic App</title>
+  <title>Nupsi App</title>
 
-  <!-- Content Security Policy CORREGIDA para Firebase y RASA LOCAL -->
-<meta http-equiv="Content-Security-Policy"
-  content="
-    default-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com/ https://fonts.gstatic.com/ https://apis.google.com/ https://www.google.com/ https://www.gstatic.com/ data: blob:;
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://apis.google.com/ https://www.gstatic.com/ https://www.google.com/;
-    worker-src 'self' blob:;
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com/;
-    img-src 'self' data: blob: https: http:;
-    connect-src 'self' https://firestore.googleapis.com/ https://identitytoolkit.googleapis.com/ https://securetoken.googleapis.com/ https://nupsi-app.firebaseapp.com/ https://jisella12-capstone-rasa.hf.space;
-    frame-src 'self' https://nupsi-app.firebaseapp.com/ https://apis.google.com/ https://www.google.com/ https://accounts.google.com/;
-    font-src 'self' https://fonts.gstatic.com/ data:;
-    media-src 'self' data: blob:;
-    object-src 'none';
-    base-uri 'self';
-    form-action 'self';
-  ">
-
+  <!-- Content Security Policy OPTIMIZADA para Capacitor y Firebase -->
+  <meta http-equiv="Content-Security-Policy"
+    content="
+      default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://apis.google.com/ https://www.gstatic.com/ https://www.google.com/;
+      worker-src 'self' blob:;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com/;
+      img-src 'self' data: blob: https: http:;
+      connect-src 'self' https://firestore.googleapis.com/ https://identitytoolkit.googleapis.com/ https://securetoken.googleapis.com/ https://nupsi-app.firebaseapp.com/ https://jisella12-capstone-rasa.hf.space ws: wss:;
+      frame-src 'self' https://nupsi-app.firebaseapp.com/ https://apis.google.com/ https://www.google.com/ https://accounts.google.com/;
+      font-src 'self' https://fonts.gstatic.com/ data:;
+      media-src 'self' data: blob:;
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self';
+    ">
 
   <base href="/" />
-  <!-- ... resto del código ... -->
 
+  <!-- Meta tags optimizados para Capacitor -->
   <meta name="color-scheme" content="light dark" />
-  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="format-detection" content="telephone=no" />
   <meta name="msapplication-tap-highlight" content="no" />
 
   <link rel="icon" type="image/png" href="assets/icon/favicon.png" />
 
-  <!-- add to homescreen for ios -->
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <!-- iOS specific meta tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Nupsi App" />
+  
+  <!-- Preload critical resources -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* Critical CSS para evitar flash de contenido sin estilo */
+    body {
+      margin: 0;
+      padding: 0;
+      background: #F7FAFC;
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      overflow: hidden;
+    }
+    
+    .app-loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #00C6B2 0%, #00A896 100%);
+      color: white;
+    }
+    
+    /* Safe area variables para dispositivos con notch */
+    :root {
+      --ion-safe-area-top: env(safe-area-inset-top);
+      --ion-safe-area-bottom: env(safe-area-inset-bottom);
+      --ion-safe-area-left: env(safe-area-inset-left);
+      --ion-safe-area-right: env(safe-area-inset-right);
+    }
+  </style>
 </head>
 
 <body>
+  <!-- Loading screen inicial -->
+  <div class="app-loading" id="loadingScreen">
+    <div style="text-align: center;">
+      <h2 style="margin: 0; font-weight: 600;">Nupsi</h2>
+      <p style="margin: 10px 0 0 0; opacity: 0.9;">Cargando...</p>
+    </div>
+  </div>
+
   <app-root></app-root>
+
+  <script>
+    // Script para manejar la pantalla de carga y viewport height en móviles
+    document.addEventListener('DOMContentLoaded', function() {
+      // Ocultar pantalla de loading cuando la app esté lista
+      setTimeout(function() {
+        const loadingScreen = document.getElementById('loadingScreen');
+        if (loadingScreen) {
+          loadingScreen.style.display = 'none';
+        }
+      }, 2000);
+
+      // Fix para viewport height en móviles
+      function setVh() {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', vh + 'px');
+      }
+
+      setVh();
+      window.addEventListener('resize', setVh);
+      window.addEventListener('orientationchange', setVh);
+
+      // Detectar plataforma Capacitor
+      if (window.Capacitor) {
+        document.body.classList.add('capacitor-platform');
+      }
+    });
+  </script>
 </body>
 
 </html>

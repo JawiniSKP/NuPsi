@@ -5,10 +5,10 @@ import { Auth, authState, signOut } from '@angular/fire/auth';
 import { filter, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
-// ✅ Servicio de íconos
+// Servicio de íconos
 import { IconService } from './services/icon.service';
 
-// ✅ IMPORTS DE CAPACITOR (AGREGAR ESTOS)
+// IMPORTS DE CAPACITOR
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard } from '@capacitor/keyboard';
@@ -38,20 +38,18 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  // Control de visibilidad del menú
+  // Control de visibilidad del menú (simplificado)
   showMenu = false;
   showHeader = false;
-  private authChecked = false; // ✅ NUEVO: Evitar redirecciones múltiples
 
   constructor() {
     console.log('🚀 AppComponent inicializado con íconos globales');
-    this.initializeCapacitor(); // ✅ INICIALIZAR CAPACITOR
+    this.initializeCapacitor();
   }
 
   ngOnInit() {
-    this.initializeAuthGuard();
     this.setupRouteListener();
-    this.setupBackButton(); // ✅ CONFIGURAR BOTÓN ATRÁS DE ANDROID
+    this.setupBackButton();
   }
 
   ngOnDestroy() {
@@ -60,7 +58,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * 📱 INICIALIZAR CAPACITOR - NUEVO MÉTODO
+   * 📱 INICIALIZAR CAPACITOR
    */
   private async initializeCapacitor() {
     if (Capacitor.isNativePlatform()) {
@@ -84,16 +82,14 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * 🔙 CONFIGURAR BOTÓN ATRÁS DE ANDROID - NUEVO MÉTODO
+   * 🔙 CONFIGURAR BOTÓN ATRÁS DE ANDROID
    */
   private setupBackButton() {
     if (Capacitor.isNativePlatform()) {
       App.addListener('backButton', ({ canGoBack }) => {
         if (!canGoBack) {
-          // Si no puede ir atrás, mostrar confirmación para salir
           this.showExitConfirmation();
         } else {
-          // Navegar atrás normalmente
           window.history.back();
         }
       });
@@ -101,7 +97,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * 🚪 CONFIRMACIÓN PARA SALIR DE LA APP - NUEVO MÉTODO
+   * 🚪 CONFIRMACIÓN PARA SALIR DE LA APP
    */
   private async showExitConfirmation() {
     const alert = await this.alertController.create({
@@ -125,7 +121,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * 🎯 CONFIGURAR LISTENER DE RUTAS - SEGURO
+   * 🎯 CONFIGURAR LISTENER DE RUTAS - SIMPLIFICADO
    */
   private setupRouteListener() {
     this.router.events
@@ -136,6 +132,7 @@ export class AppComponent implements OnInit, OnDestroy {
       .subscribe((event: NavigationEnd) => {
         const currentUrl = event.url;
         
+        // Ocultar layout en login/register
         const hiddenLayoutRoutes = ['/login', '/register'];
         const shouldHideLayout = hiddenLayoutRoutes.includes(currentUrl);
         
@@ -149,86 +146,9 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * 🔒 GUARD DE AUTENTICACIÓN - VERSIÓN SEGURA
-   */
-  private initializeAuthGuard() {
-    console.log('🔐 Inicializando guard de autenticación...');
-
-    authState(this.auth)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(user => {
-        this.ngZone.run(() => {
-          this.handleAuthStateChange(user);
-        });
-      });
-  }
-
-  /**
-   * 🔐 MANEJAR CAMBIOS DE AUTENTICACIÓN - VERSIÓN SEGURA
-   */
-  private handleAuthStateChange(user: any) {
-    // ✅ EVITAR MÚLTIPLES EJECUCIONES
-    if (this.authChecked) {
-      return;
-    }
-
-    const currentUrl = this.router.url;
-    console.log('👤 Estado de auth:', user ? 'Autenticado' : 'No autenticado', '| URL:', currentUrl);
-
-    // ✅ SOLO REDIRIGIR EN CASOS MUY ESPECÍFICOS
-    if (!user) {
-      // Usuario NO autenticado
-      if (this.isProtectedRoute(currentUrl)) {
-        console.log('🚫 Redirigiendo a login desde ruta protegida');
-        this.safeNavigate(['/login']);
-      }
-    } else {
-      // Usuario SÍ autenticado
-      if (this.isAuthRoute(currentUrl)) {
-        console.log('🏠 Redirigiendo a home desde ruta de auth');
-        this.safeNavigate(['/home']);
-      }
-    }
-
-    this.authChecked = true;
-  }
-
-  /**
-   * ✅ NUEVO: Método seguro para navegación
-   */
-  private safeNavigate(commands: any[]) {
-    this.ngZone.run(() => {
-      // Verificar que no estamos ya en esa ruta
-      const currentUrl = this.router.url;
-      const targetUrl = commands[0];
-      
-      if (currentUrl !== targetUrl) {
-        this.router.navigate(commands);
-      }
-    });
-  }
-
-  /**
-   * ✅ NUEVO: Verificar si es ruta protegida
-   */
-  private isProtectedRoute(url: string): boolean {
-    const protectedRoutes = ['/home', '/indicators', '/profile', '/settings', '/chat', '/planes', '/perfil'];
-    return protectedRoutes.some(route => url.startsWith(route));
-  }
-
-  /**
-   * ✅ NUEVO: Verificar si es ruta de autenticación
-   */
-  private isAuthRoute(url: string): boolean {
-    const authRoutes = ['/login', '/register', '/'];
-    return authRoutes.includes(url);
-  }
-
-  /**
    * 🍔 ABRIR MENÚ HAMBURGUESA PRINCIPAL
    */
   async openMainMenu() {
-    // ✅ FEEDBACK HÁPTICO EN MÓVIL
     if (Capacitor.isNativePlatform()) {
       await Haptics.impact({ style: ImpactStyle.Light });
     }
@@ -305,59 +225,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * 👤 ABRIR MENÚ DE PERFIL
-   */
-  async openProfileMenu(event: any) {
-    // ✅ FEEDBACK HÁPTICO EN MÓVIL
-    if (Capacitor.isNativePlatform()) {
-      await Haptics.impact({ style: ImpactStyle.Light });
-    }
-
-    const actionSheet = await this.actionSheetController.create({
-      header: 'Mi Perfil',
-      buttons: [
-        {
-          text: 'Ver Perfil',
-          icon: 'person-outline',
-          handler: () => {
-            this.router.navigate(['/perfil']);
-          }
-        },
-        {
-          text: 'Editar Perfil',
-          icon: 'create-outline',
-          handler: () => {
-            this.router.navigate(['/perfil']);
-          }
-        },
-        {
-          text: 'Configuración',
-          icon: 'settings-outline',
-          handler: () => {
-            this.showComingSoon('Configuración');
-          }
-        },
-        {
-          text: 'Cerrar Sesión',
-          icon: 'log-out-outline',
-          role: 'destructive',
-          handler: () => {
-            this.logout();
-          }
-        },
-        {
-          text: 'Cancelar',
-          icon: 'close',
-          role: 'cancel'
-        }
-      ]
-    });
-
-    await actionSheet.present();
-  }
-
-  /**
-   * 🚪 CERRAR SESIÓN - VERSIÓN SEGURA
+   * 🚪 CERRAR SESIÓN
    */
   private async logout() {
     try {
@@ -377,13 +245,6 @@ export class AppComponent implements OnInit, OnDestroy {
       });
       await toast.present();
       
-      // ✅ Resetear flag de autenticación
-      this.authChecked = false;
-      
-      this.ngZone.run(() => {
-        this.router.navigate(['/login']);
-      });
-      
     } catch (error: any) {
       console.error('❌ Error al cerrar sesión:', error);
       await this.loadingController.dismiss();
@@ -401,7 +262,6 @@ export class AppComponent implements OnInit, OnDestroy {
    * 🚧 MOSTRAR "PRÓXIMAMENTE"
    */
   private async showComingSoon(feature: string) {
-    // ✅ FEEDBACK HÁPTICO EN MÓVIL
     if (Capacitor.isNativePlatform()) {
       await Haptics.impact({ style: ImpactStyle.Medium });
     }

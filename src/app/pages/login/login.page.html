@@ -5,7 +5,19 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
-  <div class="login-container">
+  
+  <!-- ✅ MOSTRAR SPINNER SOLO DURANTE AUTO-LOGIN -->
+  <div *ngIf="!mostrarFormularioInmediato && isLoggingIn" class="auto-login-loading">
+    <div class="loading-content">
+      <ion-spinner color="primary"></ion-spinner>
+      <ion-text color="medium">
+        <p>Restaurando tu sesión...</p>
+      </ion-text>
+    </div>
+  </div>
+
+  <!-- ✅ CONTENIDO PRINCIPAL (SE MUESTRA INMEDIATAMENTE) -->
+  <div *ngIf="mostrarFormularioInmediato" class="login-container">
     
     <!-- Sección del Logo -->
     <div class="logo-section">
@@ -56,6 +68,7 @@
               placeholder="tu@email.com"
               class="custom-input"
               (ionInput)="clearError()"
+              (keypress)="onKeyPress($event)"
               required
               aria-describedby="email-errors"
               aria-invalid="{{ loginForm.get('email')?.invalid && loginForm.get('email')?.touched ? 'true' : 'false' }}">
@@ -80,6 +93,7 @@
               placeholder="Mínimo 6 caracteres"
               class="custom-input"
               (ionInput)="clearError()"
+              (keypress)="onKeyPress($event)"
               required
               aria-describedby="password-errors"
               aria-invalid="{{ loginForm.get('password')?.invalid && loginForm.get('password')?.touched ? 'true' : 'false' }}">

@@ -7,21 +7,10 @@ import { HomeService, Indicador, Usuario } from '../../services/home.service';
 import { MenuComponent } from '../../components/menu/menu.component';
 import { Firestore } from '@angular/fire/firestore';
 import {
-  IonContent,
-  IonHeader,
-  IonTitle,
-  IonToolbar,
-  IonButtons,
-  IonButton,
-  IonIcon,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent,
-  ActionSheetController,
-  ToastController,
-  AlertController,
-  LoadingController
+  IonContent, IonHeader, IonTitle, IonToolbar, IonButtons,
+  IonButton, IonIcon, IonCard, IonCardHeader, IonCardTitle,
+  IonCardContent, ActionSheetController, ToastController,
+  AlertController, LoadingController
 } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -29,7 +18,7 @@ import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-// ✅ AGREGAR IMPORTS DE CAPACITOR
+// Capacitor
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
@@ -39,21 +28,10 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
   styleUrls: ['./home.page.scss'],
   standalone: true,
   imports: [
-    CommonModule,
-    RouterModule,
-    FormsModule,
-    IonContent,
-    IonHeader,
-    IonTitle,
-    IonToolbar,
-    IonButtons,
-    IonButton,
-    IonIcon,
-    IonCard,
-    IonCardHeader,
-    IonCardTitle,
-    IonCardContent,
-    MenuComponent
+    CommonModule, RouterModule, FormsModule,
+    IonContent, IonHeader, IonTitle, IonToolbar, IonButtons,
+    IonButton, IonIcon, IonCard, IonCardHeader, IonCardTitle,
+    IonCardContent, MenuComponent
   ]
 })
 export class HomePage implements OnInit, OnDestroy {
@@ -73,10 +51,14 @@ export class HomePage implements OnInit, OnDestroy {
   vasosAgua: number = 0;
   metaVasosAgua: number = 8;
 
-  // Motivación
-  fraseMotivacional: string = 'Recuerda que pequeños cambios generan grandes resultados. ¡Tú puedes!';
+  // Estados
+  loading: boolean = true;
+  error: string = '';
 
-  // Próximas funciones
+  // Motivación
+  fraseMotivacional: string = 'Cargando...';
+
+  // ✅ AGREGADO: Próximas funciones que faltaban
   upcomingFeatures = [
     { emoji: '📊', name: 'Estadísticas detalladas', available: true },
     { emoji: '🍽️', name: 'Recetas saludables', available: false },
@@ -99,7 +81,6 @@ export class HomePage implements OnInit, OnDestroy {
   private router = inject(Router);
   private ngZone = inject(NgZone);
   
-  // ✅ CORREGIDO: Inyectar controles de Ionic
   private actionSheetController = inject(ActionSheetController);
   private toastController = inject(ToastController);
   private alertController = inject(AlertController);
@@ -107,31 +88,13 @@ export class HomePage implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  constructor(
-    private firestore: Firestore = inject(Firestore)
-  ) {
+  constructor() {
     this.onLogoError = this.onLogoError.bind(this);
   }
 
-  ngOnInit() {
-    console.log('🚀 HomePage initialized');
-
-    this.authService.user
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((user) => {
-        this.ngZone.run(() => {
-          console.log('Auth state changed:', user);
-          this.user = user;
-
-          if (user) {
-            this.loadAllUserData(user.uid);
-          } else {
-            this.resetUserData();
-          }
-        });
-      });
-
-    this.loadFraseMotivacional();
+  async ngOnInit() {
+    console.log('🚀 HomePage inicializado');
+    await this.inicializarHome();
   }
 
   ngOnDestroy() {
@@ -139,100 +102,126 @@ export class HomePage implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // Función para manejar error del logo
-  onLogoError() {
-    console.log('Error cargando el logo');
-  }
-
-  /**
-   * ✅ OPTIMIZADO: Carga de datos más eficiente
-   */
-  async loadAllUserData(uid: string) {
-    console.log('📊 Cargando datos del usuario:', uid);
-
+  // ✅ CORREGIDO: Inicialización optimizada
+  private async inicializarHome() {
+    this.loading = true;
+    
     try {
-      const usuario = await this.homeService.getUsuarioDataOnce(uid);
+      // Suscribirse a cambios de autenticación
+      this.authService.user
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(async (user) => {
+          await this.ngZone.run(async () => {
+            console.log('🔐 Cambio en autenticación:', user ? `Usuario: ${user.uid}` : 'No user');
+            this.user = user;
 
-      if (usuario) {
-        this.ngZone.run(() => {
-          this.usuarioData = usuario;
-          this.userName = usuario.nombreUsuario || 'Usuario';
-
-          console.log('✅ Usuario cargado:', usuario);
-          console.log('📋 haCompletadoConfiguracionInicial:', usuario.haCompletadoConfiguracionInicial);
-
-          // Validar configuración inicial
-          if (!usuario.haCompletadoConfiguracionInicial) {
-            console.log('🔄 Redirigiendo a configuración inicial...');
-            setTimeout(() => {
-              this.ngZone.run(() => {
-                this.router.navigate(['/indicators'], {
-                  queryParams: { setupInicial: 'true' },
-                  replaceUrl: true
-                });
-              });
-            }, 300);
-            return;
-          }
-
-          console.log('✅ Usuario ya completó configuración inicial, continuando...');
+            if (user) {
+              await this.procesarUsuarioAutenticado(user);
+            } else {
+              this.resetUserData();
+              this.loading = false;
+            }
+          });
         });
 
-        // Cargar indicador y actualizar acceso en paralelo
-        await Promise.all([
-          this.subscribeToTodayIndicator(uid),
-          this.actualizarUltimoAcceso(uid)
-        ]);
-
-      } else {
-        console.error('❌ Usuario no encontrado en Firestore');
-      }
+      // Cargar frase motivacional
+      this.loadFraseMotivacional();
 
     } catch (error) {
-      console.error('❌ Error cargando usuario:', error);
+      console.error('❌ Error crítico en inicialización:', error);
+      this.error = 'Error al cargar la aplicación';
+      this.loading = false;
     }
   }
 
-  /**
-   * ✅ CORREGIDO: Suscribirse al indicador de hoy - SIN VERIFICACIÓN EXTRA
-   */
-  private async subscribeToTodayIndicator(uid: string) {
-    this.homeService.getIndicadorHoy(uid)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (indicador: Indicador | null) => {
-          this.ngZone.run(() => {
-            if (indicador) {
-              this.indicadorHoy = indicador;
-              this.selectedEmotions = indicador.emociones || [];
-              this.vasosAgua = indicador.vasosAgua || 0;
-              this.updateEmotionButtons();
-              console.log('✅ Indicador de hoy cargado:', indicador);
-            } else {
-              console.log('ℹ️ No hay indicador para hoy');
-              this.resetDailyData();
-            }
-          });
-        },
-        error: (error: any) => {
-          this.ngZone.run(() => {
-            console.error('❌ Error cargando indicador:', error);
-          });
-        }
+  // ✅ CORREGIDO: Procesar usuario autenticado
+  private async procesarUsuarioAutenticado(user: User) {
+    try {
+      console.log('📊 Cargando datos del usuario:', user.uid);
+      
+      const usuario = await this.homeService.getUsuarioDataOnce(user.uid);
+      
+      if (!usuario) {
+        console.error('❌ No se pudo cargar usuario');
+        this.error = 'Error al cargar datos del usuario';
+        this.loading = false;
+        return;
+      }
+
+      this.usuarioData = usuario;
+      this.userName = usuario.nombreUsuario || 'Usuario';
+
+      console.log('✅ Usuario cargado:', {
+        nombre: usuario.nombreUsuario,
+        haCompletadoConfiguracionInicial: usuario.haCompletadoConfiguracionInicial
       });
+
+      // ✅ CRÍTICO: Verificar configuración inicial - SOLO redirigir si NO está completada
+      if (!usuario.haCompletadoConfiguracionInicial) {
+        console.log('🔄 Usuario necesita configuración inicial, redirigiendo...');
+        await this.showToast('Completa tu configuración inicial para comenzar', 'warning');
+        
+        this.ngZone.run(() => {
+          this.router.navigate(['/indicators'], {
+            queryParams: { setupInicial: 'true' },
+            replaceUrl: true
+          });
+        });
+        return;
+      }
+
+      console.log('✅ Usuario ya configurado, cargando datos...');
+      
+      // Cargar datos del día actual
+      await this.cargarDatosDelDia(user.uid);
+      
+      this.loading = false;
+
+    } catch (error) {
+      console.error('❌ Error procesando usuario:', error);
+      this.error = 'Error al cargar datos';
+      this.loading = false;
+    }
   }
 
-  /**
-   * ✅ CORREGIDO: Método separado para actualizar último acceso - SIN VERIFICACIÓN EXTRA
-   */
-  private async actualizarUltimoAcceso(uid: string) {
-    this.homeService.actualizarUltimoAcceso(uid);
-    // Este método es void, no necesita subscribe
+  // ✅ CORREGIDO: Cargar datos del día actual
+  private async cargarDatosDelDia(uid: string) {
+    try {
+      // Suscribirse al indicador de hoy
+      this.homeService.getIndicadorHoy(uid)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (indicador: Indicador | null) => {
+            this.ngZone.run(() => {
+              if (indicador) {
+                this.indicadorHoy = indicador;
+                this.selectedEmotions = indicador.emociones || [];
+                this.vasosAgua = indicador.vasosAgua || 0;
+                this.updateEmotionButtons();
+                console.log('✅ Indicador de hoy cargado:', indicador.id);
+              } else {
+                console.log('ℹ️ No hay indicador para hoy, iniciando nuevo día');
+                this.resetDailyData();
+              }
+            });
+          },
+          error: (error: any) => {
+            this.ngZone.run(() => {
+              console.error('❌ Error cargando indicador:', error);
+              this.showToast('Error al cargar datos del día', 'danger');
+            });
+          }
+        });
+
+      // Actualizar último acceso
+      this.homeService.actualizarUltimoAcceso(uid);
+
+    } catch (error) {
+      console.error('❌ Error cargando datos del día:', error);
+    }
   }
 
-  /**
-   * Cargar frase motivacional desde Firebase
-   */
+  // ✅ CORREGIDO: Cargar frase motivacional
   private loadFraseMotivacional() {
     this.homeService.getFraseMotivacional()
       .pipe(takeUntil(this.destroy$))
@@ -240,56 +229,21 @@ export class HomePage implements OnInit, OnDestroy {
         next: (frase: string) => {
           this.ngZone.run(() => {
             this.fraseMotivacional = frase;
-            console.log('💡 Frase motivacional:', frase);
           });
         },
         error: (error: any) => {
           console.error('Error cargando frase:', error);
+          this.fraseMotivacional = 'Tu bienestar es tu mayor riqueza.';
         }
       });
   }
 
-  /**
-   * Actualizar el estado de los botones de emociones
-   */
-  private updateEmotionButtons() {
-    this.emotionButtons.forEach(button => {
-      button.selected = this.selectedEmotions.includes(button.value);
-    });
-  }
+  // ============================================
+  // ✅ INTERACCIÓN DEL USUARIO - CORREGIDO
+  // ============================================
 
-  /**
-   * Resetear datos cuando no hay usuario
-   */
-  private resetUserData() {
-    this.userName = 'Usuario';
-    this.usuarioData = null;
-    this.resetDailyData();
-  }
-
-  /**
-   * Resetear datos diarios
-   */
-  private resetDailyData() {
-    this.selectedEmotions = [];
-    this.vasosAgua = 0;
-    this.indicadorHoy = null;
-    this.resetEmotionButtons();
-  }
-
-  /**
-   * Resetear estado de botones de emociones
-   */
-  private resetEmotionButtons() {
-    this.emotionButtons.forEach(button => button.selected = false);
-  }
-
-  /**
-   * Seleccionar/deseleccionar emoción
-   */
   async toggleEmotion(emotion: any) {
     if (!this.user) {
-      console.warn('⚠️ Usuario no autenticado');
       await this.showAlert('Error', 'Debes iniciar sesión para registrar tus emociones');
       return;
     }
@@ -311,9 +265,7 @@ export class HomePage implements OnInit, OnDestroy {
     await this.guardarEmociones();
   }
 
-  /**
-   * ✅ CORREGIDO COMPLETAMENTE: Guardar emociones - CON PARÁMETROS CORRECTOS
-   */
+  // ✅ CORREGIDO: Guardar emociones
   private async guardarEmociones() {
     if (!this.user) return;
 
@@ -331,13 +283,12 @@ export class HomePage implements OnInit, OnDestroy {
       indicadorId: this.indicadorHoy?.id
     });
 
-    // ✅ CORREGIDO: Usar parámetros en el orden correcto
     this.homeService.guardarIndicadorDiarioConUid(
-      this.user.uid,           // uid: string
-      this.selectedEmotions,    // emociones: string[]
-      estadoAnimo,             // estadoAnimo: string  
-      this.vasosAgua,          // vasosAgua: number
-      this.indicadorHoy?.id    // indicadorId?: string
+      this.user.uid,
+      this.selectedEmotions,
+      estadoAnimo,
+      this.vasosAgua,
+      this.indicadorHoy?.id
     )
     .pipe(takeUntil(this.destroy$))
     .subscribe({
@@ -345,6 +296,8 @@ export class HomePage implements OnInit, OnDestroy {
         if (success) {
           console.log('✅ Emociones guardadas');
           this.showToast('Emociones guardadas correctamente', 'success');
+        } else {
+          this.showToast('Error al guardar las emociones', 'danger');
         }
       },
       error: (error: any) => {
@@ -354,9 +307,7 @@ export class HomePage implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * ✅ CORREGIDO COMPLETAMENTE: Incrementar vasos de agua - PARÁMETROS CORRECTOS
-   */
+  // ✅ CORREGIDO: Incrementar vasos de agua
   async incrementarVasosAgua() {
     if (!this.user) {
       await this.showAlert('Error', 'Debes iniciar sesión para registrar tu consumo de agua');
@@ -368,11 +319,10 @@ export class HomePage implements OnInit, OnDestroy {
 
       console.log('💧 Incrementando vasos de agua a:', this.vasosAgua);
 
-      // ✅ CORREGIDO: Usar parámetros en el orden correcto
       this.homeService.actualizarVasosAguaConUid(
-        this.user.uid,           // uid: string
-        this.vasosAgua,          // vasosAgua: number
-        this.indicadorHoy?.id    // indicadorId?: string
+        this.user.uid,
+        this.vasosAgua,
+        this.indicadorHoy?.id
       )
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -394,9 +344,7 @@ export class HomePage implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * ✅ CORREGIDO COMPLETAMENTE: Decrementar vasos de agua - PARÁMETROS CORRECTOS
-   */
+  // ✅ CORREGIDO: Decrementar vasos de agua
   async decrementarVasosAgua() {
     if (!this.user) return;
 
@@ -405,11 +353,10 @@ export class HomePage implements OnInit, OnDestroy {
 
       console.log('💧 Decrementando vasos de agua a:', this.vasosAgua);
 
-      // ✅ CORREGIDO: Usar parámetros en el orden correcto
       this.homeService.actualizarVasosAguaConUid(
-        this.user.uid,           // uid: string
-        this.vasosAgua,          // vasosAgua: number
-        this.indicadorHoy?.id    // indicadorId?: string
+        this.user.uid,
+        this.vasosAgua,
+        this.indicadorHoy?.id
       )
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -421,83 +368,12 @@ export class HomePage implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * 🍔 ABRIR MENÚ HAMBURGUESA PRINCIPAL - CORREGIDO
-   */
-  async openMainMenu() {
-    // ✅ FEEDBACK HÁPTICO EN MÓVIL
-    if (Capacitor.isNativePlatform()) {
-      await Haptics.impact({ style: ImpactStyle.Light });
-    }
+  // ============================================
+  // ✅ NAVEGACIÓN - CORREGIDO (AGREGAR MÉTODOS FALTANTES)
+  // ============================================
 
-    const actionSheet = await this.actionSheetController.create({
-      header: 'Navegación',
-      buttons: [
-        {
-          text: 'Inicio',
-          icon: 'home',
-          handler: () => {
-            this.ngZone.run(() => {
-              this.router.navigate(['/home']);
-            });
-          }
-        },
-        {
-          text: 'Indicadores',
-          icon: 'stats-chart',
-          handler: () => {
-            this.ngZone.run(() => {
-              this.router.navigate(['/indicators']);
-            });
-          }
-        },
-        {
-          text: 'Chatbot',
-          icon: 'chatbubble',
-          handler: () => {
-            this.ngZone.run(() => {
-              this.router.navigate(['/chat']);
-            });
-          }
-        },
-        {
-          text: 'Estadísticas',
-          icon: 'analytics',
-          handler: () => {
-            this.showComingSoon('Estadísticas');
-          }
-        },
-        {
-          text: 'Configuración',
-          icon: 'settings-outline',
-          handler: () => {
-            this.showComingSoon('Configuración');
-          }
-        },
-        {
-          text: 'Cerrar Sesión',
-          icon: 'log-out-outline',
-          role: 'destructive',
-          handler: () => {
-            this.logout();
-          }
-        },
-        {
-          text: 'Cancelar',
-          icon: 'close',
-          role: 'cancel'
-        }
-      ]
-    });
-
-    await actionSheet.present();
-  }
-
-  /**
-   * 👤 ABRIR MENÚ DE PERFIL - CORREGIDO
-   */
+  // ✅ AGREGADO: Método openProfileMenu que faltaba
   async openProfileMenu(event: any) {
-    // ✅ FEEDBACK HÁPTICO EN MÓVIL
     if (Capacitor.isNativePlatform()) {
       await Haptics.impact({ style: ImpactStyle.Light });
     }
@@ -539,9 +415,98 @@ export class HomePage implements OnInit, OnDestroy {
     await actionSheet.present();
   }
 
-  /**
-   * Cerrar sesión - CORREGIDO
-   */
+  // ✅ AGREGADO: Método openProfile que faltaba
+  openProfile() {
+    this.showComingSoon('Perfil');
+  }
+
+  async openMainMenu() {
+    if (Capacitor.isNativePlatform()) {
+      await Haptics.impact({ style: ImpactStyle.Light });
+    }
+
+    const actionSheet = await this.actionSheetController.create({
+      header: 'Navegación',
+      buttons: [
+        {
+          text: 'Inicio',
+          icon: 'home',
+          handler: () => {
+            this.router.navigate(['/home']);
+          }
+        },
+        {
+          text: 'Indicadores',
+          icon: 'stats-chart',
+          handler: () => {
+            this.router.navigate(['/indicators']);
+          }
+        },
+        {
+          text: 'Chatbot',
+          icon: 'chatbubble',
+          handler: () => {
+            this.router.navigate(['/chat']);
+          }
+        },
+        {
+          text: 'Cerrar Sesión',
+          icon: 'log-out-outline',
+          role: 'destructive',
+          handler: () => {
+            this.logout();
+          }
+        },
+        {
+          text: 'Cancelar',
+          icon: 'close',
+          role: 'cancel'
+        }
+      ]
+    });
+
+    await actionSheet.present();
+  }
+
+  openDailyRegister() {
+    this.router.navigate(['/indicators']);
+  }
+
+  // ============================================
+  // ✅ UTILIDADES - CORREGIDAS
+  // ============================================
+
+  private updateEmotionButtons() {
+    this.emotionButtons.forEach(button => {
+      button.selected = this.selectedEmotions.includes(button.value);
+    });
+  }
+
+  private resetUserData() {
+    this.userName = 'Usuario';
+    this.usuarioData = null;
+    this.resetDailyData();
+  }
+
+  private resetDailyData() {
+    this.selectedEmotions = [];
+    this.vasosAgua = 0;
+    this.indicadorHoy = null;
+    this.resetEmotionButtons();
+  }
+
+  private resetEmotionButtons() {
+    this.emotionButtons.forEach(button => button.selected = false);
+  }
+
+  onLogoError() {
+    console.log('Error cargando el logo');
+  }
+
+  // ============================================
+  // ✅ MANEJO DE SESIÓN - CORREGIDO
+  // ============================================
+
   async logout() {
     try {
       const loading = await this.loadingController.create({
@@ -571,35 +536,11 @@ export class HomePage implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Abrir perfil del usuario
-   */
-  openProfile() {
-    this.showComingSoon('Perfil');
-  }
+  // ============================================
+  // ✅ UTILIDADES DE UI - CORREGIDAS
+  // ============================================
 
-  /**
-   * Abrir registro diario completo
-   */
-  openDailyRegister() {
-    if (this.usuarioData && !this.usuarioData.haCompletadoConfiguracionInicial) {
-      console.log('📝 Redirigiendo a configuración inicial');
-      this.ngZone.run(() => {
-        this.router.navigate(['/indicators']);
-      });
-    } else {
-      console.log('📝 Redirigiendo a registro diario');
-      this.ngZone.run(() => {
-        this.router.navigate(['/indicators']);
-      });
-    }
-  }
-
-  /**
-   * UTILIDADES PARA MOSTRAR MENSAJES - CORREGIDAS
-   */
   private async showToast(message: string, color: string = 'success') {
-    // ✅ FEEDBACK HÁPTICO EN MÓVIL
     if (Capacitor.isNativePlatform()) {
       await Haptics.impact({ style: ImpactStyle.Light });
     }
@@ -622,8 +563,8 @@ export class HomePage implements OnInit, OnDestroy {
     await alert.present();
   }
 
+  // ✅ AGREGADO: Método showComingSoon que faltaba
   private async showComingSoon(feature: string) {
-    // ✅ FEEDBACK HÁPTICO EN MÓVIL
     if (Capacitor.isNativePlatform()) {
       await Haptics.impact({ style: ImpactStyle.Medium });
     }
@@ -634,5 +575,17 @@ export class HomePage implements OnInit, OnDestroy {
       buttons: ['OK']
     });
     await alert.present();
+  }
+
+  // ✅ NUEVO: Método para recargar datos
+  async recargarDatos() {
+    this.loading = true;
+    this.error = '';
+    
+    if (this.user) {
+      await this.procesarUsuarioAutenticado(this.user);
+    } else {
+      this.loading = false;
+    }
   }
 }

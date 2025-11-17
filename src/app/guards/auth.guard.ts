@@ -7,15 +7,16 @@ export const authGuard = () => {
   const router = inject(Router);
 
   return new Promise<boolean>(async (resolve) => {
-    const user = auth.currentUser;
-    
-    if (user) {
-      resolve(true);
-    } else {
-      console.log('User not authenticated, redirecting to login');
-      await router.navigate(['/login']);
-      resolve(false);
-    }
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        console.log('✅ AuthGuard: Usuario autenticado, acceso permitido');
+        resolve(true);
+      } else {
+        console.log('🚫 AuthGuard: Usuario NO autenticado, redirigiendo a login');
+        await router.navigate(['/login']);
+        resolve(false);
+      }
+    });
   });
 };
 
@@ -24,14 +25,15 @@ export const noAuthGuard = () => {
   const router = inject(Router);
 
   return new Promise<boolean>(async (resolve) => {
-    const user = auth.currentUser;
-    
-    if (!user) {
-      resolve(true);
-    } else {
-      console.log('User already authenticated, redirecting to home');
-      await router.navigate(['/home']);
-      resolve(false);
-    }
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        console.log('✅ NoAuthGuard: Usuario NO autenticado, acceso permitido');
+        resolve(true);
+      } else {
+        console.log('🚫 NoAuthGuard: Usuario YA autenticado, redirigiendo a home');
+        await router.navigate(['/home']);
+        resolve(false);
+      }
+    });
   });
 };

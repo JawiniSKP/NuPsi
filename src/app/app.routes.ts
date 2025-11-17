@@ -1,5 +1,5 @@
-// src/app/app.routes.ts
 import { Routes } from '@angular/router';
+import { authGuard, noAuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -10,49 +10,55 @@ export const routes: Routes = [
   {
     path: 'home',
     loadComponent: () => import('./pages/home/home.page').then(m => m.HomePage),
+    canActivate: [authGuard] // ✅ PROTEGIDO
   },
   {
     path: 'login',
     loadComponent: () => import('./pages/login/login.page').then(m => m.LoginPage),
+    canActivate: [noAuthGuard] // ✅ SOLO SI NO ESTÁ AUTENTICADO
   },
   {
     path: 'register',
     loadComponent: () => import('./pages/register/register.page').then(m => m.RegisterPage),
+    canActivate: [noAuthGuard] // ✅ SOLO SI NO ESTÁ AUTENTICADO
   },
   { 
     path: 'planes', 
-    loadComponent: () => import('./pages/planes/planes.page').then(m => m.PlanesPage) 
+    loadComponent: () => import('./pages/planes/planes.page').then(m => m.PlanesPage),
+    canActivate: [authGuard] // ✅ PROTEGIDO
   },
-  // ✅ NUEVA RUTA - Ejercicios
   {
     path: 'ejercicios',
-    loadComponent: () => import('./pages/ejercicios/ejercicios.page').then(m => m.EjerciciosPage)
+    loadComponent: () => import('./pages/ejercicios/ejercicios.page').then(m => m.EjerciciosPage),
+    canActivate: [authGuard] // ✅ PROTEGIDO
   },
-  // ✅ NUEVA RUTA - Temporizador de Ejercicio
   {
     path: 'temporizador-ejercicio/:id',
-    loadComponent: () => import('./pages/temporizador-ejercicio/temporizador-ejercicio.page').then(m => m.TemporizadorEjercicioPage)
+    loadComponent: () => import('./pages/temporizador-ejercicio/temporizador-ejercicio.page').then(m => m.TemporizadorEjercicioPage),
+    canActivate: [authGuard] // ✅ PROTEGIDO
   },
   {
     path: 'indicators',
     loadComponent: () => import('./pages/indicators/indicators.page').then(m => m.IndicatorsPage),
+    canActivate: [authGuard] // ✅ PROTEGIDO
   },
   {
     path: 'chat', 
-    loadComponent: () => import('./pages/chat/chat.page').then(m => m.ChatPage) 
+    loadComponent: () => import('./pages/chat/chat.page').then(m => m.ChatPage),
+    canActivate: [authGuard] // ✅ PROTEGIDO
   },
   {
     path: 'receta-detalle/:id',
-    loadComponent: () => import('./pages/receta-detalle/receta-detalle.page').then(m => m.RecetaDetallePage)
+    loadComponent: () => import('./pages/receta-detalle/receta-detalle.page').then(m => m.RecetaDetallePage),
+    canActivate: [authGuard] // ✅ PROTEGIDO
   },
   {
     path: 'perfil',
-    loadComponent: () => import('./pages/perfil/perfil.page').then( m => m.PerfilPage)
+    loadComponent: () => import('./pages/perfil/perfil.page').then(m => m.PerfilPage),
+    canActivate: [authGuard] // ✅ PROTEGIDO
   },
   {
     path: '**',
     redirectTo: 'home'
   }
-  
-
 ];

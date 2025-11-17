@@ -15,11 +15,7 @@ import {
   reauthenticateWithCredential,
   EmailAuthProvider,
   User,
-  onAuthStateChanged,
-  setPersistence,
-  browserLocalPersistence,
-  browserSessionPersistence,
-  signInWithCredential
+  onAuthStateChanged
 } from '@angular/fire/auth';
 import { doc, Firestore, setDoc, updateDoc, getDoc, Timestamp, deleteDoc, collection, collectionData } from '@angular/fire/firestore';
 import { Observable, from, of, BehaviorSubject } from 'rxjs';
@@ -70,23 +66,7 @@ export class AuthService {
   private authStateInitialized = false;
 
   constructor() {
-    this.configurarPersistenciaAuth();
     this.initializeAuthState();
-  }
-
-  // ✅ SOLUCIÓN: PERSISTENCIA DE SESIÓN MEJORADA
-  private async configurarPersistenciaAuth() {
-    try {
-      await setPersistence(this.auth, browserLocalPersistence);
-      console.log('✅ Persistencia LOCAL configurada - Sesión persistirá');
-      
-      await Preferences.set({
-        key: 'auth_persistence',
-        value: 'local'
-      });
-    } catch (error) {
-      console.error('❌ Error en persistencia:', error);
-    }
   }
 
   private initializeAuthState() {
@@ -128,7 +108,7 @@ export class AuthService {
         }
       } catch (error: any) {
         console.error('❌ Error en Google login:', error);
-        throw error; // Propagar el error para manejarlo en el componente
+        throw error;
       }
     });
   }

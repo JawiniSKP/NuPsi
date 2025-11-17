@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -19,6 +19,8 @@ import {
   waterOutline, scaleOutline, resizeOutline, happyOutline, 
   heartOutline, trendingUpOutline, createOutline, documentOutline
 } from 'ionicons/icons';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-indicators',
@@ -33,10 +35,9 @@ import {
     IonButtons, IonBackButton, IonChip, IonIcon
   ]
 })
-export class IndicatorsPage implements OnInit {
+export class IndicatorsPage implements OnInit, OnDestroy {
   indicatorForm: FormGroup;
   
-  // ✅ CORREGIDO: Usando propiedades normales en lugar de signals para compatibilidad con template
   userIndicators: Indicador[] = [];
   loading = false;
   esConfiguracionInicial = false;
@@ -45,7 +46,10 @@ export class IndicatorsPage implements OnInit {
   ultimosValores: UltimosValoresFisicos = {};
   errorMessage = '';
 
-  // ✅ CORRECTO: Inyección de dependencias
+  // Estados
+  submitted = false;
+  guardando = false;
+
   private homeService = inject(HomeService);
   private authService = inject(AuthService);
   private fb = inject(FormBuilder);
@@ -54,18 +58,17 @@ export class IndicatorsPage implements OnInit {
   private loadingController = inject(LoadingController);
   private toastController = inject(ToastController);
 
+  private destroy$ = new Subject<void>();
+
   constructor() {
-    // ✅ CORREGIDO: Formulario SIN vasos de agua
     this.indicatorForm = this.fb.group({
       peso: ['', [Validators.required, Validators.min(30), Validators.max(300)]],
       estatura: ['', [Validators.required, Validators.min(100), Validators.max(250)]],
       estadoAnimo: ['', Validators.required],
       emociones: [[], Validators.required],
       notas: ['']
-      // ❌ ELIMINADO: vasosAgua - Ahora solo en home
     });
 
-    // ✅ CORREGIDO: Iconos correctamente importados
     addIcons({
       alertCircle, trendingUp, scale, heart, happy, water, 
       create, checkmarkCircle, resize, document,
@@ -75,77 +78,118 @@ export class IndicatorsPage implements OnInit {
   }
 
   async ngOnInit() {
-    // 🎯 Detectar si es configuración inicial desde URL
-    this.route.queryParams.subscribe(params => {
-      this.esConfiguracionInicial = params['setupInicial'] === 'true';
-      console.log('📋 Modo:', this.esConfiguracionInicial ? 'Configuración Inicial' : 'Registro Diario');
-    });
-
+    // Verificar autenticación
     this.currentUserId = this.authService.getCurrentUserId();
-
     if (!this.currentUserId) {
       console.error('❌ No hay usuario autenticado');
       this.router.navigate(['/login']);
       return;
     }
 
-    // Cargar últimos valores físicos SIEMPRE
-    await this.cargarUltimosValoresFisicos();
+    // Detectar modo
+    this.route.queryParams
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        this.esConfiguracionInicial = params['setupInicial'] === 'true';
+        console.log('📋 Modo:', this.esConfiguracionInicial ? 'Configuración Inicial' : 'Registro Diario');
+        
+        // ✅ CRÍTICO: Si NO es configuración inicial, verificar si ya está configurado
+        if (!this.esConfiguracionInicial) {
+          this.verificarConfiguracionCompletada();
+        }
+      });
 
-    // Cargar historial solo si NO es configuración inicial
-    if (!this.esConfiguracionInicial) {
-      await this.loadUserIndicators();
+    // Cargar datos
+    await this.cargarDatosIniciales();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  // ✅ NUEVO: Verificar si ya completó configuración
+  private async verificarConfiguracionCompletada() {
+    try {
+      const necesitaConfig = await this.homeService.necesitaConfiguracionInicial();
+      
+      if (!necesitaConfig) {
+        console.log('✅ Usuario ya completó configuración, cargando historial...');
+        await this.loadUserIndicators();
+      } else {
+        console.log('🔄 Usuario necesita configuración, redirigiendo a modo configuración...');
+        this.router.navigate(['/indicators'], {
+          queryParams: { setupInicial: 'true' },
+          replaceUrl: true
+        });
+        return;
+      }
+    } catch (error) {
+      console.error('❌ Error verificando configuración:', error);
     }
   }
 
-  // ============================================
-  // 🎯 CARGAR ÚLTIMOS VALORES FÍSICOS - CORREGIDO
-  // ============================================
+  // ✅ CORREGIDO: Cargar datos iniciales
+  private async cargarDatosIniciales() {
+    this.loading = true;
+    
+    try {
+      // Cargar últimos valores físicos
+      await this.cargarUltimosValoresFisicos();
+      
+      // Solo cargar historial si NO es configuración inicial
+      if (!this.esConfiguracionInicial) {
+        await this.loadUserIndicators();
+      }
+      
+    } catch (error) {
+      console.error('❌ Error cargando datos iniciales:', error);
+      this.errorMessage = 'Error al cargar los datos';
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  // ✅ CORREGIDO: Cargar últimos valores físicos
   async cargarUltimosValoresFisicos() {
     try {
-      // ✅ CORREGIDO: Sin parámetros
       this.ultimosValores = await this.homeService.obtenerUltimosValoresFisicos();
 
       if (this.ultimosValores.peso && this.ultimosValores.estatura) {
-        // Pre-llenar el formulario con los últimos valores
         this.indicatorForm.patchValue({
           peso: this.ultimosValores.peso,
           estatura: this.ultimosValores.estatura
         });
 
-        console.log('✅ Últimos valores cargados en formulario:', this.ultimosValores);
-      } else {
-        console.log('ℹ️ No hay valores físicos previos, campos vacíos');
+        console.log('✅ Últimos valores cargados:', this.ultimosValores);
       }
     } catch (error) {
       console.error('❌ Error cargando últimos valores:', error);
     }
   }
 
-  // ============================================
-  // ✅ CORREGIDO: CARGAR HISTORIAL
-  // ============================================
+  // ✅ CORREGIDO: Cargar historial
   async loadUserIndicators() {
     this.loading = true;
     
-    // ✅ CORREGIDO: Solo 1 parámetro (días)
-    this.homeService.getHistorialIndicadores(30).subscribe({
-      next: (indicadores) => {
-        this.userIndicators = indicadores;
-        console.log('✅ Indicadores cargados:', indicadores.length);
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('❌ Error cargando indicadores:', error);
-        this.loading = false;
-      }
-    });
+    this.homeService.getHistorialIndicadores(30)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (indicadores) => {
+          this.userIndicators = indicadores;
+          console.log('✅ Indicadores cargados:', indicadores.length);
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('❌ Error cargando indicadores:', error);
+          this.loading = false;
+        }
+      });
   }
 
-  // ============================================
-  // ✅ CORREGIDO: GUARDAR INDICADOR (SIN VASOS DE AGUA)
-  // ============================================
+  // ✅ CORREGIDO: Guardar indicador
   async submitIndicator() {
+    this.submitted = true;
     this.errorMessage = '';
 
     if (!this.indicatorForm.valid) {
@@ -157,6 +201,8 @@ export class IndicatorsPage implements OnInit {
       this.showToast(this.errorMessage, 'warning');
       return;
     }
+
+    this.guardando = true;
 
     const loading = await this.loadingController.create({
       message: this.esConfiguracionInicial 
@@ -176,7 +222,6 @@ export class IndicatorsPage implements OnInit {
         imc: imc,
         estadoAnimo: formData.estadoAnimo,
         emociones: formData.emociones || [],
-        // ❌ ELIMINADO: vasosAgua - Ahora solo en home
         notas: formData.notas || '',
         esConfiguracionInicial: this.esConfiguracionInicial,
         fecha: Timestamp.fromDate(new Date()),
@@ -185,51 +230,46 @@ export class IndicatorsPage implements OnInit {
 
       console.log('💾 Guardando indicador:', indicadorData);
 
-      // ✅ CORREGIDO: Solo 1 parámetro (indicadorData)
-      this.homeService.guardarIndicadorCompleto(indicadorData).subscribe({
-        next: async (success) => {
-          if (success) {
+      this.homeService.guardarIndicadorCompleto(indicadorData)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: async (success) => {
             await loading.dismiss();
+            this.guardando = false;
 
-            // 🎯 SI ES CONFIGURACIÓN INICIAL → Marcar como completada
-            if (this.esConfiguracionInicial) {
-              await this.completarConfiguracionInicial();
+            if (success) {
+              // 🎯 SI ES CONFIGURACIÓN INICIAL → Marcar como completada y redirigir
+              if (this.esConfiguracionInicial) {
+                await this.completarConfiguracionInicial();
+              } else {
+                // Si es registro diario → Mostrar éxito y limpiar formulario
+                await this.showToast('¡Indicador guardado correctamente! 🎉', 'success');
+                this.limpiarFormularioParaNuevoRegistro();
+                await this.loadUserIndicators();
+              }
             } else {
-              // Si es registro diario → Mantener peso/estatura, limpiar resto
-              await this.showToast('¡Indicador guardado correctamente! 🎉', 'success');
-              
-              this.indicatorForm.patchValue({
-                estadoAnimo: '',
-                emociones: [],
-                notas: ''
-                // ❌ ELIMINADO: vasosAgua
-              });
-              
-              await this.loadUserIndicators();
+              throw new Error('No se pudo guardar el indicador');
             }
-          } else {
-            throw new Error('No se pudo guardar');
+          },
+          error: async (error) => {
+            await loading.dismiss();
+            this.guardando = false;
+            console.error('❌ Error guardando:', error);
+            this.errorMessage = 'No se pudo guardar el indicador';
+            this.showToast(this.errorMessage, 'danger');
           }
-        },
-        error: async (error) => {
-          console.error('❌ Error:', error);
-          await loading.dismiss();
-          this.errorMessage = 'No se pudo guardar el indicador';
-          this.showToast(this.errorMessage, 'danger');
-        }
-      });
+        });
 
     } catch (error: any) {
-      console.error('❌ Error guardando:', error);
       await loading.dismiss();
+      this.guardando = false;
+      console.error('❌ Error inesperado:', error);
       this.errorMessage = 'Error al guardar. Intenta nuevamente';
       this.showToast(this.errorMessage, 'danger');
     }
   }
 
-  // ============================================
-  // 🎯 COMPLETAR CONFIGURACIÓN INICIAL - CORREGIDO
-  // ============================================
+  // ✅ CORREGIDO: Completar configuración inicial
   private async completarConfiguracionInicial() {
     console.log('🎉 Completando configuración inicial...');
 
@@ -240,74 +280,55 @@ export class IndicatorsPage implements OnInit {
     await loading.present();
 
     try {
-      // ✅ CORREGIDO: Sin parámetros
-      this.homeService.marcarConfiguracionInicialCompleta().subscribe({
-        next: async (success) => {
-          console.log('📡 Respuesta de marcarConfiguracion:', success);
-          
-          await loading.dismiss();
-
-          if (success) {
-            console.log('✅ Configuración marcada correctamente');
-            await this.showToast('¡Perfil configurado exitosamente! 🎉', 'success');
+      this.homeService.marcarConfiguracionInicialCompleta()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: async (success) => {
+            await loading.dismiss();
             
-            // Esperar 2 segundos antes de redirigir
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            console.log('🚀 Navegando al home...');
-            
-            // Navegar con replaceUrl para limpiar historial
-            await this.router.navigate(['/home'], { replaceUrl: true });
-            
-            console.log('✅ Navegación completada');
-          } else {
-            throw new Error('No se pudo marcar como completada');
+            if (success) {
+              console.log('✅ Configuración marcada correctamente');
+              await this.showToast('¡Perfil configurado exitosamente! 🎉', 'success');
+              
+              // Esperar y redirigir al home
+              setTimeout(() => {
+                this.router.navigate(['/home'], { replaceUrl: true });
+              }, 1500);
+            } else {
+              throw new Error('No se pudo marcar como completada');
+            }
+          },
+          error: async (error) => {
+            await loading.dismiss();
+            console.error('❌ Error marcando configuración:', error);
+            await this.showToast('Error al finalizar configuración', 'danger');
           }
-        },
-        error: async (error) => {
-          await loading.dismiss();
-          console.error('❌ Error marcando configuración:', error);
-          await this.handleConfiguracionError(error);
-        }
-      });
+        });
 
     } catch (error: any) {
       await loading.dismiss();
       console.error('❌ Error inesperado:', error);
-      await this.handleConfiguracionError(error);
+      await this.showToast('Error al finalizar configuración', 'danger');
     }
   }
 
-  // ============================================
-  // 🛠️ MANEJO DE ERRORES DE CONFIGURACIÓN
-  // ============================================
-  private async handleConfiguracionError(error: any) {
-    // Mostrar mensaje específico según el error
-    if (error?.message?.includes('ERR_BLOCKED_BY_CLIENT') || 
-        error?.message?.includes('blocked') ||
-        error?.code === 'unavailable') {
-      await this.showToast(
-        '⚠️ Tu navegador está bloqueando la conexión. Desactiva extensiones de privacidad (AdBlock/Brave Shields) e intenta nuevamente.',
-        'warning'
-      );
-    } else if (error?.code === 'permission-denied') {
-      await this.showToast(
-        '❌ Error de permisos. Cierra sesión e inicia nuevamente.',
-        'danger'
-      );
-    } else {
-      await this.showToast(
-        '❌ Error al finalizar configuración. Verifica tu conexión a internet.',
-        'danger'
-      );
-    }
+  // ✅ NUEVO: Limpiar formulario para nuevo registro
+  private limpiarFormularioParaNuevoRegistro() {
+    // Mantener peso y estatura, limpiar el resto
+    const { peso, estatura } = this.indicatorForm.value;
     
-    console.log('⚠️ No se redirige al home debido al error');
+    this.indicatorForm.reset({
+      peso: peso,
+      estatura: estatura
+    });
+    
+    this.submitted = false;
   }
 
   // ============================================
-  // CALCULAR IMC
+  // ✅ MÉTODOS DE CÁLCULO Y UTILIDADES
   // ============================================
+
   calculateBMI(peso: number, estatura: number): number {
     const estaturaEnMetros = estatura / 100;
     const imc = peso / (estaturaEnMetros * estaturaEnMetros);
@@ -328,16 +349,10 @@ export class IndicatorsPage implements OnInit {
     return 'danger';
   }
 
-  // ============================================
-  // EMOJIS Y FORMATOS
-  // ============================================
   getMoodEmoji(estadoAnimo: string): string {
     const moodEmojis: { [key: string]: string } = {
-      'excelente': '😊',
-      'bueno': '🙂',
-      'regular': '😐',
-      'malo': '😔',
-      'muy-malo': '😢'
+      'excelente': '😊', 'bueno': '🙂', 'regular': '😐',
+      'malo': '😔', 'muy-malo': '😢'
     };
     return moodEmojis[estadoAnimo] || '❓';
   }
@@ -361,8 +376,9 @@ export class IndicatorsPage implements OnInit {
   }
 
   // ============================================
-  // EMOCIONES
+  // ✅ MANEJO DE EMOCIONES
   // ============================================
+
   emocionesDisponibles = [
     { value: 'feliz', label: 'Feliz', emoji: '😊' },
     { value: 'tranquilo', label: 'Tranquilo', emoji: '😌' },
@@ -385,6 +401,7 @@ export class IndicatorsPage implements OnInit {
     }
     
     this.indicatorForm.patchValue({ emociones });
+    this.indicatorForm.get('emociones')?.markAsDirty();
   }
 
   isEmocionSelected(emocion: string): boolean {
@@ -393,8 +410,9 @@ export class IndicatorsPage implements OnInit {
   }
 
   // ============================================
-  // UTILIDADES
+  // ✅ UTILIDADES DE UI
   // ============================================
+
   private async showToast(message: string, color: 'success' | 'danger' | 'warning' = 'success') {
     const toast = await this.toastController.create({
       message: message,
@@ -413,5 +431,30 @@ export class IndicatorsPage implements OnInit {
 
   get formControls() {
     return this.indicatorForm.controls;
+  }
+
+  // ✅ NUEVO: Volver atrás inteligente
+  async goBack() {
+    if (this.esConfiguracionInicial) {
+      const alert = await this.toastController.create({
+        header: '¿Estás seguro?',
+        message: 'Si cancelas ahora, deberás completar la configuración para usar la aplicación.',
+        buttons: [
+          {
+            text: 'Continuar',
+            role: 'cancel'
+          },
+          {
+            text: 'Cancelar',
+            handler: () => {
+              this.router.navigate(['/login']);
+            }
+          }
+        ]
+      });
+      await alert.present();
+    } else {
+      this.router.navigate(['/home']);
+    }
   }
 }

@@ -15,7 +15,8 @@ import {
   IonIcon,
   IonNote,
   IonList,
-  IonAlert
+  IonAlert,
+  IonText
 } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { Capacitor } from '@capacitor/core';
@@ -40,7 +41,8 @@ import { Capacitor } from '@capacitor/core';
     IonIcon,
     IonNote,
     IonList,
-    IonAlert
+    IonAlert,
+    IonText
   ]
 })
 export class LoginPage implements OnInit {
@@ -51,6 +53,9 @@ export class LoginPage implements OnInit {
   logoLoaded = false;
   showGoogleAlert = false;
   googleAlertMessage = '';
+
+  // ✅ NUEVO: Control para mostrar formulario inmediatamente
+  mostrarFormularioInmediato = true;
 
   private formBuilder = inject(FormBuilder);
   private authService = inject(AuthService);
@@ -63,8 +68,64 @@ export class LoginPage implements OnInit {
     });
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    console.log('🔐 LoginPage inicializado - Acceso directo al formulario');
+    
+    // ✅ VERIFICAR SI YA ESTÁ AUTENTICADO - REDIRIGIR INMEDIATAMENTE
+    const estaAutenticado = this.authService.isAuthenticated();
+    
+    if (estaAutenticado) {
+      console.log('✅ Usuario ya autenticado, redirigiendo a home...');
+      this.router.navigate(['/home']);
+      return;
+    }
+
+    // ✅ VERIFICAR SI HAY USUARIO EN PREFERENCES (sesión persistente)
+    const tieneUsuarioAlmacenado = await this.authService.checkStoredUser();
+    
+    if (tieneUsuarioAlmacenado) {
+      console.log('📱 Usuario encontrado en almacenamiento local, intentando auto-login...');
+      await this.intentarAutoLogin();
+      return;
+    }
+
+    // ✅ SI NO HAY USUARIO ALMACENADO, MOSTRAR FORMULARIO INMEDIATAMENTE
+    console.log('👤 Mostrando formulario de login inmediatamente');
+    this.mostrarFormularioInmediato = true;
     this.toggleFormDisabled(false);
+  }
+
+  // ✅ NUEVO: Intentar auto-login con usuario almacenado
+  private async intentarAutoLogin() {
+    try {
+      const usuarioAlmacenado = await this.authService.getStoredUser();
+      
+      if (usuarioAlmacenado && usuarioAlmacenado.email) {
+        console.log('🔄 Intentando auto-login con:', usuarioAlmacenado.email);
+        
+        // Mostrar loading mientras intenta auto-login
+        this.isLoggingIn = true;
+        this.toggleFormDisabled(true);
+        
+        // Pequeño retraso para mejor UX
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // Intentar navegar directamente (los guards manejarán la autenticación)
+        console.log('🚀 Navegando a home (los guards verificarán autenticación)');
+        this.router.navigate(['/home']);
+        
+      } else {
+        console.log('ℹ️ No hay credenciales almacenadas, mostrando formulario');
+        this.mostrarFormularioInmediato = true;
+        this.toggleFormDisabled(false);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error en auto-login:', error);
+      this.mostrarFormularioInmediato = true;
+      this.toggleFormDisabled(false);
+      this.isLoggingIn = false;
+    }
   }
 
   // ✅ NUEVA PROPIEDAD PARA DETECTAR SI ES APP MÓVIL
@@ -218,5 +279,12 @@ export class LoginPage implements OnInit {
       const control = this.loginForm.get(key);
       control?.markAsTouched();
     });
+  }
+
+  // ✅ NUEVO: Método para manejar enter en el formulario
+  onKeyPress(event: KeyboardEvent) {
+    if (event.key === 'Enter' && this.loginForm.valid) {
+      this.login();
+    }
   }
 }

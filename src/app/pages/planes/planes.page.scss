@@ -2303,10 +2303,3 @@ ion-header {
   }
 }
 
-/* 🎯 SOLUCIÓN SEGMENT NO VISIBLE - MÍNIMA */
-.segment-container {
-  position: sticky;
-  top: 0;
-  z-index: 999;
-  background: white;
-}

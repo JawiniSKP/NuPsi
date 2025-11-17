@@ -16,7 +16,7 @@
 @import '@ionic/angular/css/palettes/dark.system.css';
 
 /* ========================================
-   🎨 VARIABLES GLOBALES SIMPLIFICADAS
+   🎨 VARIABLES GLOBALES OPTIMIZADAS
    ======================================== */
 
 :root {
@@ -44,21 +44,27 @@
   --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.1);
   --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.15);
   --shadow-floating: 0 8px 32px rgba(0, 0, 0, 0.2);
+
+  /* VIEWPORT HEIGHT VARIABLE PARA MÓVILES */
+  --vh: 1vh;
 }
 
 /* ===============================
-   📱 LAYOUT GLOBAL BÁSICO
+   📱 LAYOUT GLOBAL OPTIMIZADO
    =============================== */
 
 html, body {
   height: 100%;
   margin: 0;
   padding: 0;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 ion-app {
   height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
   display: block;
+  background: var(--bg-main);
 }
 
 /* Mejorar legibilidad global */
@@ -67,8 +73,199 @@ ion-app {
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: var(--bg-main);
   color: var(--text-primary);
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===============================
+   📱 CAPACITOR/IOS SPECIFIC FIXES
+   =============================== */
+
+/* Safe area fixes for notched devices */
+.capacitor-platform {
+  ion-header {
+    padding-top: var(--ion-safe-area-top, 0) !important;
+  }
+
+  ion-tab-bar {
+    padding-bottom: var(--ion-safe-area-bottom, 0) !important;
+  }
+
+  ion-content {
+    --padding-top: var(--ion-safe-area-top, 0);
+    --padding-bottom: var(--ion-safe-area-bottom, 0);
+    --padding-start: var(--ion-safe-area-left, 0);
+    --padding-end: var(--ion-safe-area-right, 0);
+  }
+}
+
+/* Fix for status bar padding */
+ion-header {
+  padding-top: var(--ion-safe-area-top, 0);
+}
+
+/* Fix for home indicator area */
+ion-tab-bar {
+  padding-bottom: var(--ion-safe-area-bottom, 0);
+}
+
+/* Ensure full height on mobile */
+html, body, ion-app, ion-router-outlet, .ion-page {
+  height: 100%;
+  width: 100%;
+}
+
+/* Platform-specific adjustments */
+@media (max-width: 768px) {
+  /* Mobile-specific styles */
+  body {
+    font-size: 14px;
+  }
+  
+  /* Fix for mobile viewport */
+  .ion-content-fixed {
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+  }
+
+  /* Mejorar tap targets en móvil */
+  ion-button, ion-item {
+    --min-height: 44px;
+  }
+}
+
+/* Desktop-specific adjustments */
+@media (min-width: 769px) {
+  /* Prevent desktop from looking too stretched */
+  ion-app {
+    max-width: 768px;
+    margin: 0 auto;
+    box-shadow: var(--shadow-medium);
+    border-left: var(--border-light);
+    border-right: var(--border-light);
+  }
+
+  body {
+    background: var(--bg-card);
+  }
+}
+
+/* ===============================
+   🎯 COMPONENTES PERSONALIZADOS
+   =============================== */
+
+/* Cards estilo Nupsi */
+.nupsi-card {
+  background: var(--bg-card);
+  border-radius: 16px;
+  box-shadow: var(--shadow-soft);
+  border: var(--border-light);
+  margin: 16px;
+  padding: 16px;
+}
+
+/* Botones personalizados */
+.btn-nupsi-primary {
+  --background: var(--gradient-primary);
+  --border-radius: 12px;
+  --box-shadow: var(--shadow-soft);
+  font-weight: 600;
+}
+
+/* Headers personalizados */
+.nupsi-header {
+  background: var(--gradient-hero);
+  color: var(--text-white);
+  
+  ion-toolbar {
+    --background: transparent;
+    --color: white;
+  }
+}
+
+/* Estados emocionales */
+.emocion-btn {
+  --border-radius: 50%;
+  --size: 60px;
+  width: var(--size);
+  height: var(--size);
+  margin: 8px;
+  
+  &.selected {
+    --background: var(--nupsi-primary);
+    --color: white;
+  }
+}
+
+/* ===============================
+   📊 PROGRESS BARS Y ESTADÍSTICAS
+   =============================== */
+
+.progress-bar {
+  background: #E2E8F0;
+  border-radius: 10px;
+  height: 8px;
+  overflow: hidden;
+  
+  .progress-fill {
+    background: var(--gradient-primary);
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+  }
+}
+
+/* ===============================
+   🎨 UTILIDADES GLOBALES
+   =============================== */
+
+.text-primary { color: var(--nupsi-primary); }
+.text-muted { color: var(--text-muted); }
+.bg-gradient { background: var(--gradient-primary); }
+
+/* Centrado vertical y horizontal */
+.center-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+/* Sombras suaves */
+.shadow-soft { box-shadow: var(--shadow-soft); }
+.shadow-medium { box-shadow: var(--shadow-medium); }
+
+/* ===============================
+   🐛 BUG FIXES ESPECÍFICOS
+   =============================== */
+
+/* Fix para scroll en iOS */
+.ios ion-content {
+  --overflow: hidden;
+}
+
+/* Fix para inputs en iOS */
+.ios ion-input, .ios ion-textarea {
+  --padding-start: 16px;
+  --padding-end: 16px;
+}
+
+/* Fix para botones en Android */
+.md ion-button {
+  --border-radius: 12px;
+}
+
+/* Asegurar que las imágenes sean responsivas */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Loading spinner personalizado */
+.nupsi-spinner {
+  color: var(--nupsi-primary);
 }

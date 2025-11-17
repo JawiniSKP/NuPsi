@@ -510,3 +510,150 @@ ion-button[disabled] {
     font-size: 0.8rem;
   }
 }
+// 🎨 ESTILOS PARA AUTO-LOGIN Y ACCESO DIRECTO
+
+// Loading durante auto-login
+.auto-login-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60vh;
+  
+  .loading-content {
+    text-align: center;
+    
+    ion-spinner {
+      margin-bottom: 1rem;
+      width: 48px;
+      height: 48px;
+    }
+    
+    ion-text {
+      p {
+        margin: 0;
+        font-size: 1rem;
+        color: var(--nupsi-text-light);
+        font-weight: 500;
+      }
+    }
+  }
+}
+
+// Banner informativo para app móvil
+.info-banner {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-left: 4px solid var(--ion-color-primary);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 12px rgba(56, 128, 255, 0.15);
+  animation: slideInDown 0.4s ease-out;
+  
+  ion-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  
+  span {
+    color: var(--nupsi-text);
+    font-weight: 600;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    
+    strong {
+      color: var(--ion-color-primary);
+    }
+  }
+}
+
+// Info para web
+.web-info {
+  ion-note {
+    font-size: 0.85rem;
+    font-weight: 500;
+    
+    small {
+      display: block;
+      line-height: 1.4;
+    }
+  }
+}
+
+// Animación para el formulario
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-container {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+// Mejora para el formulario en focus
+.form-item.item-has-focus {
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+// Efecto hover mejorado para botones
+.login-button, .google-button {
+  transition: all 0.3s ease;
+  
+  &:hover:not([disabled]) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  }
+  
+  &:active:not([disabled]) {
+    transform: translateY(0);
+  }
+}
+
+// Responsive mejorado
+@media (max-height: 700px) {
+  .auto-login-loading {
+    height: 50vh;
+  }
+  
+  .logo-section {
+    margin-bottom: 1rem;
+  }
+  
+  .form-card {
+    padding: 1.5rem;
+  }
+}
+
+// Estados de carga mejorados
+ion-button[disabled] {
+  position: relative;
+  overflow: hidden;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: shimmer 1.5s infinite;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
