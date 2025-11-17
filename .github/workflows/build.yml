@@ -5,8 +5,8 @@ on:
     branches: [ main ]
 
 env:
-  NODE_VERSION: '18.20.4'
-  JAVA_VERSION: '11'
+  NODE_VERSION: '22.21.1'  # ✅ TU VERSIÓN EXACTA
+  JAVA_VERSION: '17'       # ✅ COMPATIBLE CON NODE 22
 
 jobs:
   build-android:
@@ -17,13 +17,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup Java 11
+    - name: Setup Java 17
       uses: actions/setup-java@v4
       with:
         java-version: ${{ env.JAVA_VERSION }}
         distribution: 'temurin'
 
-    - name: Setup Node.js
+    - name: Setup Node.js 22
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
@@ -35,18 +35,20 @@ jobs:
 
     - name: Build Ionic app
       run: |
-        npm run build
+        npm run build -- --configuration=production
 
     - name: Setup Android
       run: |
-        npx cap add android
+        if [ ! -d "android" ]; then
+          npx cap add android
+        fi
         npx cap sync android
 
     - name: Build APK
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew assembleDebug --no-daemon --stacktrace
+        ./gradlew clean assembleDebug --no-daemon --stacktrace
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
