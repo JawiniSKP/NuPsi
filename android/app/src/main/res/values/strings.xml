@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">NuPsi</string>
     <string name="title_activity_main">NuPsi</string>
-    <string name="package_name">io.nupsi.app</string>
-    <string name="custom_url_scheme">io.nupsi.app</string>
+    <string name="package_name">com.jawini.nupsi</string>
+    <string name="custom_url_scheme">com.jawini.nupsi</string>
 </resources>

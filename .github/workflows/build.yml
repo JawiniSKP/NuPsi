@@ -28,11 +28,20 @@ jobs:
           npm run build
           npx cap sync android
       
-      - name: Build APK
+      - name: Debug - Check Android files
         run: |
           cd android
-          chmod +x gradlew
-          ./gradlew clean assembleDebug --no-daemon --stacktrace
+          echo "=== Build.gradle content ==="
+          cat app/build.gradle | grep -A 5 -B 5 applicationId
+          echo "=== Google services file ==="
+          ls -la app/google-services.json || echo "google-services.json not found"
+          echo "=== Package name in manifest ==="
+          cat app/src/main/AndroidManifest.xml | grep package
+      
+      - name: Build APK with full logs
+        run: |
+          cd android
+          ./gradlew clean assembleDebug --no-daemon --stacktrace --info --warning-mode all
       
       - name: Upload APK
         uses: actions/upload-artifact@v4

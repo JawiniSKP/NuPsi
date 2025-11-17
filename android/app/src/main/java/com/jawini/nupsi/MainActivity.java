@@ -1,4 +1,4 @@
-package io.nupsi.app;
+package com.jawini.nupsi;
 
 import com.getcapacitor.BridgeActivity;
 
