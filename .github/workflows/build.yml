@@ -31,14 +31,16 @@ jobs:
       - name: Build web app
         run: npm run build
       
-      - name: Setup Gradle
+      # PRIMERO sync Capacitor para generar los archivos
+      - name: Sync Capacitor
+        run: npx cap sync android
+      
+      # LUEGO actualizar Gradle
+      - name: Update to Gradle 8.6
         run: |
           cd android
           chmod +x gradlew
           ./gradlew wrapper --gradle-version 8.6 --distribution-type all --no-daemon
-      
-      - name: Sync Capacitor
-        run: npx cap sync android
       
       - name: Build Android APK
         run: |
