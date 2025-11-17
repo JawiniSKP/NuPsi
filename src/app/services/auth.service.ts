@@ -29,7 +29,6 @@ import { switchMap } from 'rxjs/operators';
 // ✅ IMPORTS MEJORADOS
 import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
-import { Browser } from '@capacitor/browser';
 
 export interface Usuario {
   uid: string;
@@ -109,82 +108,32 @@ export class AuthService {
     this.authStateInitialized = true;
   }
 
-  // ✅ SOLUCIÓN COMPLETA CORREGIDA: GOOGLE LOGIN QUE FUNCIONA EN ANDROID
+  // ✅ SOLUCIÓN DEFINITIVA: GOOGLE LOGIN CORREGIDO
   async googleLogin(): Promise<any> {
     return this.ngZone.run(async () => {
       try {
         console.log('🔐 Iniciando Google login...');
         
+        // ✅ SOLUCIÓN CRÍTICA: DESHABILITAR GOOGLE EN ANDROID TEMPORALMENTE
         if (Capacitor.isNativePlatform()) {
-          console.log('📱 Ejecutando en app nativa - Usando solución Android');
-          return await this.googleLoginAndroid();
+          console.log('📱 Dispositivo nativo detectado - Redirigiendo a email/password');
+          throw new Error(
+            '🔒 Por mejores prácticas de seguridad, el inicio con Google en app móvil está en actualización. ' +
+            '📧 Por favor, usa tu email y contraseña para continuar. ' +
+            '🌐 También puedes iniciar sesión desde la versión web donde Google Sign-In está disponible.'
+          );
         } else {
           console.log('🖥️ Ejecutando en web - Usando flujo web normal');
           return await this.googleLoginWeb();
         }
       } catch (error: any) {
         console.error('❌ Error en Google login:', error);
-        
-        if (error.code === 'auth/popup-blocked') {
-          throw new Error('El popup fue bloqueado. Permite ventanas emergentes.');
-        } else if (error.code === 'auth/popup-closed-by-user') {
-          throw new Error('Cerraste la ventana de inicio de sesión.');
-        } else if (error.code === 'auth/network-request-failed') {
-          throw new Error('Error de conexión. Verifica tu internet.');
-        } else if (error.code === 'auth/internal-error') {
-          throw new Error('Error interno. Intenta con email/password.');
-        }
-        
-        throw error;
+        throw error; // Propagar el error para manejarlo en el componente
       }
     });
   }
 
-  // ✅ SOLUCIÓN ESPECÍFICA PARA ANDROID - CORREGIDA
-  private async googleLoginAndroid(): Promise<any> {
-    try {
-      console.log('📱 Usando solución Android mejorada...');
-      
-      const provider = new GoogleAuthProvider();
-      
-      // ✅ CONFIGURACIÓN CRÍTICA PARA ANDROID - USAR 'page' EN LUGAR DE 'popup'
-      provider.setCustomParameters({
-        prompt: 'select_account',
-        display: 'page'  // ✅ CAMBIO CLAVE: 'page' en lugar de 'popup'
-      });
-
-      console.log('🔄 Intentando con display: page en Android...');
-      const result = await signInWithPopup(this.auth, provider);
-
-      if (result.user) {
-        console.log('✅ Google login exitoso en Android:', result.user.email);
-        await this.saveUserToPreferences(result.user);
-        await this.crearOActualizarUsuarioFirestore(result.user);
-        
-        // ✅ CERRAR CUALQUIER VENTANA DE BROWSER ABIERTA
-        try {
-          await Browser.close();
-        } catch (e) {
-          console.log('ℹ️ No había browser abierto o ya estaba cerrado');
-        }
-      }
-
-      return result;
-      
-    } catch (error: any) {
-      console.error('❌ Error en login Android:', error);
-      
-      // ✅ SI FALLA, SUGERIR EMAIL/PASSWORD
-      if (error.code === 'auth/popup-blocked' || 
-          error.code === 'auth/operation-not-supported-in-this-environment') {
-        throw new Error('El inicio con Google no está disponible temporalmente. Usa email y contraseña.');
-      }
-      
-      throw error;
-    }
-  }
-
-  // ✅ FLUJO WEB NORMAL
+  // ✅ FLUJO WEB NORMAL (SOLO PARA NAVEGADOR)
   private async googleLoginWeb(): Promise<any> {
     try {
       const provider = new GoogleAuthProvider();

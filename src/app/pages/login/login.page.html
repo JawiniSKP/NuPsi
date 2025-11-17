@@ -34,6 +34,14 @@
       <span>{{ errorMessage }}</span>
     </div>
 
+    <!-- ✅ NUEVO: MENSAJE INFORMATIVO PARA APP MÓVIL -->
+    <div *ngIf="isNativeApp" class="info-banner ion-margin-bottom">
+      <ion-icon name="information-circle" color="primary" aria-hidden="true"></ion-icon>
+      <span>
+        <strong>🔒 Para mayor seguridad:</strong> Usa email y contraseña en la app móvil
+      </span>
+    </div>
+
     <!-- Card del Formulario -->
     <div class="form-card">
       <form [formGroup]="loginForm" (ngSubmit)="login()">
@@ -52,7 +60,6 @@
               aria-describedby="email-errors"
               aria-invalid="{{ loginForm.get('email')?.invalid && loginForm.get('email')?.touched ? 'true' : 'false' }}">
             </ion-input>
-            <!-- ✅ CORREGIDO: mail-outline reemplazado por mail -->
             <ion-icon name="mail" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
           </ion-item>
           
@@ -77,7 +84,6 @@
               aria-describedby="password-errors"
               aria-invalid="{{ loginForm.get('password')?.invalid && loginForm.get('password')?.touched ? 'true' : 'false' }}">
             </ion-input>
-            <!-- ✅ CORREGIDO: lock-closed-outline reemplazado por lock-closed -->
             <ion-icon name="lock-closed" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
             <ion-button 
               fill="clear" 
@@ -113,7 +119,6 @@
           class="login-button ion-margin-vertical"
           [attr.aria-label]="isLoggingIn ? 'Iniciando sesión, por favor espere' : 'Iniciar sesión'">
           <ion-spinner *ngIf="isLoggingIn" name="crescent" class="button-spinner" aria-hidden="true"></ion-spinner>
-          <!-- ✅ CORREGIDO: log-in-outline reemplazado por log-in -->
           <ion-icon *ngIf="!isLoggingIn" name="log-in" slot="start" aria-hidden="true"></ion-icon>
           <span *ngIf="!isLoggingIn">Iniciar Sesión</span>
           <span *ngIf="isLoggingIn">Iniciando sesión...</span>
@@ -140,6 +145,13 @@
         <span *ngIf="!isLoggingIn">Continuar con Google</span>
         <span *ngIf="isLoggingIn">Conectando...</span>
       </ion-button>
+
+      <!-- ✅ NUEVO: MENSAJE PARA WEB -->
+      <div *ngIf="!isNativeApp" class="web-info ion-margin-top">
+        <ion-note color="medium" class="ion-text-center">
+          <small>🌐 En versión web: Puedes usar Google Sign-In o email/contraseña</small>
+        </ion-note>
+      </div>
     </div>
 
     <!-- Enlace a Registro -->
@@ -152,3 +164,12 @@
     </div>
   </div>
 </ion-content>
+
+<!-- ✅ NUEVO: ALERTA PARA GOOGLE SIGN-IN NO DISPONIBLE -->
+<ion-alert
+  [isOpen]="showGoogleAlert"
+  header="Google Sign-In No Disponible"
+  [message]="googleAlertMessage"
+  [buttons]="['Entendido']"
+  (didDismiss)="showGoogleAlert = false">
+</ion-alert>
