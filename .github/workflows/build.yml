@@ -25,13 +25,11 @@ jobs:
       - name: Build web app
         run: npm run build
       
-      - name: Give gradlew execution permissions
-        run: chmod +x android/gradlew
-      
-      - name: Update Gradle Wrapper
+      - name: Update to Gradle 8.6
         run: |
           cd android
-          ./gradlew wrapper --gradle-version 8.4 --distribution-type all --no-daemon
+          chmod +x gradlew
+          ./gradlew wrapper --gradle-version 8.6 --distribution-type all --no-daemon
       
       - name: Sync Capacitor
         run: npx cap sync android
