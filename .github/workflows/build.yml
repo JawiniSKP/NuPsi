@@ -2,24 +2,22 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main, develop ]
-  pull_request:
     branches: [ main ]
 
 env:
-  NODE_VERSION: '22.21.1'  # Tu versión actual
-  JAVA_VERSION: '17'
+  NODE_VERSION: '18.20.4'
+  JAVA_VERSION: '11'
 
 jobs:
   build-android:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup Java
+    - name: Setup Java 11
       uses: actions/setup-java@v4
       with:
         java-version: ${{ env.JAVA_VERSION }}
@@ -31,86 +29,28 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
 
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-      with:
-        cmdline-tools-version: 'latest'
-        accept-android-sdk-licenses: true
-
     - name: Install dependencies
       run: |
-        npm ci --prefer-offline --no-audit
+        npm ci --no-audit
 
-    - name: Build Ionic production
+    - name: Build Ionic app
       run: |
-        npm run build -- --configuration=production
+        npm run build
 
-    - name: Setup Capacitor Android
+    - name: Setup Android
       run: |
-        if [ ! -d "android" ]; then
-          echo "Adding Android platform..."
-          npx cap add android
-        else
-          echo "Android platform already exists"
-        fi
+        npx cap add android
         npx cap sync android
 
-    - name: Setup Gradle
+    - name: Build APK
       run: |
         cd android
         chmod +x gradlew
+        ./gradlew assembleDebug --no-daemon --stacktrace
 
-    - name: Cache Gradle
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-          android/.gradle
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-        restore-keys: |
-          ${{ runner.os }}-gradle-
-
-    - name: Install Android SDK components
-      run: |
-        yes | sdkmanager "platforms;android-33"
-        yes | sdkmanager "build-tools;33.0.2"
-        yes | sdkmanager "platform-tools"
-
-    - name: Build Debug APK
-      run: |
-        cd android
-        ./gradlew clean assembleDebug --no-daemon --parallel --build-cache --stacktrace
-
-    - name: Verify APK files
-      run: |
-        echo "=== Generated APK Files ==="
-        find android/app/build/outputs -name "*.apk" -type f -exec ls -la {} \;
-        
-        APK_FILE=$(find android/app/build/outputs -name "app-debug.apk" -type f)
-        if [ -f "$APK_FILE" ]; then
-          echo "✅ APK generated successfully"
-          echo "📱 File: $APK_FILE"
-          echo "📦 Size: $(ls -lh "$APK_FILE" | awk '{print $5}')"
-        else
-          echo "❌ APK not found!"
-          exit 1
-        fi
-
-    - name: Upload Debug APK
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: nupsi-app-debug
+        name: nupsi-app
         path: android/app/build/outputs/apk/debug/app-debug.apk
         retention-days: 30
-
-    - name: Run tests
-      run: |
-        npm run test -- --watch=false --browsers=ChromeHeadless --no-progress
-      continue-on-error: true
-
-    - name: Build success
-      if: success()
-      run: |
-        echo "🎉 Build completed successfully!"
-        echo "📱 APK: com.jawini.nupsi v1.0"
