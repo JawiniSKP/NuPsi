@@ -32,11 +32,11 @@ jobs:
         run: |
           cd android
           echo "=== Build.gradle content ==="
-          cat app/build.gradle | grep -A 5 -B 5 applicationId
+          cat app/build.gradle | grep -A 5 -B 5 "applicationId\|namespace" || echo "No se pudo leer build.gradle"
           echo "=== Google services file ==="
-          ls -la app/google-services.json || echo "google-services.json not found"
+          ls -la app/google-services.json || echo "google-services.json no encontrado"
           echo "=== Package name in manifest ==="
-          cat app/src/main/AndroidManifest.xml | grep package
+          cat app/src/main/AndroidManifest.xml | grep package || echo "No se pudo leer AndroidManifest.xml"
       
       - name: Build APK with full logs
         run: |
