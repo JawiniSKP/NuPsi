@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1097015901539",
+    "project_id": "nupsi-app",
+    "storage_bucket": "nupsi-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1097015901539:android:925b287ac1c4bef2d36756",
+        "android_client_info": {
+          "package_name": "com.jawini.nupsi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1097015901539-9r00mego5qipghh1ggmk06rks827c84i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDTuW1-gnhiQA_OlBgWALVr8ypef450PZw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1097015901539-9r00mego5qipghh1ggmk06rks827c84i.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
