@@ -9,29 +9,29 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v4
-
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        java-version: '11'
-        distribution: 'temurin'
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
-        cache: 'npm'
+        node-version: '22.21.1'  # ✅ TU VERSIÓN EXACTA
 
     - name: Install and build
       run: |
         npm install
         npm run build
-
-    - name: Build Android APK
-      run: |
         npx cap sync android
+
+    - name: Build APK
+      run: |
         cd android
         chmod +x gradlew
-        ./gradlew assembleDebug
+        ./gradlew assembleDebug --stacktrace
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: nupsi-app
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 30
