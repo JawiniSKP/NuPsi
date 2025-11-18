@@ -1,155 +1,157 @@
-# Proyecto de Aplicación Móvil de Bienestar con Rasa y Ionic/Angular
+# NuPsi
 
-Este repositorio contiene el código fuente para una aplicación móvil de bienestar desarrollada con Ionic/Angular para el frontend y un chatbot de inteligencia artificial basado en Rasa para el backend conversacional.
+NuPsi es una aplicación multiplataforma para bienestar y acompañamiento, que integra un frontend móvil con Ionic/Angular y un backend conversacional basado en Rasa y Gemini. El proyecto está diseñado para ser modular, escalable y fácil de desplegar tanto localmente como en la nube.
 
-## Estructura del Proyecto
+## Requisitos previos
 
-El proyecto está organizado de la siguiente manera:
+- Node.js >= 16
+- npm o yarn
+- Python >= 3.8
+- Docker (opcional, para despliegue)
+- Ionic CLI
 
-- `MOVIL/`: Directorio principal del proyecto.
-  - `rasa-bot/`: Contiene todo el código del chatbot de Rasa (Python).
-  - `src/`: Contiene el código fuente de la aplicación Ionic/Angular (TypeScript/HTML/CSS).
-  - Otros archivos de configuración de Ionic/Angular.
+## Instalación y ejecución rápida
 
-## Requisitos Previos
+1. Clona el repositorio:
+   ```bash
+   git clone https://github.com/JawiniSKP/NuPsi.git
+   cd NuPsi
+   ```
+2. Instala dependencias del frontend:
+   ```bash
+   npm install
+   # o
+   yarn install
+   ```
+3. Instala dependencias del bot (Rasa):
+   ```bash
+   cd rasa-bot
+   python -m venv .venv
+   .venv\Scripts\activate  # En Windows
+   pip install -r requirements.txt
+   rasa train
+   cd ..
+   ```
+4. Ejecuta la app y el bot:
+   - Ionic: `ionic serve`
+   - Rasa: `rasa run --enable-api --cors "*"`
+   - Acciones: `rasa run actions`
 
-Antes de comenzar, asegúrate de tener instalados los siguientes programas en tu sistema:
+## Licencia
 
-1.  **Git:** Para clonar el repositorio y gestionar el control de versiones.
-    -   [Descargar Git](https://git-scm.com/downloads)
-2.  **Node.js y npm (o Yarn):** Necesario para Ionic/Angular y `concurrently`.
-    -   [Descargar Node.js](https://nodejs.org/es/download/) (npm se incluye con Node.js)
-    -   Opcional: [Instalar Yarn](https://classic.yarnpkg.com/lang/en/docs/install/)
-3.  **Ionic CLI:** La interfaz de línea de comandos de Ionic.
-    ```bash
-    npm install -g @ionic/cli
-    ```
-4.  **Python 3.8+ y pip:** Necesario para Rasa.
-    -   [Descargar Python](https://www.python.org/downloads/)
-    -   Asegúrate de que `pip` esté actualizado: `python -m pip install --upgrade pip`
-5.  **Google Gemini API Key:** Necesitarás una clave de API para el chatbot.
-    -   [Obtener una API Key de Google Gemini](https://aistudio.google.com/app/apikey)
+Este proyecto se distribuye bajo la licencia MIT. Consulta el archivo LICENSE para más detalles.
 
-## Configuración del Proyecto
+# Estructura del Proyecto NuPsi
 
-Sigue estos pasos para configurar y ejecutar el proyecto completo.
-
-### Paso 1: Clonar el Repositorio
-
-Clona este repositorio a tu máquina local:
-
-```bash
-git clone <URL_DE_TU_REPOSITORIO>
-cd MOVIL
+La organización del proyecto NuPsi es la siguiente:
+```
+📦 NuPsi
+├── android/                # Proyecto Android nativo (Gradle, configuración, fuentes)
+│   └── app/
+│       └── src/
+│           ├── main/      # Archivos principales de la app Android (AndroidManifest, assets, java, res)
+│           ├── test/      # Pruebas unitarias
+│           └── androidTest/ # Pruebas instrumentadas
+├── ios/                    # Proyecto iOS nativo (Swift, configuración, recursos)
+│   └── App/
+├── rasa-bot/               # Backend conversacional con Rasa (Python)
+│   ├── actions/            # Acciones personalizadas del bot
+│   ├── data/               # Datos de entrenamiento (nlu, reglas, historias)
+│   ├── models/             # Modelos entrenados de Rasa
+│   ├── tests/              # Pruebas de historias
+│   ├── config.yml          # Configuración principal de Rasa
+│   ├── credentials.yml     # Credenciales de canales
+│   ├── domain.yml          # Definición de intents, entidades y respuestas
+│   ├── endpoints.yml       # Endpoints de servicios
+│   └── requirements.txt    # Dependencias Python
+├── src/                    # Frontend Ionic/Angular
+│   ├── app/
+│   │   ├── components/     # Componentes reutilizables (ej: menú)
+│   │   ├── guards/         # Guardas de rutas y lógica de acceso
+│   │   ├── pages/          # Páginas principales de la app (chat, login, perfil, etc.)
+│   │   └── services/       # Servicios de negocio y comunicación
+│   ├── assets/             # Recursos estáticos (iconos, imágenes)
+│   ├── environments/       # Configuración de entornos (dev/prod)
+│   └── theme/              # Variables y estilos globales
+├── docker/                 # Archivos y configuración para contenedores Docker
+├── angular.json            # Configuración Angular
+├── package.json            # Dependencias y scripts Node.js
+├── README.md               # Documentación principal
+└── ...otros archivos de configuración (karma, firebase, tsconfig, etc.)
 ```
 
-### Paso 2: Configuración del Chatbot Rasa (Backend)
+### Descripción de carpetas y archivos principales
 
-1.  **Navega al directorio de Rasa:**
-    ```bash
-    cd rasa-bot
-    ```
+- **android/** e **ios/**: Contienen los proyectos nativos para cada plataforma móvil, con sus configuraciones, fuentes y recursos.
+- **rasa-bot/**: Incluye todo lo necesario para el chatbot, desde datos de entrenamiento hasta acciones personalizadas y modelos entrenados.
+- **src/**: Es el núcleo del frontend, con la estructura modular de Angular/Ionic, páginas, componentes, servicios y recursos.
+- **docker/**: Facilita la ejecución y despliegue en contenedores.
+- **Archivos raíz**: Configuración de Angular, Node.js, Firebase, TypeScript y documentación.
 
-2.  **Crear y Activar un Entorno Virtual de Python:**
-    Es altamente recomendable usar entornos virtuales para aislar las dependencias de Python.
-    ```bash
-    python -m venv .venv
-    # Para Linux/macOS:
-    source .venv/bin/activate
-    # Para Windows (PowerShell):
-    .\.venv\Scripts\activate
-    # Para Windows (CMD):
-    .venv\Scripts\activate.bat
-    ```
+---
 
-3.  **Instalar las Dependencias de Rasa:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-    *(**Nota:** Si aún no has generado `requirements.txt`, hazlo primero: `pip freeze > requirements.txt` mientras el entorno virtual está activo y todas las librerías de Rasa y Gemini están instaladas.)*
+## Aporte Individual
 
-4.  **Configurar la API Key de Google Gemini:**
-    Crea un archivo llamado `.env` en la **raíz del directorio `rasa-bot`** (al mismo nivel que `config.yml`) y añade tu API Key:
-    ```
-    # rasa-bot/.env
-    GEMINI_API_KEY=TU_API_KEY_DE_GEMINI_AQUI
-    ```
-    **¡Importante!** No subas este archivo `.env` a Git. Ya debería estar en el `.gitignore` de `rasa-bot`.
+### Javiera Concha
 
-5.  **Entrenar el Modelo de Rasa:**
-    Esto generará los modelos del chatbot basados en tus archivos de datos y configuración.
-    ```bash
-    rasa train
-    ```
+**Rol principal:** Desarrolladora frontend y backend (Ionic/Angular) y gestión de la base de datos.
 
-6.  **Volver al directorio principal `MOVIL`:**
-    ```bash
-    cd ..
-    ```
+**Principales contribuciones:**
+- Elaboración y desarrollo del frontend con Ionic/Angular (diseño y lógica en `src/`).
+- Desarrollo del backend relacionado con la aplicación y configuración de la base de datos.
+- Realizó los diseños de UI/UX y la implementación del estilo visual.
+- Configuración general del proyecto (archivos de entorno, `environments/`, integración con Firebase/servicios relacionados).
+- Implementó y mantuvo la mayor parte del código en `src/` (excepto la parte de diseño/funcionalidad específica del chat-bot manejada por Rasa).
 
-### Paso 3: Configuración de la Aplicación Ionic/Angular (Frontend)
+**Commits destacados:**
+| Fecha       | Commit ID      | Descripción         |
+|------------ |---------------|---------------------|
+| 2025-08-25  | 64dfd7d       | Creación inicial del proyecto NuPsi. |
+| 2025-11-25  | 4516d26       | Correcciones completas del sistema firebase.json. |
 
-1.  **Navega al directorio de la aplicación (ya deberías estar en `MOVIL`):**
-    ```bash
-    # Si no estás en MOVIL:
-    # cd MOVIL
-    ```
+**Evidencias / notas:** código y recursos en `src/`, archivos de configuración y `firebase.json` / `firestore.rules`.  
+Repositorio: [NuPsi en GitHub](https://github.com/JawiniSKP/NuPsi)
 
-2.  **Instalar las dependencias de Node.js:**
-    ```bash
-    npm install
-    # o si usas yarn:
-    # yarn install
-    ```
+---
 
-3.  **Instalar `concurrently` (para iniciar ambos servidores con un solo comando):**
-    ```bash
-    npm install concurrently --save-dev
-    # o si usas yarn:
-    # yarn add concurrently --dev
-    ```
+### Jisella Vergara
 
-4.  **Verificar o Configurar la URL del Bot Rasa:**
-    Asegúrate de que la URL de tu bot Rasa esté configurada correctamente en el archivo de entorno de tu aplicación Ionic/Angular.
-    Abre `src/environments/environment.ts` y verifica la línea `rasaUrl`:
-    ```typescript
-    // src/environments/environment.ts
-    export const environment = {
-      production: false,
-      // ... otras configuraciones ...
-      rasaUrl: 'http://localhost:5005' // Asegúrate de que apunte a donde Rasa se ejecutará
-    };
-    ```
+**Rol principal:** Integración, DevOps y pruebas de calidad.
 
-### Paso 4: Ejecutar el Proyecto Completo
+**Principales contribuciones:**
+- Integración de Docker y definición de contenedores para despliegue local y CI (`Dockerfile.*`, `docker/`).
+- Levantamiento de servidores y orquestación para que la app y servicios (incluyendo HuggingFace) corran en sus terminales.
+- Entrenamiento y soporte del bot Rasa; integración parcial con Gemini.
+- Realizó pruebas de calidad y usabilidad; gestionó pruebas con la comunidad (Gym Nazar La Calera).
+- Gestión de tareas del proyecto en Trello y coordinación de entregas.
 
-Para levantar el servidor de desarrollo de Ionic/Angular, el servidor de Rasa Core y el servidor de acciones de Rasa con un solo comando:
+**Commits destacados:**
+| Fecha       | Commit ID | Descripción                |
+|------------ |---------- |---------------------------|
+| 2025-11-25  | 6f21666   | Arreglos en la nube y despliegue. |
 
-1.  **Asegúrate de estar en el directorio principal `MOVIL`**.
-2.  **Asegúrate de que el entorno virtual de Rasa esté activo** (ver Paso 2, punto 2). Esto es crucial para que `rasa run...` funcione correctamente desde el script de `concurrently`.
-3.  **Ejecuta el script `start:dev` (si lo tienes configurado en `package.json` de tu Ionic App):**
+**Evidencias / notas:** `Dockerfile.rasa`, `Dockerfile.actions`, carpeta `docker/`, registros de pruebas y resultados de usabilidad.  
+Repositorio: [NuPsi en GitHub](https://github.com/JawiniSKP/NuPsi)
 
-    ```bash
-    npm run start:dev
-    # o si usas yarn:
-    # yarn start:dev
-    ```
-    *(**Nota:** Asegúrate de que el script `start:dev` en `package.json` de tu frontend esté configurado como te indiqué previamente, incluyendo los `cd rasa-bot` para los comandos de Rasa.)*
+---
 
-    Si no has configurado `start:dev` con `concurrently`, tendrás que abrir tres terminales separadas:
+### Camilo Zamora
 
-    *   **Terminal 1 (dentro de `rasa-bot`, con entorno virtual activo):**
-        ```bash
-        rasa run actions
-        ```
-    *   **Terminal 2 (dentro de `rasa-bot`, con entorno virtual activo):**
-        ```bash
-        rasa run --enable-api --cors "*"
-        ```
-    *   **Terminal 3 (dentro de `MOVIL` o `src`, sin entorno virtual Python activo):**
-        ```bash
-        ionic serve
-        ```
+**Rol principal:** Desarrollo del backend conversacional (Rasa) e integración de IA.
 
-¡Con estos pasos, tu aplicación de bienestar y el chatbot de Rasa deberían estar funcionando y listos para ser utilizados!
-```
+**Principales contribuciones:**
+- Desarrollo del backend de Rasa (mayor parte del contenido de `rasa-bot/`).
+- Integración de Rasa con la aplicación Ionic (conexión entre `src/` y `rasa-bot`).
+- Configuración e implementación de integraciones con Gemini para la solución de IA.
+- Entrenamiento del modelo conversacional y ajuste de prompts, respuestas y flujo de diálogo.
+- Desarrollo y estilizado de las interfaces relacionadas al chat; trabajo en `src/pages/` y `src/pages/chat/` para la integración del bot.
+
+**Commits destacados:**
+| Fecha       | Commit ID      | Descripción         |
+|------------ |----------------|---------------------|
+| 2025-10     | (varios)       | Arreglos e integración del bot Rasa. |
+| 2025-11-25  | (varios)       | Integración de IA Google Gemini con el bot conversacional. |
+| 2025-11-25  | e194b5b        | Actualización del chatbot con corrección de entorno y script. |
+
+**Evidencias / notas:** Revisa `rasa-bot/` (acciones, `data/`, `models/`) y los archivos en `src/app/pages/chat` para ver la integración.  
+Repositorio: [NuPsi en GitHub](https://github.com/JawiniSKP/NuPsi)
