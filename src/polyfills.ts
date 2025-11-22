@@ -53,3 +53,9 @@ import 'zone.js';  // Included with Angular CLI.
 /***************************************************************************************************
  * APPLICATION IMPORTS
  */
+
+// Polyfill para Buffer (requerido por TensorFlow.js en producción)
+import { Buffer } from 'buffer';
+(window as any).global = window;
+(window as any).Buffer = Buffer;
+(window as any).process = { env: {} };
