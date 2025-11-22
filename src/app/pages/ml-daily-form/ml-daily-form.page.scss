@@ -1,0 +1,502 @@
+/* ========================================
+   🎨 ML DAILY FORM - DISEÑO CON PALETA NUPSI
+   ======================================== */
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+/* ===============================
+   📱 ESTRUCTURA PRINCIPAL
+   =============================== */
+.ml-form-content {
+  --background: linear-gradient(135deg, #f0f9ff 0%, #e0f7fa 100%);
+  --padding-bottom: 100px;
+}
+
+.content-wrapper {
+  padding: 0 0 120px 0;
+  min-height: 100vh;
+}
+
+/* ===============================
+   📊 BARRA DE PROGRESO
+   =============================== */
+.progress-container {
+  padding: 12px 20px;
+  
+  ion-progress-bar {
+    height: 8px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+  
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    
+    .step-counter {
+      font-size: 14px;
+      font-weight: 700;
+      opacity: 0.95;
+    }
+    
+    .step-title {
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0.9;
+    }
+  }
+}
+
+/* ===============================
+   🎯 HEADER DEL FORMULARIO
+   =============================== */
+.form-header {
+  background: linear-gradient(135deg, #00C6B2 0%, #00A8E8 100%);
+  padding: 40px 24px 32px;
+  text-align: center;
+  border-bottom-left-radius: 32px;
+  border-bottom-right-radius: 32px;
+  box-shadow: 0 8px 24px rgba(0, 198, 178, 0.3);
+  margin-bottom: 24px;
+  
+  .icon-container {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    
+    .step-icon {
+      font-size: 40px;
+      color: white;
+    }
+  }
+  
+  .form-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: white;
+    margin: 0 0 12px 0;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .form-subtitle {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.95);
+    margin: 0;
+    font-weight: 500;
+  }
+}
+
+/* ===============================
+   🎴 TARJETAS DE PASO
+   =============================== */
+.form-step {
+  padding: 0 20px;
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.step-card {
+  background: white;
+  border-radius: 20px;
+  margin: 0 0 20px 0;
+  box-shadow: 
+    0 4px 20px rgba(0, 198, 178, 0.12),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 198, 178, 0.15);
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(135deg, #00C6B2, #00A8E8);
+  }
+  
+  ion-card-header {
+    padding: 24px 24px 16px;
+    
+    .card-title-small {
+      font-size: 16px;
+      font-weight: 700;
+      color: #00C6B2;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      
+      ion-icon {
+        font-size: 20px;
+        color: #00C6B2;
+      }
+    }
+  }
+  
+  ion-card-content {
+    padding: 0 24px 24px;
+  }
+}
+
+/* ===============================
+   😊 GRID DE EMOCIONES
+   =============================== */
+.emotions-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.emotion-chip {
+  position: relative;
+  background: rgba(0, 198, 178, 0.08);
+  border: 2px solid rgba(0, 198, 178, 0.2);
+  border-radius: 16px;
+  padding: 16px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  .emoji {
+    display: block;
+    font-size: 32px;
+    margin-bottom: 8px;
+    transition: transform 0.3s ease;
+  }
+  
+  .label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #2C3E50;
+    line-height: 1.2;
+  }
+  
+  .check-icon {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 20px;
+    color: #00C6B2;
+  }
+  
+  &.selected {
+    background: linear-gradient(135deg, #00C6B2, #00A8E8);
+    border-color: #00C6B2;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 198, 178, 0.4);
+    
+    .emoji {
+      transform: scale(1.2);
+    }
+    
+    .label {
+      color: white;
+      font-weight: 700;
+    }
+  }
+  
+  &:active {
+    transform: translateY(-2px) scale(0.98);
+  }
+}
+
+@media (max-width: 360px) {
+  .emotions-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  
+  .emotion-chip {
+    padding: 12px 6px;
+    
+    .emoji {
+      font-size: 28px;
+      margin-bottom: 6px;
+    }
+    
+    .label {
+      font-size: 11px;
+    }
+  }
+}
+
+/* ===============================
+   😊 BOTONES DE ESTADO DE ÁNIMO
+   =============================== */
+.mood-buttons {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.mood-button {
+  background: rgba(0, 198, 178, 0.08);
+  border: 2px solid rgba(0, 198, 178, 0.2);
+  border-radius: 14px;
+  padding: 14px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  .emoji-large {
+    display: block;
+    font-size: 28px;
+    margin-bottom: 6px;
+    transition: transform 0.3s ease;
+  }
+  
+  .label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #2C3E50;
+    line-height: 1.2;
+  }
+  
+  &.selected {
+    background: linear-gradient(135deg, #00C6B2, #00A8E8);
+    border-color: #00C6B2;
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(0, 198, 178, 0.4);
+    
+    .emoji-large {
+      transform: scale(1.3);
+    }
+    
+    .label {
+      color: white;
+      font-weight: 700;
+    }
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+@media (max-width: 360px) {
+  .mood-buttons {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+}
+
+/* ===============================
+   📊 ITEMS DEL FORMULARIO
+   =============================== */
+.input-item,
+.checkbox-item,
+.textarea-item {
+  --background: transparent;
+  --border-color: rgba(0, 198, 178, 0.2);
+  --border-radius: 12px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --inner-padding-end: 0;
+  margin-bottom: 16px;
+  border: 1px solid rgba(0, 198, 178, 0.2);
+  border-radius: 12px;
+  
+  ion-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2C3E50;
+    margin-bottom: 8px;
+  }
+  
+  ion-input,
+  ion-textarea {
+    --padding-start: 0;
+    --padding-end: 0;
+    font-size: 16px;
+    color: #2C3E50;
+  }
+}
+
+.range-item {
+  --background: transparent;
+  --padding-start: 0;
+  --padding-end: 0;
+  margin: 20px 0;
+  
+  ion-range {
+    --bar-background: rgba(0, 198, 178, 0.2);
+    --bar-background-active: linear-gradient(90deg, #00C6B2, #00A8E8);
+    --bar-height: 8px;
+    --bar-border-radius: 4px;
+    --knob-background: linear-gradient(135deg, #00C6B2, #00A8E8);
+    --knob-size: 28px;
+    --knob-box-shadow: 0 4px 12px rgba(0, 198, 178, 0.4);
+    padding: 8px 0;
+  }
+  
+  ion-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #5A6C7D;
+  }
+}
+
+.range-value {
+  text-align: center;
+  margin-top: 16px;
+}
+
+.helper-text {
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #5A6C7D;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.info-text {
+  font-size: 14px;
+  color: #5A6C7D;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: rgba(0, 198, 178, 0.05);
+  border-radius: 8px;
+  border-left: 3px solid #00C6B2;
+}
+
+.selected-info {
+  text-align: center;
+  margin-top: 16px;
+}
+
+.conditional-fields {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 198, 178, 0.15);
+}
+
+.imc-result {
+  text-align: center;
+  margin-top: 16px;
+}
+
+/* ===============================
+   🎯 BOTONES DE NAVEGACIÓN
+   =============================== */
+.navigation-buttons {
+  padding: 0 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  
+  ion-button {
+    --border-radius: 14px;
+    height: 52px;
+    font-weight: 700;
+    margin: 0;
+    
+    &[color="primary"] {
+      --background: linear-gradient(135deg, #00C6B2, #00A8E8);
+      --box-shadow: 0 4px 16px rgba(0, 198, 178, 0.4);
+      
+      &:active {
+        --box-shadow: 0 2px 8px rgba(0, 198, 178, 0.3);
+      }
+    }
+    
+    &[fill="outline"] {
+      --border-color: #00C6B2;
+      --color: #00C6B2;
+      
+      &:hover {
+        --background: rgba(0, 198, 178, 0.05);
+      }
+    }
+    
+    &[color="success"] {
+      --background: linear-gradient(135deg, #4CAF50, #45a049);
+      --box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4);
+    }
+    
+    ion-spinner {
+      margin-right: 8px;
+    }
+  }
+}
+
+/* ===============================
+   ✨ ANIMACIONES
+   =============================== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===============================
+   📱 RESPONSIVE
+   =============================== */
+@media (max-width: 380px) {
+  .form-header {
+    padding: 32px 20px 24px;
+    
+    .icon-container {
+      width: 64px;
+      height: 64px;
+      
+      .step-icon {
+        font-size: 32px;
+      }
+    }
+    
+    .form-title {
+      font-size: 24px;
+    }
+    
+    .form-subtitle {
+      font-size: 14px;
+    }
+  }
+  
+  .step-card {
+    ion-card-header {
+      padding: 20px 20px 14px;
+    }
+    
+    ion-card-content {
+      padding: 0 20px 20px;
+    }
+  }
+}
+
+/* Espaciador para el menú inferior */
+.bottom-spacer {
+  height: 100px;
+}
+
+/* Asegurar que el menú se vea bien */
+app-menu {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}

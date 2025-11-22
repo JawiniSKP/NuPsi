@@ -1,0 +1,226 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>IA Aura Insights</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="refreshInsights()" [disabled]="loading">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="aura-content">
+  <div class="content-wrapper">
+    
+    <!-- HEADER -->
+    <div class="aura-header">
+      <div class="icon-container">
+        <ion-icon name="sparkles-outline" class="main-icon"></ion-icon>
+      </div>
+      <h1 class="page-title">Insights IA Aura</h1>
+      <p class="page-subtitle">Análisis emocional impulsado por Inteligencia Artificial</p>
+    </div>
+
+    <!-- LOADING -->
+    @if (loading) {
+      <div class="loading-container">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <p>Cargando insights...</p>
+      </div>
+    }
+
+    <!-- NO DATA -->
+    @if (!loading && !insight) {
+      <div class="no-data-container">
+        <ion-icon name="alert-circle-outline" class="no-data-icon"></ion-icon>
+        <h2>No hay insights disponibles</h2>
+        <p>Completa el formulario diario para que la IA pueda generar tus insights personalizados.</p>
+        <ion-button expand="block" color="primary" (click)="navigateToForm()">
+          Ir al Formulario Diario
+        </ion-button>
+      </div>
+    }
+
+    <!-- INSIGHTS CONTENT -->
+    @if (!loading && insight) {
+      <div class="insights-container">
+      
+      <!-- CLASIFICACIÓN EMOCIONAL -->
+      <ion-card class="insight-card classification-card">
+        <ion-card-header>
+          <div class="card-header-content">
+            <ion-icon name="heart-outline" class="header-icon"></ion-icon>
+            <ion-card-title class="card-title-main">Clasificación Emocional</ion-card-title>
+          </div>
+        </ion-card-header>
+        <ion-card-content>
+          
+          <!-- Categoría -->
+          <div class="metric-row">
+            <div class="metric-label">Estado Emocional</div>
+            <ion-chip [color]="getClasificacionColor(insight.clasificacionEmocional.categoria)">
+              <ion-icon [name]="getClasificacionIcon(insight.clasificacionEmocional.categoria)"></ion-icon>
+              <ion-label class="chip-label-caps">{{ insight.clasificacionEmocional.categoria }}</ion-label>
+            </ion-chip>
+          </div>
+
+          <!-- Emoción Dominante -->
+          <div class="metric-row">
+            <div class="metric-label">Emoción Dominante</div>
+            <ion-chip color="primary">
+              <ion-label class="chip-label-caps">{{ insight.clasificacionEmocional.emocionDominante }}</ion-label>
+            </ion-chip>
+          </div>
+
+          <!-- Tendencia -->
+          <div class="metric-row">
+            <div class="metric-label">Tendencia</div>
+            <ion-chip [color]="getTendenciaColor(insight.clasificacionEmocional.tendencia)">
+              <ion-icon [name]="getTendenciaIcon(insight.clasificacionEmocional.tendencia)"></ion-icon>
+              <ion-label class="chip-label-caps">{{ insight.clasificacionEmocional.tendencia }}</ion-label>
+            </ion-chip>
+          </div>
+
+          <!-- Confianza -->
+          <div class="confidence-container">
+            <div class="confidence-label">
+              <span>Nivel de Confianza</span>
+              <span class="confidence-value">{{ (insight.clasificacionEmocional.confianza * 100) | number: '1.0-0' }}%</span>
+            </div>
+            <ion-progress-bar 
+              [value]="insight.clasificacionEmocional.confianza" 
+              color="primary">
+            </ion-progress-bar>
+          </div>
+
+        </ion-card-content>
+      </ion-card>
+
+      <!-- SCORE GENERAL -->
+      <ion-card class="insight-card score-card">
+        <ion-card-header>
+          <div class="card-header-content">
+            <ion-icon name="analytics-outline" class="header-icon"></ion-icon>
+            <ion-card-title class="card-title-main">Puntuación General</ion-card-title>
+          </div>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="score-display">
+            <div class="score-circle" [attr.data-score]="insight.scoreGeneral">
+              <svg viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" class="score-bg"></circle>
+                <circle 
+                  cx="50" 
+                  cy="50" 
+                  r="45" 
+                  class="score-progress"
+                  [attr.stroke]="getScoreColor(insight.scoreGeneral)"
+                  [style.stroke-dasharray]="(insight.scoreGeneral * 2.827) + ' 282.7'">
+                </circle>
+              </svg>
+              <div class="score-text">
+                <span class="score-number">{{ insight.scoreGeneral }}</span>
+                <span class="score-label">/100</span>
+              </div>
+            </div>
+            <p class="score-description">
+              Tu puntuación general de bienestar emocional
+            </p>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- PATRONES DETECTADOS -->
+      @if (insight.patronesDetectados && insight.patronesDetectados.length > 0) {
+        <ion-card class="insight-card patterns-card">
+        <ion-card-header>
+          <div class="card-header-content">
+            <ion-icon name="analytics-outline" class="header-icon"></ion-icon>
+            <ion-card-title class="card-title-main">Patrones Detectados</ion-card-title>
+          </div>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="patterns-list">
+            @for (patron of insight.patronesDetectados; track patron.tipo) {
+              <div class="pattern-item">
+                <div class="pattern-header">
+                  <ion-icon name="alert-circle-outline" color="warning"></ion-icon>
+                  <span class="pattern-title">{{ patron.tipo | titlecase }}</span>
+                </div>
+                <p class="pattern-description">{{ patron.descripcion }}</p>
+                <div class="pattern-frequency">
+                  <span class="frequency-label">Frecuencia:</span>
+                  <div class="frequency-bar">
+                    <div 
+                      class="frequency-fill" 
+                      [style.width.%]="patron.frecuencia * 100">
+                    </div>
+                  </div>
+                  <span class="frequency-value">{{ (patron.frecuencia * 100) | number: '1.0-0' }}%</span>
+                </div>
+              </div>
+            }
+          </div>
+        </ion-card-content>
+        </ion-card>
+      }
+
+      <!-- RECOMENDACIONES IA -->
+      @if (insight.recomendaciones && insight.recomendaciones.length > 0) {
+        <ion-card class="insight-card recommendations-card">
+          <ion-card-header>
+            <div class="card-header-content">
+              <ion-icon name="sparkles-outline" class="header-icon"></ion-icon>
+              <ion-card-title class="card-title-main">Recomendaciones de IA Aura</ion-card-title>
+            </div>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="recommendations-list">
+              @for (rec of insight.recomendaciones; track rec.mensaje) {
+                <div class="recommendation-item" [attr.data-priority]="rec.prioridad">
+                  <div class="recommendation-header">
+                    <ion-badge [color]="getPrioridadColor(rec.prioridad)" class="priority-badge">
+                      {{ rec.prioridad }}
+                    </ion-badge>
+                    <ion-chip color="primary" class="area-chip">
+                      <ion-label>{{ rec.area }}</ion-label>
+                    </ion-chip>
+                  </div>
+                  <p class="recommendation-message">{{ rec.mensaje }}</p>
+                </div>
+              }
+            </div>
+          </ion-card-content>
+        </ion-card>
+      }
+
+      <!-- INFORMACIÓN DEL ANÁLISIS -->
+      <ion-card class="insight-card info-card">
+        <ion-card-content>
+          <div class="info-row">
+            <ion-icon name="calendar-outline" class="info-icon"></ion-icon>
+            <div class="info-text">
+              <span class="info-label">Fecha del análisis</span>
+              <span class="info-value">{{ formatDate(insight.fecha) }}</span>
+            </div>
+          </div>
+          <ion-note class="disclaimer">
+            Los insights son generados por modelos de machine learning basados en tus datos de los últimos 7 días.
+          </ion-note>
+        </ion-card-content>
+      </ion-card>
+
+      </div>
+    }
+
+    <!-- ESPACIADOR PARA MENÚ -->
+    <div class="bottom-spacer"></div>
+
+  </div>
+</ion-content>
+
+<!-- MENÚ INFERIOR -->
+<app-menu></app-menu>

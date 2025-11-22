@@ -1,0 +1,567 @@
+/* ========================================
+   ✨ AURA INSIGHTS - DISEÑO CON PALETA NUPSI
+   ======================================== */
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+/* ===============================
+   📱 ESTRUCTURA PRINCIPAL
+   =============================== */
+.aura-content {
+  --background: linear-gradient(135deg, #f0f9ff 0%, #e0f7fa 100%);
+  --padding-bottom: 100px;
+}
+
+.content-wrapper {
+  padding: 0 0 120px 0;
+  min-height: 100vh;
+}
+
+/* ===============================
+   🎯 HEADER
+   =============================== */
+.aura-header {
+  background: linear-gradient(135deg, #00C6B2 0%, #00A8E8 100%);
+  padding: 48px 24px 36px;
+  text-align: center;
+  border-bottom-left-radius: 32px;
+  border-bottom-right-radius: 32px;
+  box-shadow: 0 8px 24px rgba(0, 198, 178, 0.3);
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+  }
+
+  .icon-container {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    animation: float 3s ease-in-out infinite;
+
+    .main-icon {
+      font-size: 40px;
+      color: white;
+    }
+  }
+
+  .page-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: white;
+    margin: 0 0 12px 0;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .page-subtitle {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.95);
+    margin: 0;
+    font-weight: 500;
+  }
+}
+
+/* ===============================
+   🔄 LOADING & NO DATA
+   =============================== */
+.loading-container,
+.no-data-container {
+  text-align: center;
+  padding: 60px 24px;
+
+  ion-spinner,
+  .no-data-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+  }
+
+  h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #2C3E50;
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-size: 15px;
+    color: #5A6C7D;
+    line-height: 1.5;
+    margin-bottom: 24px;
+  }
+
+  ion-button {
+    margin-top: 16px;
+  }
+}
+
+/* ===============================
+   🎴 TARJETAS DE INSIGHTS
+   =============================== */
+.insights-container {
+  padding: 0 20px;
+}
+
+.insight-card {
+  background: white;
+  border-radius: 20px;
+  margin: 0 0 20px 0;
+  box-shadow: 
+    0 4px 20px rgba(0, 198, 178, 0.12),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 198, 178, 0.15);
+  overflow: hidden;
+  animation: fadeInUp 0.4s ease-out;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(135deg, #00C6B2, #00A8E8);
+  }
+
+  ion-card-header {
+    padding: 24px 24px 16px;
+
+    .card-header-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .header-icon {
+        font-size: 24px;
+        color: #00C6B2;
+      }
+
+      .card-title-main {
+        font-size: 18px;
+        font-weight: 700;
+        color: #2C3E50;
+        margin: 0;
+      }
+    }
+  }
+
+  ion-card-content {
+    padding: 0 24px 24px;
+  }
+}
+
+/* ===============================
+   📊 CLASIFICACIÓN EMOCIONAL
+   =============================== */
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(0, 198, 178, 0.1);
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+
+  .metric-label {
+    font-size: 15px;
+    font-weight: 600;
+    color: #2C3E50;
+  }
+
+  ion-chip {
+    --background: transparent;
+    border: 2px solid;
+    font-weight: 700;
+
+    .chip-label-caps {
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 13px;
+    }
+  }
+}
+
+.confidence-container {
+  margin-top: 20px;
+  padding: 16px;
+  background: rgba(0, 198, 178, 0.05);
+  border-radius: 12px;
+
+  .confidence-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #2C3E50;
+
+    .confidence-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #00C6B2;
+    }
+  }
+
+  ion-progress-bar {
+    height: 8px;
+    border-radius: 4px;
+    --background: rgba(0, 198, 178, 0.2);
+  }
+}
+
+/* ===============================
+   🎯 SCORE GENERAL
+   =============================== */
+.score-display {
+  text-align: center;
+  padding: 20px 0;
+
+  .score-circle {
+    width: 180px;
+    height: 180px;
+    margin: 0 auto 24px;
+    position: relative;
+
+    svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+
+      circle {
+        fill: none;
+        stroke-width: 8;
+      }
+
+      .score-bg {
+        stroke: rgba(0, 198, 178, 0.1);
+      }
+
+      .score-progress {
+        stroke-linecap: round;
+        transition: stroke-dasharray 1s ease-out;
+      }
+    }
+
+    .score-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+
+      .score-number {
+        display: block;
+        font-size: 48px;
+        font-weight: 800;
+        color: #00C6B2;
+        line-height: 1;
+      }
+
+      .score-label {
+        display: block;
+        font-size: 16px;
+        font-weight: 600;
+        color: #5A6C7D;
+        margin-top: 4px;
+      }
+    }
+  }
+
+  .score-description {
+    font-size: 15px;
+    color: #5A6C7D;
+    font-weight: 500;
+    margin: 0;
+  }
+}
+
+/* ===============================
+   🔍 PATRONES DETECTADOS
+   =============================== */
+.patterns-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.pattern-item {
+  padding: 16px;
+  background: rgba(255, 183, 77, 0.05);
+  border-radius: 12px;
+  border-left: 3px solid #FFB74D;
+
+  .pattern-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+
+    ion-icon {
+      font-size: 20px;
+    }
+
+    .pattern-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #2C3E50;
+      text-transform: capitalize;
+    }
+  }
+
+  .pattern-description {
+    font-size: 14px;
+    color: #5A6C7D;
+    line-height: 1.5;
+    margin: 0 0 12px 0;
+  }
+
+  .pattern-frequency {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .frequency-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #5A6C7D;
+      min-width: 80px;
+    }
+
+    .frequency-bar {
+      flex: 1;
+      height: 8px;
+      background: rgba(0, 198, 178, 0.2);
+      border-radius: 4px;
+      overflow: hidden;
+
+      .frequency-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #FFB74D, #FF9800);
+        border-radius: 4px;
+        transition: width 0.8s ease-out;
+      }
+    }
+
+    .frequency-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: #FFB74D;
+      min-width: 40px;
+      text-align: right;
+    }
+  }
+}
+
+/* ===============================
+   💡 RECOMENDACIONES
+   =============================== */
+.recommendations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.recommendation-item {
+  padding: 16px;
+  background: rgba(0, 198, 178, 0.05);
+  border-radius: 12px;
+  border-left: 3px solid #00C6B2;
+
+  &[data-priority="alta"] {
+    background: rgba(244, 67, 54, 0.05);
+    border-left-color: #f44336;
+  }
+
+  .recommendation-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+
+    .priority-badge {
+      text-transform: uppercase;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .area-chip {
+      --background: rgba(0, 198, 178, 0.1);
+      --color: #00C6B2;
+      font-size: 12px;
+      height: 24px;
+    }
+  }
+
+  .recommendation-message {
+    font-size: 14px;
+    color: #2C3E50;
+    line-height: 1.5;
+    margin: 0;
+    font-weight: 500;
+  }
+}
+
+/* ===============================
+   ℹ️ INFORMACIÓN
+   =============================== */
+.info-card {
+  ion-card-content {
+    padding: 20px 24px;
+  }
+
+  .info-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+
+    .info-icon {
+      font-size: 20px;
+      color: #00C6B2;
+    }
+
+    .info-text {
+      flex: 1;
+
+      .info-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #5A6C7D;
+        margin-bottom: 4px;
+      }
+
+      .info-value {
+        display: block;
+        font-size: 14px;
+        font-weight: 700;
+        color: #2C3E50;
+        text-transform: capitalize;
+      }
+    }
+  }
+
+  .disclaimer {
+    display: block;
+    font-size: 12px;
+    color: #5A6C7D;
+    line-height: 1.5;
+    padding: 12px;
+    background: rgba(0, 198, 178, 0.05);
+    border-radius: 8px;
+    border-left: 3px solid #00C6B2;
+  }
+}
+
+/* ===============================
+   ✨ ANIMACIONES
+   =============================== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* ===============================
+   📱 RESPONSIVE
+   =============================== */
+@media (max-width: 380px) {
+  .aura-header {
+    padding: 36px 20px 28px;
+
+    .icon-container {
+      width: 64px;
+      height: 64px;
+
+      .main-icon {
+        font-size: 32px;
+      }
+    }
+
+    .page-title {
+      font-size: 24px;
+    }
+
+    .page-subtitle {
+      font-size: 14px;
+    }
+  }
+
+  .insight-card {
+    ion-card-header {
+      padding: 20px 20px 14px;
+    }
+
+    ion-card-content {
+      padding: 0 20px 20px;
+    }
+  }
+
+  .score-circle {
+    width: 150px !important;
+    height: 150px !important;
+
+    .score-number {
+      font-size: 40px !important;
+    }
+  }
+}
+
+/* Espaciador para el menú inferior */
+.bottom-spacer {
+  height: 100px;
+}
+
+/* ===============================
+   📊 BOTÓN HISTORIAL
+   =============================== */
+.history-button {
+  margin: 24px 20px;
+  --border-radius: 16px;
+  --border-width: 2px;
+  --padding-top: 16px;
+  --padding-bottom: 16px;
+  font-weight: 600;
+  font-size: 16px;
+  text-transform: none;
+  
+  ion-icon {
+    font-size: 20px;
+  }
+}

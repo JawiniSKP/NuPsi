@@ -1,0 +1,155 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Historial de Registros</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="content-wrapper">
+    
+    <!-- FILTRO POR PERÍODO -->
+    <div class="filter-section">
+      <ion-segment [value]="selectedPeriod" (ionChange)="onPeriodChange($event)">
+        <ion-segment-button value="semana">
+          <ion-label>Última Semana</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="mes">
+          <ion-label>Último Mes</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="todo">
+          <ion-label>Todo</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    <!-- SPINNER DE CARGA -->
+    @if (loading) {
+      <div class="loading-container">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <p>Cargando historial...</p>
+      </div>
+    }
+
+    <!-- LISTA DE REGISTROS -->
+    @if (!loading && registrosFiltrados.length > 0) {
+      <div class="history-list">
+        @for (registro of registrosFiltrados; track registro.creadoEn) {
+          <ion-card 
+            class="history-card"
+            button
+            (click)="verDetalle(registro)">
+        
+        <ion-card-header class="history-header">
+          <div class="header-content">
+            <div class="date-info">
+              <ion-icon name="calendar-outline" class="date-icon"></ion-icon>
+              <div class="date-text">
+                <ion-card-title class="date-title">{{ formatDate(registro.fecha) }}</ion-card-title>
+                <ion-note class="time-note">
+                  <ion-icon name="time-outline"></ion-icon>
+                  {{ formatTime(registro.creadoEn) }}
+                </ion-note>
+              </div>
+            </div>
+            
+            <ion-badge [color]="getEstadoAnimoColor(registro.estadoAnimo)" class="estado-badge">
+              <span class="emoji-badge">{{ getEstadoAnimoEmoji(registro.estadoAnimo) }}</span>
+              {{ registro.estadoAnimo }}
+            </ion-badge>
+          </div>
+        </ion-card-header>
+
+        <ion-card-content class="history-content">
+          <!-- EMOCIONES -->
+          @if (registro.emociones && registro.emociones.length > 0) {
+            <div class="info-row">
+              <ion-icon name="happy-outline" class="row-icon"></ion-icon>
+              <span class="row-label">Emociones:</span>
+              <div class="emotions-chips">
+                @for (emocion of registro.emociones; track emocion) {
+                  <ion-chip class="emotion-chip">
+                    {{ emocion }}
+                  </ion-chip>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- INDICADORES -->
+          <div class="indicators-grid">
+            <!-- ESTRÉS -->
+            <div class="indicator-item">
+              <ion-icon name="analytics-outline" class="indicator-icon stress-icon"></ion-icon>
+              <div class="indicator-info">
+                <span class="indicator-label">Estrés</span>
+                <ion-badge [color]="getNivelEstresColor(registro.nivelEstres)" class="indicator-value">
+                  {{ registro.nivelEstres }}/10
+                </ion-badge>
+              </div>
+            </div>
+
+            <!-- HIDRATACIÓN -->
+            <div class="indicator-item">
+              <ion-icon name="water-outline" class="indicator-icon water-icon"></ion-icon>
+              <div class="indicator-info">
+                <span class="indicator-label">Agua</span>
+                <span class="indicator-value">{{ registro.vasosAgua }} vasos</span>
+              </div>
+            </div>
+
+            <!-- SUEÑO -->
+            <div class="indicator-item">
+              <ion-icon name="bed-outline" class="indicator-icon sleep-icon"></ion-icon>
+              <div class="indicator-info">
+                <span class="indicator-label">Sueño</span>
+                <span class="indicator-value">{{ registro.horasSueno || 0 }}h</span>
+              </div>
+            </div>
+
+            <!-- ACTIVIDAD FÍSICA -->
+            <div class="indicator-item">
+              <ion-icon name="barbell-outline" class="indicator-icon exercise-icon"></ion-icon>
+              <div class="indicator-info">
+                <span class="indicator-label">Ejercicio</span>
+                <ion-badge [color]="registro.actividadFisica ? 'success' : 'medium'" class="indicator-badge">
+                  {{ registro.actividadFisica ? 'Sí' : 'No' }}
+                </ion-badge>
+              </div>
+            </div>
+          </div>
+
+          <!-- VER MÁS -->
+          <div class="view-more">
+            <span>Ver detalles completos</span>
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </div>
+        </ion-card-content>
+        </ion-card>
+      }
+      </div>
+    }
+
+    <!-- MENSAJE VACÍO -->
+    @if (!loading && registrosFiltrados.length === 0) {
+      <div class="empty-state">
+      <ion-icon name="calendar-outline" class="empty-icon"></ion-icon>
+      <h2>No hay registros</h2>
+      <p>Aún no has completado ningún registro en este período.</p>
+      <ion-button routerLink="/ml-daily-form" color="primary">
+        <ion-icon slot="start" name="create"></ion-icon>
+        Crear Primer Registro
+      </ion-button>
+      </div>
+    }
+
+  </div>
+</ion-content>
+
+<app-menu></app-menu>

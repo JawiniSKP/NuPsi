@@ -1,0 +1,407 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Registro Diario</ion-title>
+  </ion-toolbar>
+  
+  <!-- Barra de progreso -->
+  <ion-toolbar color="primary">
+    <div class="progress-container">
+      <ion-progress-bar [value]="progress" color="light"></ion-progress-bar>
+      <div class="progress-info">
+        <span class="step-counter">Paso {{ currentStep }} de {{ totalSteps }}</span>
+        <span class="step-title">{{ getStepTitle() }}</span>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ml-form-content">
+  <div class="content-wrapper">
+    
+    <!-- HEADER DEL FORMULARIO -->
+    <div class="form-header">
+      <div class="icon-container">
+        <ion-icon [name]="getStepIcon()" class="step-icon"></ion-icon>
+      </div>
+      <h1 class="form-title">{{ getStepTitle() }}</h1>
+      <p class="form-subtitle">Completa esta información para alimentar los modelos de IA</p>
+    </div>
+
+    <form [formGroup]="dailyForm" *ngIf="!loading">
+      
+      <!-- ====================================== -->
+      <!-- PASO 1: ESTADO EMOCIONAL -->
+      <!-- ====================================== -->
+      <div *ngIf="currentStep === 1" class="form-step">
+        
+        <ion-card class="step-card">
+          <ion-card-header>
+            <ion-card-title class="card-title-small">¿Cómo te sientes hoy?</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="emotions-grid">
+              <div 
+                *ngFor="let emocion of emocionesDisponibles"
+                class="emotion-chip"
+                [class.selected]="emocion.selected"
+                (click)="toggleEmocion(emocion)">
+                <span class="emoji">{{ emocion.emoji }}</span>
+                <span class="label">{{ emocion.label }}</span>
+                <ion-icon 
+                  *ngIf="emocion.selected" 
+                  name="checkmark-circle" 
+                  class="check-icon">
+                </ion-icon>
+              </div>
+            </div>
+            
+            <div *ngIf="selectedEmotions.length > 0" class="selected-info">
+              <ion-chip color="primary">
+                <ion-label>{{ selectedEmotions.length }} emociones seleccionadas</ion-label>
+              </ion-chip>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card class="step-card">
+          <ion-card-header>
+            <ion-card-title class="card-title-small">Estado de Ánimo General</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="mood-buttons">
+              <div 
+                *ngFor="let estado of estadosAnimo"
+                class="mood-button"
+                [class.selected]="selectedEstadoAnimo?.value === estado.value"
+                (click)="selectEstadoAnimo(estado)">
+                <span class="emoji-large">{{ estado.emoji }}</span>
+                <span class="label">{{ estado.label }}</span>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card class="step-card">
+          <ion-card-header>
+            <ion-card-title class="card-title-small">Nivel de Estrés</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-item lines="none" class="range-item">
+              <ion-range
+                formControlName="nivelEstres"
+                [min]="1"
+                [max]="10"
+                [pin]="true"
+                [ticks]="true"
+                [snaps]="true"
+                color="primary">
+                <ion-label slot="start">😌 1</ion-label>
+                <ion-label slot="end">😰 10</ion-label>
+              </ion-range>
+            </ion-item>
+            <div class="range-value">
+              <ion-chip color="primary">
+                <ion-label>Nivel: {{ dailyForm.get('nivelEstres')?.value }}</ion-label>
+              </ion-chip>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <!-- ====================================== -->
+      <!-- PASO 2: CALIDAD DEL SUEÑO -->
+      <!-- ====================================== -->
+      <div *ngIf="currentStep === 2" class="form-step">
+        
+        <ion-card class="step-card">
+          <ion-card-header>
+            <ion-card-title class="card-title-small">
+              <ion-icon name="bed-outline"></ion-icon>
+              Horas de Sueño
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-item class="input-item">
+              <ion-label position="stacked">¿Cuántas horas dormiste?</ion-label>
+              <ion-input
+                formControlName="horasSueno"
+                type="number"
+                min="0"
+                max="24"
+                placeholder="Ej: 7.5">
+              </ion-input>
+            </ion-item>
+            <ion-note class="helper-text">
+              Recomendado: 7-9 horas para adultos
+            </ion-note>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card class="step-card">
+          <ion-card-header>
+            <ion-card-title class="card-title-small">Calidad del Sueño</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-item lines="none" class="range-item">
+              <ion-range
+                formControlName="calidadSueno"
+                [min]="1"
+                [max]="10"
+                [pin]="true"
+                [ticks]="true"
+                [snaps]="true"
+                color="primary">
+                <ion-label slot="start">😴 Malo</ion-label>
+                <ion-label slot="end">😊 Excelente</ion-label>
+              </ion-range>
+            </ion-item>
+            <div class="range-value">
+              <ion-chip color="primary">
+                <ion-label>Calidad: {{ dailyForm.get('calidadSueno')?.value }}/10</ion-label>
+              </ion-chip>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <!-- ====================================== -->
+      <!-- PASO 3: HÁBITOS DIARIOS -->
+      <!-- ====================================== -->
+      <div *ngIf="currentStep === 3" class="form-step">
+        
+        <ion-card class="step-card">
+          <ion-card-header>
+            <ion-card-title class="card-title-small">
+              <ion-icon name="water-outline"></ion-icon>
+              Hidratación
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-item class="input-item">
+              <ion-label position="stacked">Vasos de agua consumidos</ion-label>
+              <ion-input
+                formControlName="vasosAgua"
+                type="number"
+                min="0"
+                max="20"
+                placeholder="Ej: 8">
+              </ion-input>
+            </ion-item>
+            <ion-note class="helper-text">
+              Meta diaria: 8 vasos de agua 💧
+            </ion-note>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card class="step-card">
+          <ion-card-header>
+            <ion-card-title class="card-title-small">
+              <ion-icon name="barbell-outline"></ion-icon>
+              Actividad Física
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-item lines="none" class="checkbox-item">
+              <ion-label>¿Realizaste actividad física hoy?</ion-label>
+              <ion-checkbox
+                formControlName="actividadFisica"
+                slot="start"
+                color="primary">
+              </ion-checkbox>
+            </ion-item>
+
+            <div *ngIf="dailyForm.get('actividadFisica')?.value" class="conditional-fields">
+              <ion-item class="input-item">
+                <ion-label position="stacked">Tipo de actividad</ion-label>
+                <ion-input
+                  formControlName="tipoActividad"
+                  placeholder="Ej: Correr, Yoga, Gimnasio">
+                </ion-input>
+              </ion-item>
+
+              <ion-item class="input-item">
+                <ion-label position="stacked">Duración (minutos)</ion-label>
+                <ion-input
+                  formControlName="duracionActividad"
+                  type="number"
+                  min="0"
+                  placeholder="Ej: 30">
+                </ion-input>
+              </ion-item>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <!-- ====================================== -->
+      <!-- PASO 4: ALIMENTACIÓN -->
+      <!-- ====================================== -->
+      <div *ngIf="currentStep === 4" class="form-step">
+        
+        <ion-card class="step-card">
+          <ion-card-header>
+            <ion-card-title class="card-title-small">
+              <ion-icon name="restaurant-outline"></ion-icon>
+              Comidas del Día
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-item class="input-item">
+              <ion-label position="stacked">¿Cuántas comidas realizaste?</ion-label>
+              <ion-input
+                formControlName="comidas"
+                type="number"
+                min="0"
+                max="10"
+                placeholder="Ej: 3">
+              </ion-input>
+            </ion-item>
+            <ion-note class="helper-text">
+              Incluye desayuno, almuerzo, cena y colaciones
+            </ion-note>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card class="step-card">
+          <ion-card-header>
+            <ion-card-title class="card-title-small">Calidad de Alimentación</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-item lines="none" class="range-item">
+              <ion-range
+                formControlName="calidadAlimentacion"
+                [min]="1"
+                [max]="10"
+                [pin]="true"
+                [ticks]="true"
+                [snaps]="true"
+                color="primary">
+                <ion-label slot="start">🍔 1</ion-label>
+                <ion-label slot="end">🥗 10</ion-label>
+              </ion-range>
+            </ion-item>
+            <div class="range-value">
+              <ion-chip color="primary">
+                <ion-label>Calidad: {{ dailyForm.get('calidadAlimentacion')?.value }}/10</ion-label>
+              </ion-chip>
+            </div>
+            <ion-note class="helper-text">
+              1 = Comida rápida/procesada | 10 = Alimentos naturales/saludables
+            </ion-note>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <!-- ====================================== -->
+      <!-- PASO 5: DATOS FÍSICOS (OPCIONAL) -->
+      <!-- ====================================== -->
+      <div *ngIf="currentStep === 5" class="form-step">
+        
+        <ion-card class="step-card">
+          <ion-card-header>
+            <ion-card-title class="card-title-small">
+              <ion-icon name="analytics-outline"></ion-icon>
+              Datos Físicos (Opcional)
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <p class="info-text">
+              Estos datos ayudan a generar mejores insights, pero son opcionales.
+            </p>
+
+            <ion-item class="input-item">
+              <ion-label position="stacked">Peso (kg)</ion-label>
+              <ion-input
+                formControlName="peso"
+                type="number"
+                min="30"
+                max="300"
+                placeholder="Ej: 70">
+              </ion-input>
+            </ion-item>
+
+            <ion-item class="input-item">
+              <ion-label position="stacked">Estatura (cm)</ion-label>
+              <ion-input
+                formControlName="estatura"
+                type="number"
+                min="100"
+                max="250"
+                placeholder="Ej: 170">
+              </ion-input>
+            </ion-item>
+
+            <div *ngIf="calcularIMC()" class="imc-result">
+              <ion-chip color="primary">
+                <ion-label>IMC: {{ calcularIMC() }}</ion-label>
+              </ion-chip>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card class="step-card">
+          <ion-card-header>
+            <ion-card-title class="card-title-small">Notas Adicionales</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-item class="textarea-item">
+              <ion-label position="stacked">Observaciones</ion-label>
+              <ion-textarea
+                formControlName="notas"
+                rows="4"
+                placeholder="Escribe cualquier observación relevante sobre tu día...">
+              </ion-textarea>
+            </ion-item>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+    </form>
+
+    <!-- BOTONES DE NAVEGACIÓN -->
+    <div class="navigation-buttons">
+      <ion-button 
+        *ngIf="currentStep > 1"
+        expand="block"
+        fill="outline"
+        color="primary"
+        (click)="prevStep()"
+        [disabled]="saving">
+        Anterior
+      </ion-button>
+
+      <ion-button 
+        *ngIf="currentStep < totalSteps"
+        expand="block"
+        color="primary"
+        (click)="nextStep()"
+        [disabled]="saving">
+        Siguiente
+        <ion-icon slot="end" name="arrow-forward"></ion-icon>
+      </ion-button>
+
+      <ion-button 
+        *ngIf="currentStep === totalSteps"
+        expand="block"
+        color="success"
+        (click)="submitForm()"
+        [disabled]="saving || !dailyForm.valid">
+        <ion-spinner *ngIf="saving" name="crescent"></ion-spinner>
+        <span *ngIf="!saving">
+          <ion-icon slot="start" name="checkmark-circle"></ion-icon>
+          Guardar y Analizar
+        </span>
+      </ion-button>
+    </div>
+
+    <!-- ESPACIADOR PARA MENÚ -->
+    <div class="bottom-spacer"></div>
+
+  </div>
+</ion-content>
+
+<!-- MENÚ INFERIOR -->
+<app-menu></app-menu>

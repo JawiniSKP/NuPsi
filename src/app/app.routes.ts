@@ -58,6 +58,26 @@ export const routes: Routes = [
     canActivate: [authGuard] // ✅ PROTEGIDO
   },
   {
+    path: 'ml-daily-form',
+    loadComponent: () => import('./pages/ml-daily-form/ml-daily-form.page').then(m => m.MlDailyFormPage),
+    canActivate: [authGuard] // ✅ PROTEGIDO
+  },
+  {
+    path: 'aura-insights',
+    loadComponent: () => import('./pages/aura-insights/aura-insights.page').then(m => m.AuraInsightsPage),
+    canActivate: [authGuard] // ✅ PROTEGIDO
+  },
+  {
+    path: 'bienestar-integral',
+    loadComponent: () => import('./pages/bienestar-integral/bienestar-integral.page').then(m => m.BienestarIntegralPage),
+    canActivate: [authGuard] // ✅ PROTEGIDO
+  },
+  {
+    path: 'ml-history',
+    loadComponent: () => import('./pages/ml-history/ml-history.page').then(m => m.MlHistoryPage),
+    canActivate: [authGuard] // ✅ PROTEGIDO
+  },
+  {
     path: '**',
     redirectTo: 'home'
   }

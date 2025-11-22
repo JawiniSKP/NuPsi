@@ -46,6 +46,21 @@ service cloud.firestore {
       match /consultasProfesionales/{consultaId} {
         allow read, write: if esPropietario(usuarioId);
       }
+      
+      // ============================================
+      // MODELOS ML - NUEVAS COLECCIONES
+      // ============================================
+      match /dailyMLInputs/{inputId} {
+        allow read, write: if esPropietario(usuarioId);
+      }
+      
+      match /auraInsights/{insightId} {
+        allow read, write: if esPropietario(usuarioId);
+      }
+      
+      match /bienestarIntegral/{bienestarId} {
+        allow read, write: if esPropietario(usuarioId);
+      }
     }
     
     // Recetas - lectura pública, escritura restringida
