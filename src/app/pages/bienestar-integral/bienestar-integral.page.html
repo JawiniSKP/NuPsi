@@ -1,0 +1,199 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Bienestar Integral</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="refreshBienestar()" [disabled]="loading">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="bienestar-content">
+  <div class="content-wrapper">
+    
+    <div class="bienestar-header">
+      <div class="icon-container">
+        <ion-icon name="heart-circle-outline" class="main-icon"></ion-icon>
+      </div>
+      <h1 class="page-title">Bienestar Integral</h1>
+      <p class="page-subtitle">Análisis ML de tu estado general de salud</p>
+    </div>
+
+    @if (loading) {
+      <div class="loading-container">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <p>Cargando análisis...</p>
+      </div>
+    }
+
+    @if (!loading && !bienestar) {
+      <div class="no-data-container">
+        <ion-icon name="alert-circle-outline" class="no-data-icon"></ion-icon>
+        <h2>No hay datos disponibles</h2>
+        <p>Completa el formulario diario para generar tu análisis de bienestar integral.</p>
+        <ion-button expand="block" color="primary" (click)="navigateToForm()">
+          Ir al Formulario Diario
+        </ion-button>
+      </div>
+    }
+
+    @if (!loading && bienestar) {
+      <div class="bienestar-container">
+      
+      <!-- CLASIFICACIÓN GENERAL -->
+      <ion-card class="bienestar-card">
+        <ion-card-header>
+          <div class="card-header-content">
+            <ion-icon name="analytics-outline" class="header-icon"></ion-icon>
+            <ion-card-title class="card-title-main">Clasificación General</ion-card-title>
+          </div>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="classification-display">
+            <div class="score-badge" [attr.data-nivel]="bienestar.clasificacion.nivel">
+              <span class="score-number">{{ bienestar.clasificacion.scoreTotal }}</span>
+              <span class="score-label">/100</span>
+            </div>
+            <ion-chip [color]="getNivelColor(bienestar.clasificacion.nivel)" class="nivel-chip">
+              <ion-label class="chip-label-caps">{{ bienestar.clasificacion.nivel }}</ion-label>
+            </ion-chip>
+            <p class="confidence-text">
+              Confianza: {{ (bienestar.clasificacion.confianza * 100) | number: '1.0-0' }}%
+            </p>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- DIMENSIONES DEL BIENESTAR -->
+      <ion-card class="bienestar-card">
+        <ion-card-header>
+          <div class="card-header-content">
+            <ion-icon name="star-outline" class="header-icon"></ion-icon>
+            <ion-card-title class="card-title-main">Dimensiones del Bienestar</ion-card-title>
+          </div>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="dimension-item">
+            <div class="dimension-header">
+              <span class="dimension-label">💭 Emocional</span>
+              <span class="dimension-value">{{ bienestar.dimensiones.emocional }}/100</span>
+            </div>
+            <ion-progress-bar [value]="bienestar.dimensiones.emocional / 100" [color]="getDimensionColor(bienestar.dimensiones.emocional)"></ion-progress-bar>
+          </div>
+          
+          <div class="dimension-item">
+            <div class="dimension-header">
+              <span class="dimension-label">💪 Física</span>
+              <span class="dimension-value">{{ bienestar.dimensiones.fisica }}/100</span>
+            </div>
+            <ion-progress-bar [value]="bienestar.dimensiones.fisica / 100" [color]="getDimensionColor(bienestar.dimensiones.fisica)"></ion-progress-bar>
+          </div>
+          
+          <div class="dimension-item">
+            <div class="dimension-header">
+              <span class="dimension-label">🎯 Hábitos</span>
+              <span class="dimension-value">{{ bienestar.dimensiones.habitos }}/100</span>
+            </div>
+            <ion-progress-bar [value]="bienestar.dimensiones.habitos / 100" [color]="getDimensionColor(bienestar.dimensiones.habitos)"></ion-progress-bar>
+          </div>
+          
+          <div class="dimension-item">
+            <div class="dimension-header">
+              <span class="dimension-label">🥗 Nutrición</span>
+              <span class="dimension-value">{{ bienestar.dimensiones.nutricion }}/100</span>
+            </div>
+            <ion-progress-bar [value]="bienestar.dimensiones.nutricion / 100" [color]="getDimensionColor(bienestar.dimensiones.nutricion)"></ion-progress-bar>
+          </div>
+          
+          <div class="dimension-item">
+            <div class="dimension-header">
+              <span class="dimension-label">🤝 Social</span>
+              <span class="dimension-value">{{ bienestar.dimensiones.social }}/100</span>
+            </div>
+            <ion-progress-bar [value]="bienestar.dimensiones.social / 100" [color]="getDimensionColor(bienestar.dimensiones.social)"></ion-progress-bar>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- TENDENCIAS -->
+      <ion-card class="bienestar-card">
+        <ion-card-header>
+          <div class="card-header-content">
+            <ion-icon name="trending-up-outline" class="header-icon"></ion-icon>
+            <ion-card-title class="card-title-main">Tendencias</ion-card-title>
+          </div>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="trend-row">
+            <span class="trend-label">Semanal</span>
+            <ion-chip [color]="getTendenciaColor(bienestar.tendenciaSemanal)">
+              <ion-icon [name]="getTendenciaIcon(bienestar.tendenciaSemanal)"></ion-icon>
+              <ion-label class="chip-label-caps">{{ bienestar.tendenciaSemanal }}</ion-label>
+            </ion-chip>
+          </div>
+          <div class="trend-row">
+            <span class="trend-label">Mensual</span>
+            <ion-chip [color]="getTendenciaColor(bienestar.tendenciaMensual)">
+              <ion-icon [name]="getTendenciaIcon(bienestar.tendenciaMensual)"></ion-icon>
+              <ion-label class="chip-label-caps">{{ bienestar.tendenciaMensual }}</ion-label>
+            </ion-chip>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- ALERTAS -->
+      @if (bienestar.alertas && bienestar.alertas.length > 0) {
+        <ion-card class="bienestar-card">
+          <ion-card-header>
+            <div class="card-header-content">
+              <ion-icon name="alert-circle-outline" class="header-icon"></ion-icon>
+              <ion-card-title class="card-title-main">Alertas</ion-card-title>
+            </div>
+          </ion-card-header>
+          <ion-card-content>
+            @for (alerta of bienestar.alertas; track alerta.mensaje) {
+              <div class="alert-item" [attr.data-severidad]="alerta.severidad">
+                <ion-icon name="alert-circle-outline" [color]="getSeveridadColor(alerta.severidad)"></ion-icon>
+                <p class="alert-message">{{ alerta.mensaje }}</p>
+              </div>
+            }
+          </ion-card-content>
+        </ion-card>
+      }
+
+      <!-- LOGROS -->
+      @if (bienestar.logros && bienestar.logros.length > 0) {
+        <ion-card class="bienestar-card">
+          <ion-card-header>
+            <div class="card-header-content">
+              <ion-icon name="ribbon-outline" class="header-icon"></ion-icon>
+              <ion-card-title class="card-title-main">Logros Recientes</ion-card-title>
+            </div>
+          </ion-card-header>
+          <ion-card-content>
+            @for (logro of bienestar.logros; track logro.nombre) {
+              <div class="logro-item">
+                <div class="logro-icon">🏆</div>
+                <div class="logro-content">
+                  <h4 class="logro-nombre">{{ logro.nombre }}</h4>
+                  <p class="logro-descripcion">{{ logro.descripcion }}</p>
+                </div>
+              </div>
+            }
+          </ion-card-content>
+        </ion-card>
+      }
+
+      </div>
+    }
+
+    <div class="bottom-spacer"></div>
+
+  </div>
+</ion-content>
+
+<app-menu></app-menu>

@@ -37,24 +37,27 @@
     <!-- ============================================
          MENSAJE PARA USUARIOS NO AUTENTICADOS
          ============================================ -->
-    <div *ngIf="!user" class="not-authenticated">
-      <ion-card>
-        <ion-card-header>
-          <ion-card-title>¡Bienvenido a NutPsi!</ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
-          <p>Inicia sesión para comenzar a registrar tu bienestar diario.</p>
-          <ion-button expand="block" routerLink="/login" color="primary">
-            Iniciar Sesión
-          </ion-button>
-        </ion-card-content>
-      </ion-card>
-    </div>
+    @if (!user) {
+      <div class="not-authenticated">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>¡Bienvenido a NutPsi!</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <p>Inicia sesión para comenzar a registrar tu bienestar diario.</p>
+            <ion-button expand="block" routerLink="/login" color="primary">
+              Iniciar Sesión
+            </ion-button>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    }
 
     <!-- ============================================
          CONTENIDO PARA USUARIOS AUTENTICADOS
          ============================================ -->
-    <div *ngIf="user" class="authenticated-content">
+    @if (user) {
+      <div class="authenticated-content">
       
       <!-- SECCIÓN DE BIENVENIDA -->
       <div class="welcome-section">
@@ -119,26 +122,31 @@
           <p class="question-text">¿Cómo te sientes hoy?</p>
           
           <div class="emotions-container">
-            <ion-button 
-              *ngFor="let emotion of emotionButtons"
-              [color]="emotion.selected ? emotion.color : 'light'"
-              class="emotion-button"
-              (click)="toggleEmotion(emotion)"
-              [attr.aria-label]="emotion.label"
-              [class.selected]="emotion.selected">
-              <div class="button-content">
+            @for (emotion of emotionButtons; track emotion.label) {
+              <ion-button 
+                [color]="emotion.selected ? emotion.color : 'light'"
+                class="emotion-button"
+                (click)="toggleEmotion(emotion)"
+                [attr.aria-label]="emotion.label"
+                [class.selected]="emotion.selected">
+                <div class="button-content">
                 <span class="emoji">{{ emotion.emoji }}</span>
                 <span class="button-text">{{ emotion.label }}</span>
               </div>
-            </ion-button>
+              </ion-button>
+            }
           </div>
 
-          <p *ngIf="selectedEmotions.length > 0" class="selection-info">
-            Has seleccionado: {{ selectedEmotions.join(', ') }}
-          </p>
-          <p *ngIf="selectedEmotions.length === 0" class="selection-info">
-            Selecciona una o más emociones
-          </p>
+          @if (selectedEmotions.length > 0) {
+            <p class="selection-info">
+              Has seleccionado: {{ selectedEmotions.join(', ') }}
+            </p>
+          }
+          @if (selectedEmotions.length === 0) {
+            <p class="selection-info">
+              Selecciona una o más emociones
+            </p>
+          }
         </ion-card-content>
       </ion-card>
 
@@ -194,7 +202,8 @@
       <!-- ============================================
            SECCIÓN DE PROGRESO MEJORADA
            ============================================ -->
-      <div *ngIf="usuarioData?.haCompletadoConfiguracionInicial" class="progress-section-improved">
+      @if (usuarioData?.haCompletadoConfiguracionInicial) {
+        <div class="progress-section-improved">
         <h2 class="section-title-improved">
           <ion-icon name="trending-up" class="title-icon"></ion-icon>
           Tu Progreso
@@ -209,7 +218,7 @@
               <div class="progress-item-improved">
                 <div class="progress-info-improved">
                   <div class="icon-wrapper">
-                    <ion-icon name="calendar-number" class="progress-icon-improved"></ion-icon>
+                    <ion-icon name="calendar-outline" class="progress-icon-improved"></ion-icon>
                   </div>
                   <div class="text-content">
                     <span class="progress-label-improved">Registros esta semana</span>
@@ -242,42 +251,77 @@
             </div>
           </ion-card-content>
         </ion-card>
-      </div>
+        </div>
+      }
 
       <!-- ============================================
-           BOTONES DE ACCIÓN MEJORADOS
+           SECCIÓN DE INTELIGENCIA ARTIFICIAL
            ============================================ -->
-      <div class="action-buttons-improved">
-        <ion-button 
-          *ngIf="!usuarioData?.haCompletadoConfiguracionInicial"
-          expand="block" 
-          color="primary" 
-          class="primary-button-improved"
-          (click)="openDailyRegister()">
-          <ion-icon slot="start" name="rocket-outline"></ion-icon>
-          Comenzar Mi Viaje
-        </ion-button>
+      <div class="ml-section">
+        <h2 class="section-title-ml">
+          <ion-icon name="analytics" class="title-icon"></ion-icon>
+          Tu Asistente IA
+        </h2>
+        <p class="ml-description">
+          Análisis inteligente de tu bienestar emocional y físico
+        </p>
+      </div>
 
-        <div *ngIf="usuarioData?.haCompletadoConfiguracionInicial" class="action-buttons-group">
+      <div class="action-buttons-improved">
+        @if (usuarioData?.haCompletadoConfiguracionInicial) {
+          <div class="action-buttons-ml">
+          <!-- BOTÓN 1: REGISTRO DIARIO -->
+          <ion-button 
+            expand="block" 
+            color="primary" 
+            class="ml-button ml-button-form"
+            routerLink="/ml-daily-form">
+            <ion-icon slot="start" name="create"></ion-icon>
+            Registro Diario
+          </ion-button>
+
+          <!-- BOTÓN 2: ANÁLISIS EMOCIONAL IA -->
+          <ion-button 
+            expand="block" 
+            color="secondary" 
+            class="ml-button ml-button-aura"
+            routerLink="/aura-insights">
+            <ion-icon slot="start" name="sparkles"></ion-icon>
+            Análisis Emocional IA
+          </ion-button>
+
+          <!-- BOTÓN 3: MI BIENESTAR -->
+          <ion-button 
+            expand="block" 
+            color="tertiary" 
+            class="ml-button ml-button-bienestar"
+            routerLink="/bienestar-integral">
+            <ion-icon slot="start" name="heart-circle-outline"></ion-icon>
+            Mi Bienestar
+          </ion-button>
+
+          <!-- BOTÓN 4: HISTORIAL -->
+          <ion-button 
+            expand="block" 
+            color="medium" 
+            class="ml-button ml-button-history"
+            routerLink="/ml-history">
+            <ion-icon slot="start" name="time"></ion-icon>
+            Mi Historial
+          </ion-button>
+        </div>
+        }
+
+        @if (!usuarioData?.haCompletadoConfiguracionInicial) {
           <ion-button 
             expand="block" 
             color="primary" 
             class="primary-button-improved"
-            routerLink="/indicators">
-            <ion-icon slot="start" name="add-circle"></ion-icon>
-            Registro Completo del Día
+            (click)="openDailyRegister()">
+            <ion-icon slot="start" name="rocket-outline"></ion-icon>
+            Comenzar Mi Viaje
           </ion-button>
-
-          <ion-button 
-            expand="block" 
-            fill="outline" 
-            color="primary" 
-            class="secondary-button-improved"
-            routerLink="/statistics">
-            <ion-icon slot="start" name="analytics"></ion-icon>
-            Ver Mis Estadísticas
-          </ion-button>
-        </div>
+        }
       </div>
 
       <!-- ============================================
@@ -300,33 +344,11 @@
         </ion-card-content>
       </ion-card>
 
-      <!-- ============================================
-           PRÓXIMAS FUNCIONES MEJORADAS
-           ============================================ -->
-      <ion-card class="features-card-improved">
-        <ion-card-header class="features-header">
-          <ion-card-title class="card-title-small-improved">
-            <ion-icon name="grid-outline" class="title-icon"></ion-icon>
-            Próximas Funciones
-          </ion-card-title>
-        </ion-card-header>
-        <ion-card-content class="features-content">
-          <div class="features-grid">
-            <div class="feature-item-improved" *ngFor="let feature of upcomingFeatures">
-              <div class="feature-icon">{{feature.emoji}}</div>
-              <span class="feature-text">{{feature.name}}</span>
-              <div class="feature-status" [class.coming-soon]="!feature.available">
-                {{feature.available ? 'Próximo' : 'En desarrollo'}}
-              </div>
-            </div>
-          </div>
-        </ion-card-content>
-      </ion-card>
-
       <!-- Espaciador para el menú inferior -->
       <div class="bottom-spacer"></div>
 
-    </div>
+      </div>
+    }
   </div>
 </ion-content>
 

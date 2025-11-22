@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, OnDestroy, NgZone } from '@angular/core';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { Auth } from '@angular/fire/auth';
 import { User } from 'firebase/auth';
@@ -12,7 +13,6 @@ import {
   IonCardContent, ActionSheetController, ToastController,
   AlertController, LoadingController
 } from '@ionic/angular/standalone';
-import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
@@ -28,7 +28,7 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
   styleUrls: ['./home.page.scss'],
   standalone: true,
   imports: [
-    CommonModule, RouterModule, FormsModule,
+    DatePipe, DecimalPipe, RouterModule, FormsModule,
     IonContent, IonHeader, IonTitle, IonToolbar, IonButtons,
     IonButton, IonIcon, IonCard, IonCardHeader, IonCardTitle,
     IonCardContent, MenuComponent
@@ -57,14 +57,6 @@ export class HomePage implements OnInit, OnDestroy {
 
   // Motivación
   fraseMotivacional: string = 'Cargando...';
-
-  // ✅ AGREGADO: Próximas funciones que faltaban
-  upcomingFeatures = [
-    { emoji: '📊', name: 'Estadísticas detalladas', available: true },
-    { emoji: '🍽️', name: 'Recetas saludables', available: false },
-    { emoji: '👨‍⚕️', name: 'Directorio de profesionales', available: false },
-    { emoji: '🤖', name: 'Chatbot de apoyo emocional', available: false }
-  ];
 
   // Botones de emociones
   emotionButtons = [

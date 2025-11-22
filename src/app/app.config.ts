@@ -29,7 +29,8 @@ import {
   mailOutline, lockClosedOutline, logInOutline, cameraOutline,
   createOutline, chevronForwardOutline, flagOutline, calendarOutline,
   swapHorizontalOutline, timeOutline, pause, playOutline,
-  stopOutline, logOutOutline
+  stopOutline, logOutOutline, heartCircleOutline, water, analyticsOutline,
+  sparklesOutline, sparkles
 } from 'ionicons/icons';
 
 // Configurar TODOS los iconos globalmente
@@ -51,7 +52,9 @@ addIcons({
   mailOutline, lockClosedOutline, logInOutline, cameraOutline,
   createOutline, chevronForwardOutline, flagOutline, calendarOutline,
   swapHorizontalOutline, timeOutline, pause, playOutline,
-  stopOutline, 'log-out-outline': logOutOutline
+  stopOutline, 'log-out-outline': logOutOutline,
+  water, analyticsOutline, 'heart-circle-outline': heartCircleOutline,
+  sparklesOutline, sparkles
 });
 
 export const appConfig: ApplicationConfig = {
