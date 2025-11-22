@@ -1,0 +1,221 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/ml-history"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Detalle del Registro</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="detail-content">
+  <div class="content-wrapper">
+
+    <!-- LOADING -->
+    @if (loading) {
+      <div class="loading-container">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <p>Cargando registro...</p>
+      </div>
+    }
+
+    <!-- REGISTRO DETAIL -->
+    @if (!loading && registro) {
+      <div class="detail-container">
+
+        <!-- HEADER INFO -->
+        <ion-card class="info-card">
+          <ion-card-content>
+            <div class="date-info">
+              <ion-icon name="calendar-outline" class="date-icon"></ion-icon>
+              <div class="date-text">
+                <h2>{{ formatFecha(registro.fecha) }}</h2>
+                <p class="time-text">
+                  <ion-icon name="time-outline"></ion-icon>
+                  {{ formatHora(registro.fecha) }}
+                </p>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- ESTADO EMOCIONAL -->
+        <ion-card class="detail-card">
+          <ion-card-header>
+            <div class="card-header-content">
+              <ion-icon name="happy-outline" class="header-icon"></ion-icon>
+              <ion-card-title>Estado Emocional</ion-card-title>
+            </div>
+          </ion-card-header>
+          <ion-card-content>
+            
+            <!-- Emociones -->
+            <div class="detail-row">
+              <span class="detail-label">Emociones</span>
+              <div class="chips-container">
+                @for (emocion of registro.emociones; track emocion) {
+                  <ion-chip color="primary">
+                    <ion-label>{{ emocion }}</ion-label>
+                  </ion-chip>
+                }
+              </div>
+            </div>
+
+            <!-- Estado de Ánimo -->
+            <div class="detail-row">
+              <span class="detail-label">Estado de Ánimo</span>
+              <ion-badge [color]="getEstadoAnimoColor(registro.estadoAnimo)" class="detail-badge">
+                {{ registro.estadoAnimo }}
+              </ion-badge>
+            </div>
+
+            <!-- Nivel de Estrés -->
+            <div class="detail-row">
+              <span class="detail-label">Nivel de Estrés</span>
+              <div class="stress-info">
+                <ion-badge [color]="getEstresColor(registro.nivelEstres)" class="detail-badge">
+                  {{ registro.nivelEstres }}/10
+                </ion-badge>
+                <div class="stress-bar">
+                  <div 
+                    class="stress-fill" 
+                    [style.width.%]="registro.nivelEstres * 10"
+                    [style.background-color]="getEstresColor(registro.nivelEstres) === 'success' ? 'var(--ion-color-success)' : getEstresColor(registro.nivelEstres) === 'warning' ? 'var(--ion-color-warning)' : 'var(--ion-color-danger)'">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </ion-card-content>
+        </ion-card>
+
+        <!-- SUEÑO -->
+        <ion-card class="detail-card">
+          <ion-card-header>
+            <div class="card-header-content">
+              <ion-icon name="bed-outline" class="header-icon"></ion-icon>
+              <ion-card-title>Sueño</ion-card-title>
+            </div>
+          </ion-card-header>
+          <ion-card-content>
+            
+            <div class="detail-row">
+              <span class="detail-label">Calidad del Sueño</span>
+              <ion-badge [color]="getCalidadColor(registro.calidadSueno)" class="detail-badge">
+                {{ registro.calidadSueno }}
+              </ion-badge>
+            </div>
+
+            <div class="detail-row">
+              <span class="detail-label">Horas de Sueño</span>
+              <ion-badge color="primary" class="detail-badge">
+                {{ registro.horasSueno }} horas
+              </ion-badge>
+            </div>
+
+          </ion-card-content>
+        </ion-card>
+
+        <!-- HÁBITOS SALUDABLES -->
+        <ion-card class="detail-card">
+          <ion-card-header>
+            <div class="card-header-content">
+              <ion-icon name="heart-outline" class="header-icon"></ion-icon>
+              <ion-card-title>Hábitos Saludables</ion-card-title>
+            </div>
+          </ion-card-header>
+          <ion-card-content>
+            
+            <!-- Hidratación -->
+            <div class="detail-row">
+              <span class="detail-label">
+                <ion-icon name="water-outline"></ion-icon>
+                Hidratación
+              </span>
+              <ion-badge color="primary" class="detail-badge">
+                {{ registro.vasosAgua }} vasos
+              </ion-badge>
+            </div>
+
+            <!-- Actividad Física -->
+            <div class="detail-row">
+              <span class="detail-label">
+                <ion-icon name="barbell-outline"></ion-icon>
+                Actividad Física
+              </span>
+              <ion-badge color="primary" class="detail-badge">
+                {{ registro.duracionActividad || 0 }} minutos
+              </ion-badge>
+            </div>
+
+          </ion-card-content>
+        </ion-card>
+
+        <!-- ALIMENTACIÓN -->
+        <ion-card class="detail-card">
+          <ion-card-header>
+            <div class="card-header-content">
+              <ion-icon name="nutrition-outline" class="header-icon"></ion-icon>
+              <ion-card-title>Alimentación</ion-card-title>
+            </div>
+          </ion-card-header>
+          <ion-card-content>
+            
+            <div class="detail-row">
+              <span class="detail-label">Calidad de Alimentación</span>
+              <ion-badge [color]="getCalidadColor(registro.calidadAlimentacion)" class="detail-badge">
+                {{ registro.calidadAlimentacion }}
+              </ion-badge>
+            </div>
+
+            <div class="detail-row">
+              <span class="detail-label">Número de Comidas</span>
+              <ion-badge color="primary" class="detail-badge">
+                {{ registro.comidas }} comidas
+              </ion-badge>
+            </div>
+
+          </ion-card-content>
+        </ion-card>
+
+        <!-- NOTAS (si existen) -->
+        @if (registro.notas) {
+          <ion-card class="detail-card notes-card">
+            <ion-card-header>
+              <ion-card-title>Notas</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <p class="notes-text">{{ registro.notas }}</p>
+            </ion-card-content>
+          </ion-card>
+        }
+
+        <!-- BOTONES DE ACCIÓN -->
+        <div class="action-buttons">
+          <ion-button expand="block" color="primary" (click)="editarRegistro()">
+            <ion-icon slot="start" name="create-outline"></ion-icon>
+            Editar Registro
+          </ion-button>
+
+          <ion-button expand="block" color="danger" fill="outline" (click)="confirmarEliminar()">
+            <ion-icon slot="start" name="trash-outline"></ion-icon>
+            Eliminar Registro
+          </ion-button>
+        </div>
+
+      </div>
+    }
+
+    <!-- ERROR STATE -->
+    @if (!loading && !registro) {
+      <div class="error-state">
+        <ion-icon name="alert-circle-outline" class="error-icon"></ion-icon>
+        <h2>Registro no encontrado</h2>
+        <p>No se pudo cargar la información del registro.</p>
+        <ion-button routerLink="/ml-history" color="primary">
+          Volver al Historial
+        </ion-button>
+      </div>
+    }
+
+  </div>
+</ion-content>

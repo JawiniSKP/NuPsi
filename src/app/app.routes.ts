@@ -78,6 +78,11 @@ export const routes: Routes = [
     canActivate: [authGuard] // ✅ PROTEGIDO
   },
   {
+    path: 'ml-history-detail/:id',
+    loadComponent: () => import('./pages/ml-history-detail/ml-history-detail.page').then(m => m.MlHistoryDetailPage),
+    canActivate: [authGuard] // ✅ PROTEGIDO
+  },
+  {
     path: '**',
     redirectTo: 'home'
   }

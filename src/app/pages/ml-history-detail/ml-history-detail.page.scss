@@ -1,0 +1,311 @@
+/* ========================================
+   📋 ML HISTORY DETAIL - DISEÑO NUPSI
+   ======================================== */
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+.detail-content {
+  --background: linear-gradient(135deg, #f0f9ff 0%, #e0f7fa 100%);
+}
+
+.content-wrapper {
+  padding: 0 0 40px 0;
+  min-height: 100vh;
+}
+
+/* ===============================
+   🔄 LOADING
+   =============================== */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  min-height: 50vh;
+
+  ion-spinner {
+    font-size: 64px;
+    margin-bottom: 20px;
+  }
+
+  p {
+    font-size: 16px;
+    color: #5A6C7D;
+  }
+}
+
+/* ===============================
+   📋 DETAIL CONTAINER
+   =============================== */
+.detail-container {
+  padding: 20px;
+}
+
+/* ===============================
+   📌 INFO CARD (FECHA/HORA)
+   =============================== */
+.info-card {
+  background: linear-gradient(135deg, #00C6B2 0%, #00A8E8 100%);
+  margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(0, 198, 178, 0.3);
+
+  ion-card-content {
+    padding: 24px;
+  }
+
+  .date-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    .date-icon {
+      font-size: 48px;
+      color: white;
+    }
+
+    .date-text {
+      flex: 1;
+
+      h2 {
+        font-size: 20px;
+        font-weight: 700;
+        color: white;
+        margin: 0 0 8px 0;
+        text-transform: capitalize;
+      }
+
+      .time-text {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.9);
+        margin: 0;
+
+        ion-icon {
+          font-size: 16px;
+        }
+      }
+    }
+  }
+}
+
+/* ===============================
+   📇 DETAIL CARDS
+   =============================== */
+.detail-card {
+  background: white;
+  border-radius: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+
+  ion-card-header {
+    padding: 20px 20px 12px;
+    border-bottom: 1px solid #E8F0F5;
+
+    .card-header-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .header-icon {
+        font-size: 24px;
+        color: #00C6B2;
+      }
+
+      ion-card-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #2C3E50;
+        margin: 0;
+      }
+    }
+  }
+
+  ion-card-content {
+    padding: 16px 20px 20px;
+  }
+}
+
+/* ===============================
+   📊 DETAIL ROWS
+   =============================== */
+.detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid #F5F8FA;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .detail-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #5A6C7D;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    ion-icon {
+      font-size: 18px;
+      color: #00C6B2;
+    }
+  }
+
+  .detail-badge {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: capitalize;
+    padding: 6px 12px;
+  }
+}
+
+/* ===============================
+   🎨 CHIPS CONTAINER
+   =============================== */
+.chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  max-width: 60%;
+
+  ion-chip {
+    margin: 0;
+    font-size: 12px;
+    text-transform: capitalize;
+  }
+}
+
+/* ===============================
+   📊 STRESS BAR
+   =============================== */
+.stress-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  max-width: 60%;
+
+  .stress-bar {
+    flex: 1;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+
+    .stress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+  }
+}
+
+/* ===============================
+   📝 NOTES CARD
+   =============================== */
+.notes-card {
+  .notes-text {
+    font-size: 14px;
+    color: #5A6C7D;
+    line-height: 1.6;
+    margin: 0;
+    padding: 12px;
+    background: rgba(0, 198, 178, 0.05);
+    border-radius: 8px;
+    border-left: 3px solid #00C6B2;
+  }
+}
+
+/* ===============================
+   🎯 ACTION BUTTONS
+   =============================== */
+.action-buttons {
+  padding: 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  ion-button {
+    --border-radius: 12px;
+    --padding-top: 16px;
+    --padding-bottom: 16px;
+    font-weight: 600;
+    font-size: 15px;
+    text-transform: none;
+
+    ion-icon {
+      font-size: 20px;
+    }
+  }
+}
+
+/* ===============================
+   ❌ ERROR STATE
+   =============================== */
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  text-align: center;
+  min-height: 50vh;
+
+  .error-icon {
+    font-size: 80px;
+    color: #FF6B6B;
+    margin-bottom: 20px;
+  }
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #2C3E50;
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-size: 15px;
+    color: #5A6C7D;
+    margin-bottom: 24px;
+    max-width: 320px;
+  }
+
+  ion-button {
+    --border-radius: 12px;
+    --padding-start: 32px;
+    --padding-end: 32px;
+  }
+}
+
+/* ===============================
+   📱 RESPONSIVE
+   =============================== */
+@media (max-width: 380px) {
+  .info-card .date-info {
+    .date-icon {
+      font-size: 40px;
+    }
+
+    .date-text h2 {
+      font-size: 18px;
+    }
+  }
+
+  .chips-container {
+    max-width: 55%;
+  }
+
+  .stress-info {
+    max-width: 65%;
+  }
+}
