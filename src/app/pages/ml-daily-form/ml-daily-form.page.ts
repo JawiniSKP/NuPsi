@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import {
   IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonBackButton,
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel,
@@ -44,10 +44,16 @@ export class MlDailyFormPage implements OnInit, OnDestroy {
   totalSteps = 5;
   progress = 0;
 
+  // Modo edición
+  modoEdicion = false;
+  registroId: string | null = null;
+  registroOriginal: DailyMLInput | null = null;
+
   private mlService = inject(MLClassificationService);
   private authService = inject(AuthService);
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private toastController = inject(ToastController);
   private loadingController = inject(LoadingController);
   private alertController = inject(AlertController);
@@ -88,7 +94,7 @@ export class MlDailyFormPage implements OnInit, OnDestroy {
     });
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     const userId = this.authService.getCurrentUserId();
     if (!userId) {
       this.router.navigate(['/login']);
@@ -96,6 +102,18 @@ export class MlDailyFormPage implements OnInit, OnDestroy {
     }
 
     this.initForm();
+
+    // Detectar modo edición
+    this.route.queryParams.subscribe(async params => {
+      if (params['id']) {
+        this.modoEdicion = true;
+        this.registroId = params['id'];
+        if (this.registroId) {
+          await this.cargarRegistro(userId, this.registroId);
+        }
+      }
+    });
+
     this.updateProgress();
   }
 
@@ -141,6 +159,53 @@ export class MlDailyFormPage implements OnInit, OnDestroy {
     this.dailyForm.get('estatura')?.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => this.calcularIMC());
+  }
+
+  async cargarRegistro(userId: string, registroId: string) {
+    this.loading = true;
+    try {
+      const registro = await this.mlService.getDailyMLInputById(userId, registroId);
+      
+      if (!registro) {
+        await this.showToast('No se pudo cargar el registro', 'danger');
+        this.router.navigate(['/ml-history']);
+        return;
+      }
+
+      this.registroOriginal = registro;
+
+      // Pre-llenar formulario
+      this.dailyForm.patchValue({
+        estadoAnimo: registro.estadoAnimo,
+        nivelEstres: registro.nivelEstres,
+        horasSueno: registro.horasSueno,
+        calidadSueno: registro.calidadSueno,
+        vasosAgua: registro.vasosAgua,
+        actividadFisica: registro.actividadFisica,
+        tipoActividad: registro.tipoActividad || '',
+        duracionActividad: registro.duracionActividad || 0,
+        comidas: registro.comidas,
+        calidadAlimentacion: registro.calidadAlimentacion,
+        peso: registro.peso || null,
+        estatura: registro.estatura || null,
+        notas: registro.notas || ''
+      });
+
+      // Marcar emociones seleccionadas
+      if (registro.emociones && registro.emociones.length > 0) {
+        this.emocionesDisponibles.forEach(emocion => {
+          emocion.selected = registro.emociones.includes(emocion.value);
+        });
+        this.dailyForm.patchValue({ emociones: registro.emociones });
+      }
+
+      console.log('✅ Registro cargado para edición');
+    } catch (error) {
+      console.error('Error cargando registro:', error);
+      await this.showToast('Error al cargar el registro', 'danger');
+    } finally {
+      this.loading = false;
+    }
   }
 
   calcularIMC(): number | null {
@@ -225,7 +290,7 @@ export class MlDailyFormPage implements OnInit, OnDestroy {
     console.log('✅ Formulario válido, procediendo a guardar...');
 
     const loading = await this.loadingController.create({
-      message: 'Guardando datos y generando insights IA...',
+      message: this.modoEdicion ? 'Actualizando datos...' : 'Guardando datos y generando insights IA...',
       spinner: 'crescent'
     });
     await loading.present();
@@ -233,6 +298,13 @@ export class MlDailyFormPage implements OnInit, OnDestroy {
     this.saving = true;
 
     try {
+      const userId = this.authService.getCurrentUserId();
+      if (!userId) {
+        await loading.dismiss();
+        await this.showToast('Error: usuario no autenticado', 'danger');
+        return;
+      }
+
       const formValue = this.dailyForm.value;
       console.log('📝 Valores del formulario:', formValue);
       
@@ -244,15 +316,28 @@ export class MlDailyFormPage implements OnInit, OnDestroy {
         imc
       };
 
-      console.log('💾 Llamando a saveDailyMLInput...');
-      const success = await this.mlService.saveDailyMLInput(dailyInput);
-      console.log('📤 Resultado de saveDailyMLInput:', success);
+      let success: boolean;
+
+      if (this.modoEdicion && this.registroId) {
+        console.log('🔄 Modo edición: actualizando registro', this.registroId);
+        success = await this.mlService.updateDailyMLInput(userId, this.registroId, dailyInput);
+      } else {
+        console.log('💾 Modo creación: guardando nuevo registro');
+        success = await this.mlService.saveDailyMLInput(dailyInput);
+      }
+
+      console.log('📤 Resultado:', success);
 
       await loading.dismiss();
 
       if (success) {
-        console.log('🎉 Guardado exitoso, mostrando alerta de éxito');
-        await this.showSuccessAlert();
+        console.log('🎉 Guardado exitoso');
+        if (this.modoEdicion) {
+          await this.showToast('✅ Registro actualizado exitosamente', 'success');
+          this.router.navigate(['/ml-history']);
+        } else {
+          await this.showSuccessAlert();
+        }
       } else {
         console.error('❌ Guardado falló (success = false)');
         await this.showToast('Error al guardar los datos', 'danger');

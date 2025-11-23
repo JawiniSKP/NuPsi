@@ -15,7 +15,7 @@ import { addIcons } from 'ionicons';
 import { 
   personCircle, home, calendar, chatbubble, people, person,
   bulbOutline, waterOutline, hourglass, create, trash, refresh, 
-  time, bed, repeat, trophy, play, arrowBack, fitness, barbell, 
+  time, bed, repeat, trophy, play, arrowBack, arrowForward, fitness, barbell, 
   checkmarkCircle, save, close, addCircle, flame, statsChart, 
   swapHorizontal, fastFood, informationCircle, restaurant, timer, 
   folder, flash, warning, trendingUp, flameOutline, scaleOutline,
@@ -30,7 +30,7 @@ import {
   createOutline, chevronForwardOutline, flagOutline, calendarOutline,
   swapHorizontalOutline, timeOutline, pause, playOutline,
   stopOutline, logOutOutline, heartCircleOutline, water, analyticsOutline,
-  sparklesOutline, sparkles
+  sparklesOutline, sparkles, nutrition, nutritionOutline
 } from 'ionicons/icons';
 
 // Configurar TODOS los iconos globalmente
@@ -38,7 +38,7 @@ addIcons({
   // Se mapean los iconos importados a su nombre de uso
   personCircle, home, calendar, chatbubble, people, person,
   bulbOutline, waterOutline, hourglass, create, trash, refresh, 
-  time, bed, repeat, trophy, play, arrowBack, fitness, barbell, 
+  time, bed, repeat, trophy, play, arrowBack, arrowForward, fitness, barbell, 
   checkmarkCircle, save, close, addCircle, flame, statsChart, 
   swapHorizontal, fastFood, informationCircle, restaurant, timer, 
   folder, flash, warning, trendingUp, flameOutline, scaleOutline,
@@ -54,7 +54,8 @@ addIcons({
   swapHorizontalOutline, timeOutline, pause, playOutline,
   stopOutline, 'log-out-outline': logOutOutline,
   water, analyticsOutline, 'heart-circle-outline': heartCircleOutline,
-  sparklesOutline, sparkles
+  sparklesOutline, sparkles, nutrition, nutritionOutline,
+  'arrow-forward': arrowForward
 });
 
 export const appConfig: ApplicationConfig = {
