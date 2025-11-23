@@ -61,6 +61,21 @@ rules:
       - intent: goodbye
       - action: utter_goodbye
 
+  # 🔹 Saludo personalizado si existe slot user_name
+  - rule: Saludo personalizado por nombre
+    condition:
+      - slot_was_set:
+          - user_name
+    steps:
+      - intent: greet
+      - action: utter_greet_name
+
+  # 🔹 Saludo por defecto si no hay nombre
+  - rule: Saludo por defecto
+    steps:
+      - intent: greet
+      - action: utter_greet
+
   # 🔹 Respuesta a "¿eres un bot?"
   - rule: Responder desafío bot
     steps:

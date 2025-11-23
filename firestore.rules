@@ -82,6 +82,12 @@ service cloud.firestore {
       allow read, write: if estaAutenticado() && 
         resource.data.usuarioId == request.auth.uid;
     }
+
+    // Conversaciones por usuario (mensajes del chat persistidos por el cliente)
+    // Ruta: conversations/{userId}/messages/{messageId}
+    match /conversations/{userId}/messages/{messageId} {
+      allow read, write: if estaAutenticado() && request.auth.uid == userId;
+    }
     
     // Configuración app - solo lectura
     match /configuracionApp/{configId} {

@@ -41,14 +41,31 @@ export class ChatService {
   }
 
   // ✅ CORREGIDO: Método completo con verificación de conexión
-  public sendMessage(message: string, sender: string = 'user'): Observable<RasaResponse[]> {
-    const body = {
+  public sendMessage(message: string, sender: string = 'user', metadata?: any): Observable<RasaResponse[]> {
+    const body: any = {
       sender: sender,
       message: message
     };
 
+    if (metadata && typeof metadata === 'object') {
+      body.metadata = metadata;
+    }
+
     // ✅ CREAR OBSERVABLE CON MANEJO DE CONEXIÓN
     return from(this.sendMessageWithRetry(body));
+  }
+
+  // ✅ Método para setear un slot en Rasa usando el endpoint de tracker events
+  public async setSlot(conversationId: string, slotName: string, value: any): Promise<void> {
+    try {
+      const base = new URL(this.rasaUrl).origin;
+      const url = `${base}/conversations/${encodeURIComponent(conversationId)}/tracker/events`;
+      const body = { event: 'slot', name: slotName, value };
+      await this.http.post(url, body).toPromise();
+      console.log(`✅ Slot '${slotName}' set for conversation ${conversationId}`);
+    } catch (err) {
+      console.warn('⚠️ No se pudo setear slot en Rasa:', err);
+    }
   }
 
   // ✅ NUEVO MÉTODO: Envío con manejo de errores mejorado

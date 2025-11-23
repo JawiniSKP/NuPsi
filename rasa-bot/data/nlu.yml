@@ -299,6 +299,19 @@ nlu:
       - hoy fue un buen día
       - me siento genial
       - estoy de buen humor
+        - estoy muy bien
+        - me siento muy bien
+        - me ha ido excelente
+        - hoy estoy de buen ánimo
+        - me siento fantástico
+        - estoy de maravilla
+        - todo va bien
+        - me siento en paz
+        - tengo mucha energía y ánimo
+        - estoy contenta con mi día
+        - me siento optimista
+        - estoy muy alegre
+        - me siento estupendo
 
   - intent: ask_emotional_support
     examples: |

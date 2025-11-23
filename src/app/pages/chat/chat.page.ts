@@ -7,6 +7,8 @@ import {
   IonTextarea, IonButtons, IonBackButton
 } from '@ionic/angular/standalone';
 import { ChatService } from './chat.service';
+import { AuthService } from 'src/app/services/auth.service';
+import { ChatStorageService, StoredMessage } from '../../services/chat-storage.service';
 import { addIcons } from 'ionicons';
 import {
   arrowUpCircle, ellipsisVertical, chatbubbles 
@@ -67,12 +69,46 @@ export class ChatPage implements OnInit {
   botIsTyping: boolean = false;
 
   private chatService = inject(ChatService);
+  private authService = inject(AuthService);
+  private chatStorage = inject(ChatStorageService);
 
   constructor() {
     addIcons({ellipsisVertical, chatbubbles, arrowUpCircle});
   }
 
-  ngOnInit() {
+  async ngOnInit(): Promise<void> {
+    // cargar historial si existe usuario
+    try {
+      const uid = this.authService.getCurrentUserId();
+      if (uid) {
+        const stored = await this.chatStorage.loadMessages(uid);
+        if (stored && stored.length) {
+          // mapear a mensajes internos y mostrar
+          stored.forEach((m: StoredMessage) => this.messages.push({
+            id: m.id || this.generateId(),
+            sender: m.sender,
+            text: m.text,
+            timestamp: new Date(m.timestamp)
+          }));
+          this.groupMessages();
+        }
+      }
+    } catch (err) {
+      console.warn('No se pudo cargar historial de chat:', err);
+    }
+
+    // saludo si no hay mensajes
+    // Si hay usuario, intentar setear slot user_name en Rasa antes de la primera interacción
+    try {
+      const uid = this.authService.getCurrentUserId();
+      const name = await this.authService.getCurrentUserName();
+      if (uid && name) {
+        await this.chatService.setSlot(uid, 'user_name', name);
+      }
+    } catch (err) {
+      console.warn('No se pudo setear slot user_name en Rasa desde ngOnInit:', err);
+    }
+
     this.addWelcomeMessage();
   }
 
@@ -80,9 +116,20 @@ export class ChatPage implements OnInit {
     this.scrollToBottom(0);
   }
 
-  addWelcomeMessage() {
+  async addWelcomeMessage() {
     if (this.messages.length === 0) {
-      this.addMessage('bot', '¡Hola! Soy Aura. ¿Cómo te sientes hoy?');
+      let name = '';
+      try {
+        name = await this.authService.getCurrentUserName();
+      } catch (err) {
+        console.warn('No se pudo obtener nombre de usuario:', err);
+      }
+
+      const greeting = name && name !== 'Usuario'
+        ? `¡Hola ${name}! Soy Aura. ¿Cómo te sientes hoy?`
+        : '¡Hola! Soy Aura. ¿Cómo te sientes hoy?';
+
+      this.addMessage('bot', greeting);
     }
   }
 
@@ -102,7 +149,24 @@ export class ChatPage implements OnInit {
 
     this.botIsTyping = true;
 
-    this.chatService.sendMessage(text).subscribe({
+    // enviar con sender = UID si está autenticado, y metadata con nombre si disponible
+    let senderId = 'user';
+    try {
+      const uid = this.authService.getCurrentUserId();
+      if (uid) senderId = uid;
+    } catch (err) {
+      console.warn('No se pudo obtener UID del usuario:', err);
+    }
+
+    let metadata: any = undefined;
+    try {
+      const name = await this.authService.getCurrentUserName();
+      if (name) metadata = { user_name: name };
+    } catch (err) {
+      console.warn('No se pudo obtener nombre de usuario:', err);
+    }
+
+    this.chatService.sendMessage(text, senderId, metadata).subscribe({
       next: async (responses) => {
         this.botIsTyping = false;
         
@@ -146,6 +210,22 @@ export class ChatPage implements OnInit {
 
     this.messages.push(message);
     this.groupMessages();
+    // persistir si hay usuario autenticado
+    (async () => {
+      try {
+        const uid = this.authService.getCurrentUserId();
+        if (uid) {
+          const stored: StoredMessage = {
+            sender: message.sender,
+            text: message.text,
+            timestamp: message.timestamp.toISOString()
+          };
+          await this.chatStorage.saveMessage(uid, stored);
+        }
+      } catch (err) {
+        console.warn('No se pudo guardar mensaje en almacenamiento:', err);
+      }
+    })();
   }
 
   groupMessages() {

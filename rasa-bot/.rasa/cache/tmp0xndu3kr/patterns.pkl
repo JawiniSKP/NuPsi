@@ -1,0 +1,10 @@
+[
+  {
+    "name": "macronutrient",
+    "pattern": "(\\bproteínas\\b|\\bcarbohidratos\\b|\\bgrasas\\b|\\bfibra\\b)"
+  },
+  {
+    "name": "muscle_group",
+    "pattern": "(\\bpecho\\b|\\bespalda\\b|\\bpiernas\\b|\\bglúteos\\b|\\bhombros\\b|\\bbíceps\\b|\\btríceps\\b|\\babdomen\\b)"
+  }
+]

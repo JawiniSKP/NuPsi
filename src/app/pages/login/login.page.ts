@@ -1,5 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { environment } from 'src/environments/environment';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import {
@@ -60,6 +62,7 @@ export class LoginPage implements OnInit {
   private formBuilder = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private http = inject(HttpClient);
 
   constructor() {
     this.loginForm = this.formBuilder.group({
@@ -160,6 +163,21 @@ export class LoginPage implements OnInit {
     try {
       const result = await this.authService.login(email, password);
       console.log('✅ Login exitoso:', result.user.uid);
+      // intentamos setear el slot user_name en Rasa para la conversación identificada por UID
+      try {
+        const uid = result.user.uid;
+        const name = result.user.displayName || (result.user.email ? result.user.email.split('@')[0] : 'Usuario');
+        const base = new URL(environment.rasaUrl).origin;
+        const url = `${base}/conversations/${encodeURIComponent(uid)}/tracker/events`;
+        const body = { event: 'slot', name: 'user_name', value: name };
+        this.http.post(url, body).toPromise().then(() => {
+          console.log('✅ Slot user_name seteado en Rasa para', uid);
+        }).catch(err => {
+          console.warn('⚠️ No se pudo setear slot en Rasa:', err);
+        });
+      } catch (err) {
+        console.warn('⚠️ Error intentando setear slot en Rasa:', err);
+      }
       
       this.router.navigate(['/home']);
 
@@ -180,6 +198,20 @@ export class LoginPage implements OnInit {
     try {
       const result = await this.authService.googleLogin();
       console.log('✅ Google login exitoso:', result.user.uid);
+      try {
+        const uid = result.user.uid;
+        const name = result.user.displayName || (result.user.email ? result.user.email.split('@')[0] : 'Usuario');
+        const base = new URL(environment.rasaUrl).origin;
+        const url = `${base}/conversations/${encodeURIComponent(uid)}/tracker/events`;
+        const body = { event: 'slot', name: 'user_name', value: name };
+        this.http.post(url, body).toPromise().then(() => {
+          console.log('✅ Slot user_name seteado en Rasa para', uid);
+        }).catch(err => {
+          console.warn('⚠️ No se pudo setear slot en Rasa:', err);
+        });
+      } catch (err) {
+        console.warn('⚠️ Error intentando setear slot en Rasa:', err);
+      }
       
       this.router.navigate(['/home']);
 

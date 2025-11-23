@@ -163,6 +163,13 @@ slots:
         intent:
           - ask_meal_planning
 
+  # Slot simple para nombre de usuario, usado en plantillas de saludo
+  user_name:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_text
+
 forms:
   nutrition_profile_form:
     required_slots:
@@ -174,6 +181,8 @@ responses:
   # Saludo / cierre / meta
   utter_greet:
     - text: "¡Hola! Soy tu asistente de nutrición y cambios físicos. ¿En qué te ayudo hoy?"
+  utter_greet_name:
+    - text: "¡Hola {user_name}! Soy tu asistente de nutrición y cambios físicos. ¿En qué te ayudo hoy?"
   utter_goodbye:
     - text: "¡Gracias por conversar! ¡Ánimo con tus objetivos! 👋"
   utter_thanks:
