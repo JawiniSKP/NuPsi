@@ -466,12 +466,17 @@ Vector generado:
 
 **Configuración:**
 ```yaml
+# Primera instancia: bag of words normal
 - name: CountVectorsFeaturizer
+
+# Segunda instancia: n-grams de caracteres
 - name: CountVectorsFeaturizer
   analyzer: "char_wb"
   min_ngram: 1
   max_ngram: 4
 ```
+
+**Nota:** Se usan dos instancias para capturar diferentes patrones en el texto.
 
 **¿Qué son n-grams?**
 

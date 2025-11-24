@@ -550,11 +550,11 @@ Analiza **5 dimensiones** del bienestar:
 ```typescript
 // Cálculo ponderado
 scoreTotal = (
-  emocional × 0.25 +
+  emocional × 0.30 +
   fisica × 0.25 +
   habitos × 0.20 +
   nutricion × 0.15 +
-  social × 0.15
+  social × 0.10
 )
 
 // Niveles:

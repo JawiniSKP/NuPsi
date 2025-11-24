@@ -824,6 +824,10 @@ await model.save('indexeddb://nupsi-emotional-model');
 // - Arquitectura del modelo (JSON)
 // - Pesos entrenados (binario)
 // - Configuración del optimizador
+
+// Nombres de modelos usados en el proyecto:
+// - 'indexeddb://nupsi-emotional-model' (Clasificación Emocional)
+// - 'indexeddb://nupsi-wellness-model' (Predicción de Bienestar)
 ```
 
 ---
